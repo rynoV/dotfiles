@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Python Source Block for DataFrame
+# key: pysdf
+# --
+#+begin_src python :session :results output :var tbl=$1 :colnames no
+df = pd.DataFrame(tbl[1:], columns=tbl[0])$0
+#+end_src

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Python Source Block w Output
+# key: pyso
+# --
+#+begin_src python :session :results output
+$0
+#+end_src

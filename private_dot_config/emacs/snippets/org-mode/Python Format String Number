@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Python Format String Number
+# key: fsnum
+# --
+f'{$0:.$1f}'

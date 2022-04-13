@@ -1,0 +1,6 @@
+# key: prop
+# name: Property
+# --
+#+begin_property
+$0
+#+end_property

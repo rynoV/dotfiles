@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: display-math
+# key: d
+# expand-env: ((yas-indent-line 'fixed))
+# --
+\[
+  $0
+\]

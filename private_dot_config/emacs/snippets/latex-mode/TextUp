@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: TextUp
+# key: tup
+# --
+\\textup{$1}$0

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Lemma
+# key: lemma
+# --
+#+begin_lemma
+$0
+#+end_lemma

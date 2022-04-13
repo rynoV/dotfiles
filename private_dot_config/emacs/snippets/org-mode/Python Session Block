@@ -1,0 +1,6 @@
+# key: pys
+# name: Python Session Block
+# --
+#+begin_src python :session
+$0
+#+end_src

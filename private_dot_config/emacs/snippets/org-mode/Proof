@@ -1,0 +1,6 @@
+# key: proof
+# name: Proof
+# --
+#+begin_proof
+$0
+#+end_proof
