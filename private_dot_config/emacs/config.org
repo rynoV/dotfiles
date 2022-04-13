@@ -48,7 +48,7 @@ works.
         (find-file file))))
   (defun calum/edit-config ()
     (interactive)
-    (find-file (concat user-emacs-directory "config.org")))
+    (chezmoi-find (concat user-emacs-directory "config.org")))
   (defun calum/open-terminal-here ()
     "Based on https://emacs.stackexchange.com/a/7652 for opening a terminal in the folder of the current file"
     (interactive "@")
