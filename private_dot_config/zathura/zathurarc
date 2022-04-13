@@ -1,0 +1,18 @@
+set selection-clipboard clipboard
+set recolor true
+set guioptions "s"
+set statusbar-basename true
+set recolor-darkcolor "#FFFFFF"
+set recolor-lightcolor "#2e3440"
+set default-bg "#2e3440"
+set inputbar-bg "#2e3440"
+set inputbar-fg "#88c0d0"
+set statusbar-bg "#2e3440"
+set completion-bg "#2e3440"
+set completion-group-bg "#2e3440"
+set index-bg "#2e3440"
+set index-active-bg "#88c0d0"
+set completion-highlight-bg "#88c0d0"
+set font "JetBrains Mono normal 9"
+map <C-i> recolor
+set sandbox none # Allow web links to open
