@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=ranger
+GenericName=File Manager
+Comment=Launches the ranger file manager
+Exec=alacritty --title Ranger -e ranger %U
+Icon=utilities-terminal
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+MimeType=inode/directory;
+StartupNotify=true
+Categories=System;FileTools;FileManager

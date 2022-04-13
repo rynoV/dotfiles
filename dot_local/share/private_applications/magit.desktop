@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=magit
+GenericName=Git GUI
+Comment=Launches Magit
+Exec=bash -c 'HOME=~/magit emacs --exec "(magit-status)"'
+Icon=utilities-terminal
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+StartupNotify=true
+MimeType=inode/directory;
+Categories=System;

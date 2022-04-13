@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=CLion Banished
+Icon=/home/calum/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/.icon.svg
+StartupWMClass=jetbrains-clion
+Comment=A cross-platform C and C++ IDE
+Exec=fish --command="clion %u"
+Version=1.0
+Type=Application
+Categories=Development;IDE;
+Terminal=false
+StartupNotify=true

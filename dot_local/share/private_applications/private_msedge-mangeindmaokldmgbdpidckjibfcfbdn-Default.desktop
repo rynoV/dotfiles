@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Plutus Pioneer Program
+Exec=/opt/microsoft/msedge-beta/microsoft-edge-beta --profile-directory=Default --app-id=mangeindmaokldmgbdpidckjibfcfbdn --app-url=https://plutus-pioneer-program.readthedocs.io/en/latest/pioneer/week3.html
+Icon=msedge-mangeindmaokldmgbdpidckjibfcfbdn-Default
+StartupWMClass=crx__mangeindmaokldmgbdpidckjibfcfbdn

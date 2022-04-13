@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=CLion
+Icon=/home/calum/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/.icon.svg
+StartupWMClass=jetbrains-clion
+Comment=A cross-platform C and C++ IDE
+Exec="/home/calum/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/213.7172.20/bin/clion.sh" %u
+Version=1.0
+Type=Application
+Categories=Development;IDE;
+Terminal=false
+StartupNotify=true
