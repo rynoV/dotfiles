@@ -1,0 +1,36 @@
+[user]
+    email = sieppertcalum@gmail.com
+    name = Calum Sieppert
+[credential]
+    helper = /usr/local/share/gcm-core/git-credential-manager-core
+    credentialStore = gpg
+[pull]
+    rebase = true
+[fetch]
+    prune = true
+[diff]
+    colorMoved = zebra
+    tool = vimdiff
+[alias]
+    st = status
+    sts = status -s
+    ci = commit
+    cia = commit -a
+    cim = commit -m
+    ciam = commit -am
+    co = checkout
+    cob = checkout -b
+[merge]
+    tool = vimdiff
+    conflictstyle = diff3
+[mergetool]
+    prompt = false
+[core]
+    editor = vim
+    autocrlf = input
+[github]
+    user = rynoV
+[init]
+    defaultBranch = master
+[credential "https://dev.azure.com"]
+    useHttpPath = true
