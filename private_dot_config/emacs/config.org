@@ -1,0 +1,1188 @@
+#+Title: Calum's Emacs Config
+#+Author: Calum Sieppert
+#+Date: 2021
+# Allow evaluation of src blocks without results blocks popping up
+#+PROPERTY: header-args :results silent
+#+STARTUP: nolatexpreview
+
+This config is based off [[https://github.com/ianpan870102/yay-evil-emacs/blob/master/config.org][this file]].
+
+[[https://github.com/noctuid/general.el/][general.el]] had to be loaded upfront so that the ~:general~ keyword
+works.
+
+#+begin_src emacs-lisp
+(require 'general)
+(defconst calum/leader "SPC")
+(defconst calum/leader-non-normal "C-SPC")
+(general-create-definer calum/leader-def
+  :states '(normal insert emacs)
+  :prefix calum/leader
+  :non-normal-prefix calum/leader-non-normal
+  :prefix-command 'leader-prefix-command
+  :prefix-map 'leader-prefix-map)
+(calum/leader-def "" nil)
+(general-override-mode)
+;; Setup global leader shortcuts
+;; Note that these need to come before other leader key definitions because they seem to override
+(calum/leader-def
+  "l" 'org-store-link
+  "a" 'org-agenda
+  "c" 'org-capture)
+  #+end_src
+
+* General Emacs Configuration
+
+#+begin_src emacs-lisp
+(use-package emacs
+  :ensure ido
+  :preface
+  (defvar calum/indent-width 4)
+  (defvar calum/code-font "JetBrains Mono")
+  (defvar calum/code-font-height 120)
+  (defvar calum/magit-mode nil)
+  (defun recentf-ido-find-file ()
+    "Find a recent file using Ido. From https://www.emacswiki.org/emacs/RecentFiles#h5o-8"
+    (interactive)
+    (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
+      (when file
+        (find-file file))))
+  (defun calum/edit-config ()
+    (interactive)
+    (find-file (concat user-emacs-directory "config.org")))
+  (defun calum/open-terminal-here ()
+    "Based on https://emacs.stackexchange.com/a/7652 for opening a terminal in the folder of the current file"
+    (interactive "@")
+    (shell-command (concat "x-terminal-emulator --working-directory "
+                           (file-name-directory (or load-file-name buffer-file-name))
+                           " > /dev/null 2>&1 & disown") nil nil))
+  :general
+  ("C-S-p" 'execute-extended-command)
+  ("C-s" 'save-buffer)
+  ("C-p" 'recentf-ido-find-file)
+  ("<f7>" 'calum/edit-config)
+  ("M-w" 'kill-this-buffer)
+  ;; Ensure this isn't mapped to a command already
+  ("C-w" nil)
+  (calum/leader-def "t" 'calum/open-terminal-here)
+  (:prefix "C-w"
+           :keymaps 'override
+           ;; Use built-in window moving for cases where evil isn't available
+           "h" 'windmove-left
+           "l" 'windmove-right
+           "k" 'windmove-up
+           "j" 'windmove-down
+           "u" 'winner-undo
+           "y" 'winner-redo)
+  :config
+  (if (member "--magit" command-line-args)
+      (progn
+        (setq command-line-args (delete "--magit" command-line-args))
+        (setq calum/magit-mode t)
+        ;; Shows "magit <git repo>" as the frame title when Magit is open
+        (setq frame-title-format "%b")))
+
+  (setq ring-bell-function 'ignore
+        frame-resize-pixelwise t ; Allow the emacs window to resize more precisely
+        )
+
+  ;; Clean unused buffer every day at midnight
+  (midnight-mode 1)
+
+  ;; Save command history between sessions
+  (savehist-mode 1)
+  ;; Restore buffer point position when reopening buffers
+  (save-place-mode 1)
+
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  ;; Hide title bar
+  (setq default-frame-alist '((undecorated . t)))
+
+  ;; better scrolling experience
+  (setq scroll-margin 0
+        scroll-conservatively 101
+        scroll-preserve-screen-position t
+        auto-window-vscroll nil)
+
+  ;; Allow opening recent files
+  ;; https://www.emacswiki.org/emacs/RecentFiles
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 25)
+  (setq recentf-max-saved-items 25)
+
+  ;; Always use spaces for indentation
+  (setq-default indent-tabs-mode nil
+                tab-width calum/indent-width)
+
+  ;; Omit default startup screen
+  (setq inhibit-startup-screen t)
+
+  ;; Split windows vertically
+  ;; https://stackoverflow.com/a/2081978/14703577
+  (setq split-height-threshold nil)
+  (setq split-width-threshold 100)
+
+  ;; Recommended by lsp-mode https://emacs-lsp.github.io/lsp-mode/page/performance/
+  (setq gc-cons-threshold 100000000)
+  (setq read-process-output-max (* 1024 1024)) ;; 1mb
+
+  (server-start)
+  )
+#+END_SRC
+
+* Configuration for built-in packages
+
+** Window config history
+Undo/redo window configuration changes using ~C-c <left>~ / ~C-c <right>~.
+#+begin_src emacs-lisp
+(use-package winner
+  :ensure nil
+  :config
+  (winner-mode 1))
+#+end_src
+
+** Disable scroll-bar
+
+#+BEGIN_SRC emacs-lisp
+(use-package scroll-bar
+  :ensure nil
+  :config (scroll-bar-mode -1))
+#+END_SRC
+
+** File-related tweaks
+
+Don’t bother confirming killing processes and don’t let backup~ files scatter around.
+
+#+begin_src emacs-lisp
+(use-package files
+  :ensure nil
+  :config
+  (setq confirm-kill-processes nil
+        create-lockfiles nil ; don't create .# files
+        make-backup-files nil))
+#+end_src
+
+** Clean up whitespace on save
+#+BEGIN_SRC emacs-lisp
+(use-package whitespace
+  :ensure nil
+  :hook (before-save . whitespace-cleanup))
+#+END_SRC
+** Auto-pairing quotes and parentheses etc.
+This also takes care of the new-line-and-push-brace feature.
+#+BEGIN_SRC emacs-lisp
+(use-package elec-pair
+  :ensure nil
+  :hook (prog-mode . electric-pair-mode))
+#+END_SRC
+** Font
+
+See [[*Load theme][Load theme]] for additional font selection with the poet theme.
+#+BEGIN_SRC emacs-lisp
+(use-package frame
+  :ensure nil
+  :config
+  (when (member calum/code-font (font-family-list))
+    (set-face-attribute 'default nil :family calum/code-font))
+  (set-face-attribute 'default nil
+                      :height calum/code-font-height
+                      :weight 'normal))
+#+END_SRC
+** Show matching parentheses
+Reduce the highlight delay to instantly.
+#+BEGIN_SRC emacs-lisp
+(use-package paren
+  :ensure nil
+  :init (setq show-paren-delay 0)
+  :config (show-paren-mode +1))
+#+END_SRC
+** Mouse wheel (track-pad) scroll speed
+By default, the scrolling is way too fast to be precise and helpful,
+let's tune it down a little bit.
+#+BEGIN_SRC emacs-lisp
+(use-package mwheel
+  :ensure nil
+  :config (setq mouse-wheel-scroll-amount '(2 ((shift) . 1))
+                mouse-wheel-progressive-speed nil))
+#+END_SRC
+** Automatically refreshes the buffer for changes outside of Emacs
+Auto refreshes every 2 seconds. Don't forget to refresh the version
+control status as well.
+#+BEGIN_SRC emacs-lisp
+(use-package autorevert
+  :ensure nil
+  :config
+  (global-auto-revert-mode +1)
+  (setq auto-revert-interval 2
+        auto-revert-check-vc-info t
+        global-auto-revert-non-file-buffers t
+        auto-revert-verbose nil))
+#+END_SRC
+** Spell Check
+
+Turn on spell checking for text modes and configure keybindings under
+~C-c s~.
+#+begin_src emacs-lisp
+(use-package flyspell
+  :ensure nil
+  :delight
+  :preface
+  (defun flyspell-check-next-highlighted-word ()
+    "Custom function to spell check next highlighted word
+Based off https://www.emacswiki.org/emacs/FlySpell#h5o-7"
+    (interactive)
+    (let ((previous-point (point)))
+      (flyspell-goto-next-error)
+      (ispell-word)
+      (goto-char previous-point)))
+  :general
+  (calum/leader-def
+    :infix "s"
+    "" '(nil :which-key "spell checking")
+    "t" '(flyspell-mode
+          :which-key "toggle spell check")
+    "p" '(flyspell-check-previous-highlighted-word
+          :which-key "spell check previous word")
+    "n" '(flyspell-check-next-highlighted-word
+          :which-key "spell check next word")
+    "b" '(ispell-buffer
+          :which-key "spell check buffer")))
+#+end_src
+* Third-party packages
+
+** GUI enhancements
+*** Load theme
+Doom Nord theme
+#+begin_src emacs-lisp
+(use-package doom-themes
+  :config
+  (load-theme 'doom-nord t))
+#+end_src
+
+*** Syntax highlighting
+Lightweight syntax highlighting improvement for numbers and escape
+sequences (e.g. ~\n, \t~).
+#+BEGIN_SRC emacs-lisp
+  (use-package highlight-numbers
+    :hook (prog-mode . highlight-numbers-mode))
+
+  (use-package highlight-escape-sequences
+    :hook (prog-mode . hes-mode))
+#+END_SRC
+
+** Git Integration
+*** Magit
+Tell magit to automatically put us in vi-insert-mode when committing a change.
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :init
+  (setq forge-add-default-bindings nil)
+  :general
+  (calum/leader-def
+    :keymaps 'override
+    "g" '(magit-status :which-key "magit"))
+  (:keymaps 'magit-mode-map
+            "C-SPC" 'magit-diff-show-or-scroll-up)
+  :delight magit-wip-mode
+  :preface
+  (defun magit-choose ()
+    "Choose git repo then open magit status
+  From here https://github.com/magit/magit/issues/3139#issuecomment-319047034"
+    (interactive)
+    (let ((current-prefix-arg t))
+      (call-interactively 'magit-status)))
+  :config
+  (if calum/magit-mode
+      (progn
+        ;; Open Magit in full screen
+        (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)))
+
+  ;; Automatically put us in full insert mode for commit editing
+  (add-hook 'with-editor-mode-hook #'evil-insert-state)
+
+  ;; Update commit views when scrolling through commits in status
+  (add-hook 'magit-section-movement-hook 'magit-status-maybe-update-revision-buffer)
+
+  ;; https://magit.vc/manual/magit/Wip-Modes.html
+  (magit-wip-mode 1)
+
+  (setq magit-diff-refine-hunk t)
+
+  ;; From the mamual on magit-branch-or-checkout
+  (transient-replace-suffix 'magit-branch 'magit-checkout
+    '("b" "dwim" magit-branch-or-checkout)))
+#+END_SRC
+
+*** Forge
+[[https://magit.vc/manual/forge/index.html#Top][Forge]] for Github integration in Magit. Expects the ~~/.authinfo~ file
+to have been properly filled with the Github key (see the forge
+documentation).
+#+begin_src emacs-lisp
+  (use-package forge
+    :after magit
+    :config
+    (setq auth-sources '("~/.config/emacs/.authinfo")))
+#+end_src
+
+** Vim
+*** Evil
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil
+  :init
+  (setq evil-want-keybinding nil ; Necessary for evil-collection to work
+        evil-shift-width calum/indent-width
+        evil-want-C-u-scroll t
+        evil-want-Y-yank-to-eol t)
+  :hook (after-init . evil-mode)
+  :general
+  (:states '(motion normal)
+           "C-p" nil)
+  (:states '(insert)
+           ;; Don't interfere with company keybinds
+           "C-n" nil
+           "C-p" nil)
+  :config
+  ;; Setup C-r for redo
+  (evil-set-undo-system 'undo-tree)
+  ;; Allow jumping with C-o/C-i after movement command
+  (evil-add-command-properties #'org-babel-goto-src-block-head :jump t))
+#+END_SRC
+
+*** Evil Collection
+Evil-collection covers more parts of Emacs that the original Evil
+doesn't support (e.g. Packages buffer, eshell, calendar, magit etc.)
+#+BEGIN_SRC emacs-lisp
+(use-package evil-collection
+  :after evil
+  :custom ((evil-collection-setup-minibuffer t)
+           (evil-collection-company-use-tng nil))
+  :config
+  (setq evil-collection-magit-state 'normal)
+  (evil-collection-init)
+  (add-hook 'magit-mode-hook
+            (lambda ()
+              (general-define-key :keymaps 'magit-mode-map
+                                  :states 'normal
+                                  "gl" 'magit-section-cycle)))
+  (advice-add 'evil-collection-lispy-setup
+              :after
+              (lambda ()
+                (evil-collection-define-key 'normal 'evil-collection-lispy-mode-map
+                  ";" 'evil-repeat-find-char))))
+#+END_SRC
+
+*** Evil Numbers
+
+#+begin_src emacs-lisp
+(use-package evil-numbers
+  :general
+  (calum/leader-def
+   :states 'motion
+           "=" 'evil-numbers/inc-at-pt
+           "-" 'evil-numbers/dec-at-pt))
+#+end_src
+
+*** Commentary
+Emulates tpope's vim commentary package (Use ~gcc~ to comment out a
+line, ~gc~ to comment out the target of a motion (for example, ~gcap~
+to comment out a paragraph), ~gc~ in visual mode to comment out the
+selection etc.)
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-commentary
+    :after evil
+    :delight evil-commentary-mode
+    :config (evil-commentary-mode +1))
+#+END_SRC
+
+*** Surround
+Emulates surround.vim by Tim Pope. The functionality is wrapped into a
+minor mode. [[https://github.com/emacs-evil/evil-surround][Github repo here]].
+#+BEGIN_SRC emacs-lisp
+(use-package evil-surround
+  :config
+  (global-evil-surround-mode 1))
+#+END_SRC
+
+** Org Mode
+:PROPERTIES:
+:ID:       14d53b60-22e4-416a-807d-33d001476862
+:END:
+
+*** General Setup
+Documentation:
+- [[help:org-capture-templates][Capture templates]]
+- [[help:org-refile-targets][Org refile]]
+- [[https://github.com/cdominik/cdlatex][CDLatex]]
+- [[https://orgmode.org/manual/CDLaTeX-mode.html][CDLatex Org Mode]]
+- [[info:org#Setting options][info:org#Setting options]]
+
+
+Configures [[https://mobileorg.github.io/][Org Mobile]] syncing so I can write and view notes on my
+IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dropbox provider named
+~dropbox~.
+
+#+begin_src emacs-lisp
+(use-package cdlatex
+  :if (not calum/magit-mode)
+  :custom
+  (cdlatex-make-sub-superscript-roman-if-pressed-twice t)
+  (cdlatex-math-symbol-alist '((?\" ("\\cap"))))
+  )
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package org
+  :if (not calum/magit-mode)
+  :ensure auctex
+  :ensure cdlatex
+  :ensure evil
+  :hook ((org-mode . visual-line-mode)
+         (org-mode . org-indent-mode)
+         ;; Auto wrap lines while typing if they get too long
+         (org-mode . turn-on-org-cdlatex)
+         ;; org-cdlatex-mode is useful for working with latex in org
+         (org-mode . turn-on-auto-fill)
+         (org-metaleft . calum/org-metaleft-hook)
+         (org-metaright . calum/org-metaright-hook))
+  :delight
+  (visual-line-mode)
+  (auto-fill-function) ; Hide auto fill mode
+  :preface
+  (defun calum/paste-html-to-org ()
+    "Take content from clipboard that can be converted to HTML and paste it as Org mode text using Pandoc
+
+Based off this https://github.com/howardabrams/dot-files/blob/master/emacs-org.org#better-pasting"
+    (interactive)
+    (let ((text (shell-command-to-string "xclip -out -selection 'clipboard' -t text/html | pandoc -f html -t org")))
+      (kill-new text)
+      (yank)))
+  (defun calum/org-at-item-p ()
+    (or (org-at-item-p)
+        (and (org-region-active-p)
+             (save-excursion
+               (goto-char (region-beginning))
+               (org-at-item-p)))))
+
+  (defun calum/org-metaleft-hook ()
+    (if (calum/org-at-item-p)
+        (call-interactively 'org-outdent-item-tree)))
+
+  (defun calum/org-metaright-hook ()
+    (if (calum/org-at-item-p)
+        (call-interactively 'org-indent-item-tree)))
+
+  (defun calum/insert-subscript (arg)
+    "Insert org/latex subscript
+Intended for use with 'cdlatex-tab'.
+Use numeric prefix arg to insert number."
+    (interactive "P")
+    (insert (concat "_{" (if arg (format "%s" arg)) "}"))
+    (backward-char 1))
+
+  (defun calum/insert-superscript (arg)
+    "Insert org/latex superscript
+Intended for use with 'cdlatex-tab'
+Use numeric prefix arg to insert number."
+    (interactive "P")
+    (insert (concat "^{" (if arg (format "%s" arg)) "}"))
+    (backward-char 1))
+
+  (defun calum/org-mobile-pull ()
+    "Uses dropbox and rclone to pull changes from org mobile"
+    (interactive)
+    (message "Pulling changes from dropbox")
+    (call-process-shell-command "rclone sync --fast-list dropbox: ~/Dropbox")
+    (message "Done pulling")
+    (org-mobile-pull)
+    (org-save-all-org-buffers))
+
+  (defun calum/org-mobile-push ()
+    "Uses dropbox and rclone to push changes to org mobile"
+    (interactive)
+    (org-super-agenda-mode 0)
+    (org-mobile-push)
+    (message "Pushing changes to dropbox")
+    (call-process-shell-command "rclone sync --fast-list ~/Dropbox dropbox:")
+    (message "Done")
+    (org-super-agenda-mode 1))
+
+  (defun calum/org-mobile-sync ()
+    "Uses dropbox and rclone to pull then push changes to org mobile"
+    (interactive)
+    (calum/org-mobile-pull)
+    (calum/org-mobile-push))
+
+  (defun calum/open-heading-links ()
+    (interactive)
+    (save-excursion
+      (evil-org-top)
+      (org-open-at-point)))
+
+  :general
+  (calum/leader-def
+    :keymaps 'override
+    "v" 'calc-dispatch)
+  (calum/leader-def
+    :infix "o"
+    "" '(nil :which-key "org actions")
+    "p" 'calum/org-mobile-push
+    "f" 'calum/org-mobile-pull
+    "s" 'calum/org-mobile-sync
+    "o" 'calum/open-heading-links
+    "i" 'org-download-clipboard)
+  (:keymaps '(org-mode-map override)
+            :states '(insert)
+            "C-d" 'cdlatex-tab
+            "C-s" 'calum/insert-superscript
+            "C-M-s" 'calum/insert-subscript)
+  :config
+  (setq org-format-latex-options
+        '(:foreground default
+                      :background default
+                      :scale 1.4
+                      :html-foreground "Black"
+                      :html-background "Transparent"
+                      :html-scale 1.0
+                      :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+
+  ;; Use org-agenda-file-to-front (C-c [) to add the current file to
+  ;; the list of agenda files
+  (setq org-directory "~/org")
+  (make-directory org-directory t)
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  ;; Set to the name of the file where notes captured on mobile will
+  ;; be stored
+  (setq org-mobile-inbox-for-pull org-default-notes-file)
+  (setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
+  (make-directory org-mobile-directory t)
+
+  ;; setsid required for xdg-open to work, from here
+  ;; https://askubuntu.com/a/883905
+  (setq org-file-apps '((auto-mode . emacs)
+                        (directory . "setsid -w xdg-open %s")
+                        ("\\.mm\\'" . default)
+                        ("\\.x?html?\\'" . default)
+                        ("\\.pdf\\'" . "setsid -w xdg-open %s")
+                        (t . "setsid -w xdg-open %s")))
+
+  (org-link-set-parameters "editpdf"
+                           :follow (lambda (path)
+                                     (start-process "" nil
+                                                    "xournalpp" (expand-file-name path)))
+                           :complete 'org-link-complete-file)
+
+  ;; Don't keep indenting when adding whitespace
+  (setq org-src-preserve-indentation t)
+  ;; Tab indents using the src block's language's behaviour
+  (setq org-src-tab-acts-natively t)
+  ;; Don't ask for confirmation when evaluating src blocks
+  (setq org-confirm-babel-evaluate nil)
+  ;; Configure capture templates
+  (setq org-capture-templates
+        '(("t" "Todo" entry (file+headline "" "Tasks")
+           "* TODO %?\n  %i\n")
+          ("n" "Note" entry (file+headline "" "Quick Notes")
+           "* %U\n%?\n")
+          ;; ("m" "Meeting" entry (file+headline "tech-bytes.org" "Meetings")
+          ;;  "* %T\n%?\n" :prepend t)
+          ))
+  ;; Custom agenda views based on org files
+  (setq org-agenda-custom-commands
+        '(("p" "Personal" todo ""
+           ((org-agenda-category-filter-preset '("+calum"))))
+          ;; ("b" "Tech Bytes" todo ""
+          ;;  ((org-agenda-category-filter-preset '("+tech-bytes"))))
+          ;; ("c" "Cerno Health" todo ""
+          ;;  ((org-agenda-category-filter-preset '("+cerno"))))
+          ("s" . "School")
+          ("so" "One Week School Agenda" agenda ""
+           ((org-agenda-span 7)
+            (org-super-agenda-groups nil)))
+          ("st" "Two Week School Agenda" agenda ""
+           ((org-agenda-span 14)
+            (org-super-agenda-groups nil)))
+          ("ss" "School Agenda" agenda ""
+           ((org-agenda-span 21)
+            (org-super-agenda-groups nil)))
+          ("sm" "School Tasks without Assessments" todo ""
+           ((org-agenda-category-filter-preset '("+school"))))
+          ("sn" "School Tasks with Assessments" todo ""
+           ((org-agenda-category-filter-preset '("+school" "+assessments"))))
+          ("u" "Unscheduled TODO" todo ""
+           ((org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp))))))
+  ;; Look across all agenda files for refiling
+  (setq org-refile-targets '((org-agenda-files . (:maxlevel . 3))))
+  ;; Allow specifying refile location using a full path including file name
+  (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps t)
+  ;; Automatically create a header if it doesn't already exist in the refile target path
+  (setq org-refile-allow-creating-parent-nodes t)
+
+  ;; Don't start clock from the previous clock out
+  (setq org-clock-continuously nil)
+  ;; Save clock history and the current clock when emacs closes
+  (setq org-clock-persist t)
+  (org-clock-persistence-insinuate)
+
+  ;; After refiling something, save all the buffers automatically
+  (advice-add 'org-refile :after '(lambda (&rest _)
+                                    (org-save-all-org-buffers)))
+
+  (setq org-M-RET-may-split-line nil)
+
+  ;; Start agenda on current day
+  (setq org-agenda-start-on-weekday nil)
+  (org-babel-do-load-languages
+   'org-babel-load-languages '((emacs-lisp . t)
+                               (python . t)))
+
+  ;; Don't show inline images with their actual width
+  (setq org-image-actual-width nil)
+  )
+#+end_src
+
+*** Additional Packages
+Show nicer bullet points for headers.
+#+begin_src emacs-lisp
+(use-package org-bullets
+  :if (not calum/magit-mode)
+  :hook (org-mode . org-bullets-mode))
+#+end_src
+
+[[https://emacs.stackexchange.com/a/22552][Org-indent must be diminished after loading.]]
+#+begin_src emacs-lisp
+(use-package org-indent
+  :if (not calum/magit-mode)
+  :ensure nil
+  :delight org-indent-mode)
+#+end_src
+
+
+#+begin_src emacs-lisp
+(require 'ox-md)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package ox-gfm)
+#+end_src
+
+#+begin_src emacs-lisp
+(require 'ox-latex)
+(add-to-list 'org-latex-classes
+             '("awesome-cv"
+               "\\documentclass[11pt, a4paper]{awesome-cv}
+               [NO-DEFAULT-PACKAGES]"
+               ("\\cvsection{%s}" . "\\cvsection*{%s}")
+               ("\\cvparagraph{%s}" . "\\cvparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+             '("cpsc433"
+               "\\documentclass[11pt, a4paper]{article}
+\\usepackage[margin=0.9in,bmargin=1.0in,tmargin=1.0in]{geometry}
+\\usepackage{tikzit}
+\\input{paper.tikzstyles}
+\\newcommand{\\N}{\\mathbb{N}}
+\\newcommand{\\Z}{\\mathbb{Z}}
+\\newcommand{\\As}{A_{\\text{set}}}
+\\newcommand{\\Ss}{S_{\\text{set}}}
+\\newcommand{\\Ts}{T_{\\text{set}}}
+\\newcommand{\\Ps}{P_{\\text{set}}}
+\\newcommand{\\Ks}{K_{\\text{set}}}
+\\newcommand{\\Gs}{G_{\\text{set}}}
+\\newcommand{\\fv}{f_{\\text{Wert}}}
+\\newcommand{\\fs}{f_{\\text{select}}}
+\\newcommand{\\Ext}{\\text{Ext}}
+\\newcommand{\\Env}{\\text{Env}}
+\\newcommand{\\Inss}{\\text{Ins}_{set}}
+\\newcommand{\\Prob}{\\mathsf{Prob}}
+\\newcommand{\\Div}{\\mathsf{Div}}
+\\newcommand{\\Andmodel}{\\mathsf{A}_{\\wedge}}
+\\newcommand{\\Andstate}{\\mathsf{S}_{\\wedge}}
+\\newcommand{\\Andtrans}{\\mathsf{T}_{\\wedge}}
+\\newcommand{\\Anderw}{\\mathsf{Erw}_{\\wedge}}
+\\newcommand{\\Anderws}{\\mathsf{Erw}^{*}_{\\wedge}}
+\\newcommand{\\Atree}{\\mathsf{Atree}}
+\\newcommand{\\fleaf}{f_{\\mathsf{leaf}}}
+\\newcommand{\\ftrans}{f_{\\mathsf{trans}}}
+\\newcommand{\\pr}{\\mathsf{pr}}
+\\newcommand{\\sol}{\\mathsf{sol}}
+\\newcommand{\\yes}{\\mathsf{yes}}
+\\newcommand{\\Courses}{\\mathsf{Courses}}
+\\newcommand{\\Labs}{\\mathsf{Labs}}
+\\newcommand{\\Slots}{\\mathsf{Slots}}
+\\newcommand{\\coursemax}{\\mathsf{coursemax}}
+\\newcommand{\\labmax}{\\mathsf{labmax}}
+\\newcommand{\\assign}{\\mathsf{assign}}
+\\newcommand{\\BestCase}{\\mathsf{BestCase}}
+\\newcommand{\\Valid}{\\mathsf{Valid}}
+\\newcommand{\\Complete}{\\mathsf{Complete}}
+\\newcommand{\\Possibilities}{\\mathsf{Possibilities}}
+\\newcommand{\\Depth}{\\mathsf{Depth}}
+\\newcommand{\\theTreeSoFar}{\\mathsf{theTreeSoFar}}
+\\newcommand{\\Constr}{\\mathsf{Constr}}
+\\newcommand{\\Eval}{\\mathsf{Eval}}
+\\usepackage[shortcuts]{extdash} % allow hyphenation with \\-/
+\\newcommand{\\ncompat}{\\mathsf{not\\-/compat}}
+\\newcommand{\\partassign}{\\mathsf{partassign}}
+\\newcommand{\\unwanted}{\\mathsf{unwanted}}
+\\newcommand{\\coursemin}{\\mathsf{coursemin}}
+\\newcommand{\\labmin}{\\mathsf{labmin}}
+\\newcommand{\\pencoursemin}{\\mathsf{pen\\_coursemin}}
+\\newcommand{\\penlabmin}{\\mathsf{pen\\_labmin}}
+\\newcommand{\\pref}{\\mathsf{preference}}
+\\newcommand{\\pair}{\\mathsf{pair}}
+\\newcommand{\\pennotpaired}{\\mathsf{pen\\_notpaired}}
+\\newcommand{\\pensection}{\\mathsf{pen\\_section}}
+\\usepackage{fontspec}
+\\usepackage{unicode-math}
+\\usepackage{amsmath}
+\\usepackage{hyperref}
+\\usepackage{braket}
+\\usepackage{amsthm}
+\\theoremstyle{definition}
+\\newtheorem{defn}{Definition}[section]
+[NO-DEFAULT-PACKAGES]
+"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+             '("cpsc413"
+               "\\documentclass[11pt, a4paper]{article}
+\\usepackage[margin=0.9in,bmargin=1.0in,tmargin=1.0in]{geometry}
+\\usepackage[ruled,linesnumbered]{algorithm2e}
+\\usepackage{amsmath}
+\\usepackage{amsthm}
+\\usepackage{hyperref}
+\\theoremstyle{definition}
+\\newtheorem{defn}{Definition}[section]
+\\newtheorem{lemma}{Lemma}[section]
+\\newtheorem{property}{Property}[section]
+\\theoremstyle{remark}
+\\newtheorem*{remark}{Remark}
+\\SetKwComment{Comment}{/* }{ */}
+\\newcommand{\\pluseq}{\\mathrel{+}=}
+\\newcommand{\\minuseq}{\\mathrel{-}=}
+\\newcommand{\\var}{\\texttt}
+\\newcommand{\\NP}{\\mathcal{NP}}
+\\newcommand{\\pred}{\\leq_P}
+\\usepackage{mathtools}
+\\DeclarePairedDelimiter\\ceil{\\lceil}{\\rceil}
+\\DeclarePairedDelimiter\\floor{\\lfloor}{\\rfloor}
+"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+end_src
+
+To allow for ignoring headlines with an "ignore" tag in when exporting
+from Org Mode, from [[https://emacs.stackexchange.com/a/41685][here]].
+#+begin_src emacs-lisp
+(require 'ox-extra)
+(ox-extras-activate '(ignore-headlines))
+#+end_src
+
+Call ~org-download-clipboard~ to paste the most recent screenshot.
+#+begin_src emacs-lisp
+(use-package org-download
+  :config
+  (setq-default org-download-image-dir "screenshots")
+  (setq org-download-screenshot-method "xclip"
+        org-download-display-inline-images nil
+        org-download-image-org-width 900))
+#+end_src
+
+*** Super Agenda
+[[https://github.com/alphapapa/org-super-agenda][Org super agenda]] for organizing the agenda view in different ways.
+#+begin_src emacs-lisp
+(use-package org-super-agenda
+  :if (not calum/magit-mode)
+  :after org
+  :config
+  (setq org-super-agenda-groups
+        '(
+          ;; Organize by headers
+          (:auto-outline-path t)))
+  ;; Note: To get the empty group hiding to work, I had to add the following line to org-super-agenda.el after line 308 in org-super-agenda--make-agenda-header:
+  ;; (put-text-property 0 (length header) 'org-super-agenda-header t header)
+  ;; This is because the org-super-agenda--hide-or-show-groups function relies on the text property, and line 308 did not seem to be adding the property correctly
+  ;; After editing that file, run byte-recompile-directory
+  (setq org-super-agenda-hide-empty-groups t)
+  (org-super-agenda-mode 1)
+  ;; Ensure evil-org bindings work on super agenda headers
+  ;; From https://github.com/alphapapa/org-super-agenda/issues/50#issuecomment-446272744
+  (setq org-super-agenda-header-map (make-sparse-keymap)))
+#+end_src
+
+*** Org Evil Keybindings
+
+[[https://github.com/Somelauw/evil-org-mode][Evil keybinds for org mode]]
+#+begin_src emacs-lisp
+(use-package evil-org
+  :after org
+  :hook ((org-mode . evil-org-mode)
+         (org-agenda-mode . evil-org-mode))
+  :custom ((org-special-ctrl-a/e t)
+           (evil-org-use-additional-insert t))
+  :preface
+  (defun calum/evil-org-agenda-set-keys ()
+    "Set default keys and custom keys"
+    (evil-org-agenda-set-keys)
+    (general-define-key
+     :keymaps 'org-agenda-mode-map
+     :states 'motion
+     "q" 'org-agenda-quit
+     "C-s" 'org-save-all-org-buffers))
+  :general
+  (:keymaps 'org-mode-map
+   :states 'normal
+   ;; At an item, use m-return to create a new item
+   :predicate '(org-at-item-p)
+   "<M-return>" 'evil-org-open-below)
+  :config
+  (evil-org-set-key-theme '(navigation insert textobjects additional calendar todo shift return))
+  (require 'evil-org-agenda)
+  (calum/evil-org-agenda-set-keys))
+#+end_src
+
+** Snippets
+
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :if (not calum/magit-mode)
+  :delight yas-minor-mode
+  :config
+  (yas-global-mode 1))
+#+end_src
+** Completion and search
+*** Ido, ido-vertical, ido-ubiquitous and fuzzy matching
+Selecting buffers/files with great efficiency. We install ido-vertical
+to get a better view of the available options (use ~C-n~, ~C-p~ or
+arrow keys to navigate). Ido-ubiquitous (from the
+~ido-completing-read+~ package) provides us ido-like completions in
+describing functions and variables etc. Fuzzy matching is a nice
+feature and we have flx-ido for that purpose.
+#+BEGIN_SRC emacs-lisp
+  (use-package ido
+    :config
+    (ido-mode +1)
+    (setq ido-everywhere t
+          ido-enable-flex-matching t))
+
+  (use-package ido-vertical-mode
+    :config
+    (ido-vertical-mode +1)
+    (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
+
+  (use-package ido-completing-read+ :config (ido-ubiquitous-mode +1))
+
+  (use-package flx-ido :config (flx-ido-mode +1))
+#+END_SRC
+*** Company for auto-completion
+Use ~C-n~ and ~C-p~ to navigate the tooltip, and ~C-n~ to start completion.
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :delight company-mode
+    :hook ((prog-mode . company-mode)
+           (org-mode . company-mode))
+    :custom-face
+    ;; Use same font as code for company tooltip
+    (company-tooltip ((t (:family calum/code-font))))
+    (company-tooltip-selection ((t (:background "dim gray"))))
+    :general
+    ("C-n" 'company-manual-begin)
+    (:keymaps 'company-active-map
+              "C-n" 'company-select-next
+              "C-p" 'company-select-previous)
+    :config
+    (setq company-minimum-prefix-length 1
+          company-begin-commands '() ; Don't auto begin completion
+          company-selection-wrap-around t
+          company-tooltip-align-annotations nil)
+
+    ;; Add yasnippet support for all company backends
+    ;; https://github.com/syl20bnr/spacemacs/pull/179
+    (defun company-mode/backend-with-yas (backend)
+      (if (and (listp backend) (member 'company-yasnippet backend))
+          backend
+        (append (if (consp backend) backend (list backend))
+                '(:with company-yasnippet))))
+
+    (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends)))
+#+END_SRC
+
+[[https://github.com/tumashu/company-posframe][Company plugin]] that shows company popup as a child frame so that it
+works with variable-pitch font, recommended [[https://github.com/company-mode/company-mode/issues/741][here]].
+#+begin_src emacs-lisp
+(use-package company-posframe
+  :delight
+  :config
+  (company-posframe-mode 1))
+#+end_src
+** Programming Languages
+*** Lisp
+
+#+begin_src emacs-lisp
+(use-package lispy
+  :if (not calum/magit-mode)
+  :hook (emacs-lisp-mode . lispy-mode))
+
+(use-package lispyville
+  :if (not calum/magit-mode)
+  :after lispy
+  :hook (lispy-mode . lispyville-mode)
+  :config
+  (setq lispyville-motions-put-into-special t)
+  (with-eval-after-load 'lispyville
+    (lispyville-set-key-theme
+     '(operators
+       c-w
+       commentary
+       prettify))))
+#+end_src
+*** Haskell
+#+begin_src emacs-lisp
+(use-package haskell-mode
+  :config
+  ;; A hack to make evil indent with "o" and "O" a little nicer by
+  ;; indenting to the previous non-blank line instead of using the
+  ;; haskell indent function
+  (add-to-list 'indent-line-ignored-functions 'haskell-indentation-indent-line)
+  (add-hook 'haskell-mode-hook 'haskell-auto-insert-module-template))
+(use-package lsp-haskell
+  :config
+  (setq lsp-haskell-completion-in-comments nil))
+#+end_src
+*** YAML
+#+begin_src emacs-lisp
+(use-package yaml-mode)
+#+end_src
+*** LSP Mode
+#+begin_src emacs-lisp
+(use-package flycheck)
+(use-package evil-iedit-state)
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :init
+  ;; This essentially just let's the which-key integration know where to look
+  (setq lsp-keymap-prefix "SPC i")
+  :preface
+  (defun calum/lsp-iedit-highlights ()
+    "Wrapper around lsp-iedit-highlights that integrates evil-iedit-state"
+    (interactive)
+    (lsp-iedit-highlights)
+    (evil-iedit-state))
+  :general
+  (:keymaps '(evil-normal-state-map) "C-." nil)
+  (:states 'motion :keymaps 'lsp-mode-map
+           "C-." 'lsp-execute-code-action)
+  ;; This is what actually sets up the binding
+  (calum/leader-def :keymaps 'lsp-mode-map
+    "i" '(:keymap lsp-command-map :which-key "lsp")
+    "i e" 'calum/lsp-iedit-highlights
+    "i g s" '(lsp-treemacs-symbols :which-key "symbols"))
+  :hook ((haskell-mode . lsp-deferred)
+         (lsp-mode . lsp-enable-which-key-integration))
+  :config
+  (setq lsp-log-io nil) ; good for debugging, but if set to true can cause a performance hit
+  )
+
+(require 'lsp-ido)
+
+(use-package lsp-ui
+  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-sideline-show-hover nil
+        lsp-ui-sideline-show-diagnostics t
+        lsp-ui-sideline-show-symbol nil
+        lsp-ui-sideline-update-mode nil
+        lsp-ui-idle-delay 0.5
+        lsp-ui-sideline-delay 0.5))
+
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+#+end_src
+*** Flex & Bison
+#+begin_src emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.ll\\'" . c-mode))
+(add-to-list 'auto-mode-alist '("\\.yy\\'" . c-mode))
+#+end_src
+*** Fish
+#+begin_src emacs-lisp
+(use-package fish-mode)
+#+end_src
+
+** Miscellaneous
+
+*** Chezmoi
+#+begin_src emacs-lisp
+(use-package chezmoi
+  :general
+  (calum/leader-def
+    :infix "c"
+    "" '(:which-key "chezmoi")
+    "f" 'chezmoi-find
+    "g" 'chezmoi-magit-status
+    "s" 'chezmoi-write
+    "d" 'chezmoi-diff
+    "e" 'chezmoi-ediff
+    "i" 'chezmoi-write-files
+    "o" 'chezmoi-open-other
+    "t" 'chezmoi-template-buffer-display
+    "c" 'chezmoi-mode)
+  :config
+  (require 'chezmoi-company)
+  (add-hook 'chezmoi-mode-hook #'(lambda () (if chezmoi-mode
+                                                (progn
+                                                  (company-mode-on)
+                                                  (add-to-list 'company-backends 'chezmoi-company-backend))
+                                              (delete 'chezmoi-company-backend 'company-backends))))
+  ;; Turn off ligatures because they show up poorly.
+  (add-hook 'chezmoi-mode-hook #'(lambda () (when (require 'ligature)
+                                              (ligature-mode (if chezmoi-mode 0 1)))))
+
+  (setq-default chezmoi-template-display-p t) ;; Display template values in all source buffers.
+  )
+#+end_src
+
+*** Exchange
+[[https://github.com/Dewdrops/evil-exchange][Exchange plugin]] for swapping pieces of text around.
+#+begin_src emacs-lisp
+(use-package evil-exchange
+  :after evil
+  :config
+  (evil-exchange-cx-install))
+#+end_src
+
+*** Text Objects
+
+Use ~il~ and ~al~ to select the current line.
+#+begin_src emacs-lisp
+(use-package evil-textobj-line
+  :after evil)
+#+end_src
+
+Use ~ia~ and ~aa~ to select the current argument.
+#+begin_src emacs-lisp
+(use-package evil-args
+  :after evil
+  :general
+  (:keymaps 'evil-inner-text-objects-map
+            "a" 'evil-inner-arg)
+  (:keymaps 'evil-outer-text-objects-map
+            "a" 'evil-outer-arg))
+#+end_src
+
+*** Diminish minor modes
+#+BEGIN_SRC emacs-lisp
+  (use-package delight
+    :demand t)
+#+END_SRC
+
+*** Undoing
+
+[[https://www.emacswiki.org/emacs/UndoTree][Undo Tree]] package for visualizing undo/redo chain and to allow evil to use ~C-r~.
+#+begin_src emacs-lisp
+(use-package undo-tree
+  :delight undo-tree-mode
+  :config
+  (setq undo-tree-history-directory-alist '(("." . "~/.config/emacs/undotree")))
+  (global-undo-tree-mode))
+#+end_src
+
+*** Which-key
+Provides us with hints on available keystroke combinations.
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :delight which-key-mode
+    :config
+    (which-key-mode +1)
+    (setq which-key-idle-delay 0.4
+          which-key-idle-secondary-delay 0.4))
+#+END_SRC
+
+*** Restart Emacs
+[[https://github.com/iqbalansari/restart-emacs][Package]] that allows for restarting Emacs by running ~restart-emacs~.
+#+BEGIN_SRC emacs-lisp
+(use-package restart-emacs
+  ;; Restart with ctrl-super-r
+  :general
+  ("C-s-r" 'restart-emacs))
+#+END_SRC
+
+*** MRU Buffer Switching
+[[https://www.emacswiki.org/emacs/iflipb][Package]] for flipping through buffers in most recently used order.
+#+begin_src emacs-lisp
+(use-package iflipb
+  :config
+  (setq iflipb-ignore-buffers (lambda (buffer-name)
+                                 (and (not (string-match-p "\*Org Agenda\*" buffer-name))
+                                          (string-match-p "^[*]" buffer-name))))
+  ;; This should work everywhere, including magit buffers for example
+  (general-def '(normal visual motion) 'override
+    "<C-tab>" 'iflipb-next-buffer
+    (if (featurep 'xemacs) (kbd "<C-iso-left-tab>") (kbd "<C-S-iso-lefttab>")) 'iflipb-previous-buffer))
+#+end_src
+
+*** Jumping
+
+#+begin_src emacs-lisp
+(use-package evil-easymotion
+  :general
+  ;; leader leader to access easy motion
+  (calum/leader-def
+   :infix calum/leader
+   "" '(:keymap evilem-map :which-key "easy motion"))
+  :config
+  ;; Make motions use everything visible in the window
+  ;; https://github.com/PythonNut/evil-easymotion/pull/56#issuecomment-826142248
+  (put 'visible 'bounds-of-thing-at-point (lambda () (cons (window-start) (window-end))))
+  (evilem-make-motion evilem-motion-forward-word-begin #'evil-forward-word-begin :scope 'visible)
+  (evilem-make-motion evilem-motion-forward-WORD-begin #'evil-forward-WORD-begin :scope 'visible)
+  (evilem-make-motion evilem-motion-forward-word-end #'evil-forward-word-end :scope 'visible)
+  (evilem-make-motion evilem-motion-forward-WORD-end #'evil-forward-WORD-end :scope 'visible)
+  (evilem-make-motion evilem-motion-backward-word-begin #'evil-backward-word-begin :scope 'visible)
+  (evilem-make-motion evilem-motion-backward-WORD-begin #'evil-backward-WORD-begin :scope 'visible)
+  (evilem-make-motion evilem-motion-backward-word-end #'evil-backward-word-end :scope 'visible)
+  (evilem-make-motion evilem-motion-backward-WORD-end #'evil-backward-WORD-end :scope 'visible)
+  (cl-loop for (key . value) in (cdr evilem-map)
+           do (evil-add-command-properties value :jump t)))
+#+end_src
+
+*** Zen Mode
+
+#+begin_src emacs-lisp
+(use-package writeroom-mode
+  :config
+  (setq writeroom-global-effects (remove 'writeroom-set-alpha writeroom-global-effects)
+        writeroom-width 100))
+#+end_src
+
+
+#  LocalWords:  tpope's Ido ido flx MRU LocalWords el
+
+*** Ligatures
+[[https://github.com/mickeynp/ligature.el]]
+#+begin_src emacs-lisp
+(use-package ligature
+  :load-path "/home/calum/.config/emacs/manual-plugins/ligature.el"
+  :config
+  ;; Enable all JetBrains Mono ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("-|" "-~" "---" "-<<" "-<" "--" "->" "->>" "-->" "///" "/=" "/=="
+                                      "/>" "//" "/*" "*>" "***" "*/" "<-" "<<-" "<=>" "<=" "<|" "<||"
+                                      "<|||" "<|>" "<:" "<>" "<-<" "<<<" "<==" "<<=" "<=<" "<==>" "<-|"
+                                      "<<" "<~>" "<=|" "<~~" "<~" "<$>" "<$" "<+>" "<+" "</>" "</" "<*"
+                                      "<*>" "<->" "<!--" ":>" ":<" ":::" "::" ":?" ":?>" ":=" "::=" "=>>"
+                                      "==>" "=/=" "=!=" "=>" "===" "=:=" "==" "!==" "!!" "!=" ">]" ">:"
+                                      ">>-" ">>=" ">=>" ">>>" ">-" ">=" "&&&" "&&" "|||>" "||>" "|>" "|]"
+                                      "|}" "|=>" "|->" "|=" "||-" "|-" "||=" "||" ".." ".?" ".=" ".-" "..<"
+                                      "..." "+++" "+>" "++" "[||]" "[<" "[|" "{|" "??" "?." "?=" "?:" "##"
+                                      "###" "####" "#[" "#{" "#=" "#!" "#:" "#_(" "#_" "#?" "#(" ";;" "_|_"
+                                      "__" "~~" "~~>" "~>" "~-" "~@" "$>" "^=" "]#"))
+  ;; Enables ligature checks globally in all buffers. You can also do it
+  ;; per mode with `ligature-mode'.
+  (global-ligature-mode t))
+#+end_src

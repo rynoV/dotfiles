@@ -1,0 +1,58 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/calum/.config/emacs/config.org
+
+
+* Org roam
+:PROPERTIES:
+:ARCHIVE_TIME: 2021-04-27 Tue 14:21
+:ARCHIVE_FILE: ~/.config/emacs/config.org
+:ARCHIVE_OLPATH: Third-party packages/Org Mode
+:ARCHIVE_CATEGORY: config
+:END:
+
+[[https://github.com/org-roam/org-roam][Org Roam]] for note taking. [[https://www.orgroam.com/manual.html][Documentation here]].
+#+begin_src emacs-lisp
+(use-package org-roam
+  :init
+  (defvar calum/org-roam-dir (concat org-directory "/roam"))
+  (unless (file-exists-p calum/org-roam-dir)
+    (make-directory calum/org-roam-dir))
+  :hook
+  (after-init . org-roam-mode)
+  :custom
+  (org-roam-directory calum/org-roam-dir)
+  :bind (:map org-roam-mode-map
+              (("C-c n c" . org-roam-capture)
+               ("C-c n f" . org-roam-find-file)
+               ("C-c n l" . org-roam)
+               ("C-c n i" . org-roam-insert)))
+  :config
+  (setq org-roam-tag-sources '(vanilla)))
+#+end_src
+
+* Nord Theme
+:PROPERTIES:
+:ARCHIVE_TIME: 2021-04-27 Tue 14:22
+:ARCHIVE_FILE: ~/.config/emacs/config.org
+:ARCHIVE_OLPATH: Third-party packages/GUI enhancements
+:ARCHIVE_CATEGORY: config
+:END:
+[[https://github.com/hlissner/emacs-doom-themes][Doom themes package]] containing nord theme.
+#+BEGIN_SRC emacs-lisp :eval no
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+
+  ;; Choose a theme
+  (load-theme 'doom-nord t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+#+END_SRC
