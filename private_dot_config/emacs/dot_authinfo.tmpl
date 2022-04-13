@@ -1,0 +1,1 @@
+machine api.github.com login {{ .github_username }}^forge password {{ (bitwarden "item" "Github Forge Access Token").notes }}
