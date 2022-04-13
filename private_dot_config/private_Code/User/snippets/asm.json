@@ -1,0 +1,28 @@
+{
+	// Place your snippets for asm here. Each snippet is defined under a snippet name and has a prefix, body and 
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
+	// same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+	"Function": {
+		"prefix": "func",
+		"body": [
+			"\n\n\t${1:name}_a = -(16) & -16",
+			"\t${1:name}_da = -${1:name}_a",
+			"${1:name}:",
+			"/**/",
+			"\tstp\tfp, x30, [sp, ${1:name}_a]!",
+			"\tmov\tfp, sp\n\n\n",
+			"\tldp\tfp, x30, [sp], ${1:name}_da",
+			"\tret"
+		]
+	}
+}

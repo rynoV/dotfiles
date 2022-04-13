@@ -1,0 +1,14 @@
+{
+	// Place your snippets for dart here. Each snippet is defined under a snippet name and has a prefix, body and 
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
+	// same ids are connected.
+	// Example:
+	"Stateless widget": {
+		"prefix": "stls",
+		"body": [
+			"class $1 extends StatelessWidget {\n\tconst $1({Key? key}) : super(key: key);\n\n\t@override\n\tWidget build(BuildContext context) {\n\t\treturn Container(\n\t\t\t$2\n\t\t);\n\t}\n}",
+		],
+		"description": "A new stateless widget"
+	}
+}

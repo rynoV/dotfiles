@@ -1,0 +1,347 @@
+{
+    // Recommended dart settings from https://dartcode.org/docs/recommended-settings/
+    "[dart]": {
+        // Automatically format code on save and during typing of certain characters
+        // (like `;` and `}`).
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+
+        // Draw a guide line at 80 characters, where Dart's formatting will wrap code.
+        "editor.rulers": [80],
+
+        // Disables built-in highlighting of words that match your selection. Without
+        // this, all instances of the selected text will be highlighted, interfering
+        // with Dart's ability to highlight only exact references to the selected variable.
+        "editor.selectionHighlight": false,
+
+        // By default, VS Code prevents code completion from popping open when in
+        // "snippet mode" (editing placeholders in inserted code). Setting this option
+        // to `false` stops that and allows completion to open as normal, as if you
+        // weren't in a snippet placeholder.
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+
+        // By default, VS Code will pre-select the most recently used item from code
+        // completion. This is usually not the most relevant item.
+        //
+        // "first" will always select top item
+        // "recentlyUsedByPrefix" will filter the recently used items based on the
+        //     text immediately preceding where completion was invoked.
+        "editor.suggestSelection": "first",
+
+        // Allows pressing <TAB> to complete snippets such as `for` even when the
+        // completion list is not visible.
+        "editor.tabCompletion": "onlySnippets",
+
+        // By default, VS Code will populate code completion with words found in the
+        // current file when a language service does not provide its own completions.
+        // This results in code completion suggesting words when editing comments and
+        // strings. This setting will prevent that.
+        "editor.wordBasedSuggestions": false
+    },
+    "[haskell]": {
+        "editor.tabSize": 2
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[yaml]": {
+        "editor.tabSize": 4,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "better-comments.highlightPlainText": true,
+    "bracket-pair-colorizer-2.colors": [
+        "#27b9b1",
+        "#ffb200",
+        "#AE81FF",
+        "#7da2fa"
+    ],
+    "breadcrumbs.enabled": true,
+    "editor.acceptSuggestionOnEnter": "smart",
+    "editor.colorDecorators": true,
+    "editor.foldingStrategy": "indentation",
+    "editor.fontFamily": "'JetBrains Mono', 'Cascadia Code', 'Victor Mono', 'Fira Code', Monaco, 'Courier New', monospace",
+    "editor.fontLigatures": true,
+    "editor.fontSize": 12,
+    "editor.minimap.enabled": false,
+    "editor.suggestSelection": "first",
+    "editor.wordWrap": "on",
+    "editor.wrappingIndent": "deepIndent",
+    "eslint.packageManager": "yarn",
+    "files.autoSave": "off",
+    "html.format.wrapAttributes": "force-expand-multiline",
+    "javascript.preferences.quoteStyle": "single",
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "npm.packageManager": "yarn",
+    "prettier.arrowParens": "always",
+    "prettier.jsxSingleQuote": true,
+    "prettier.semi": false,
+    "prettier.singleQuote": true,
+    "prettier.tabWidth": 4,
+    "prettier.trailingComma": "es5",
+    "prettier.useTabs": false,
+    "python.formatting.provider": "yapf",
+    "python.languageServer": "Pylance",
+    "remote.SSH.path": "C:\\\\Windows\\\\System32\\\\wsl.exe ssh",
+    "remote.SSH.remotePlatform": {
+        "arm.cpsc.ucalgary.ca": "linux",
+        "rpi": "linux",
+        "192.168.86.36": "linux",
+        "359rpi": "linux"
+    },
+    "terminal.integrated.experimentalUseTitleEvent": true,
+    "terminal.integrated.fontSize": 12,
+    "terminal.integrated.rightClickBehavior": "default",
+    "terminal.integrated.shell.windows": "pwsh.exe",
+    "terminal.integrated.allowChords": false,
+    "terminal.integrated.shellArgs.windows": "-NoLogo",
+    "tslint.packageManager": "yarn",
+    "vim.autoindent": true,
+    "vim.camelCaseMotion.enable": true,
+    "vim.changeWordIncludesWhitespace": true,
+    "vim.cursorStylePerMode.insert": "line",
+    "vim.cursorStylePerMode.normal": "block",
+    "vim.cursorStylePerMode.replace": "block-outline",
+    "vim.cursorStylePerMode.visual": "line",
+    "vim.cursorStylePerMode.visualblock": "line",
+    "vim.cursorStylePerMode.visualline": "line",
+    "vim.debug.loggingLevelForAlert": "info",
+    "vim.debug.silent": true,
+    "vim.easymotion": true,
+    "vim.easymotionMarkerFontFamily": "",
+    "vim.enableNeovim": true,
+    "vim.foldfix": true,
+    "vim.handleKeys": {
+        "<C-k>": false,
+        "<C-r>": false,
+        "<C-v>": false
+    },
+    "vim.highlightedyank.enable": true,
+    "vim.incsearch": true,
+    "vim.insertModeKeyBindings": [
+        {
+            "after": ["<Esc>"],
+            "before": ["<C-c>"]
+        }
+    ],
+    "vim.leader": ",",
+    "vim.neovimPath": "nvim",
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": ["<leader>", "<CR>"],
+            "commands": [":nohl"]
+        },
+        {
+            "after": ["<leader>", "<leader>"],
+            "before": ["<space>"]
+        },
+        {
+            "before": ["<down>"],
+            "commands": ["scrollLineDown"]
+        },
+        {
+            "before": ["<up>"],
+            "commands": ["scrollLineUp"]
+        },
+        {
+            "before": ["<leader>", "k"],
+            "commands": ["workbench.action.nextEditor"]
+        },
+        {
+            "before": ["<leader>", "j"],
+            "commands": ["workbench.action.previousEditor"]
+        }
+    ],
+    "vim.startofline": false,
+    "vim.useCtrlKeys": true,
+    "vim.useSystemClipboard": true,
+    "vim.visualModeKeyBindings": [],
+    "vscode-neovim.neovimExecutablePaths.linux": "/home/calum/scripts/vscode-nvim/nvim.appimage",
+    "vscode-neovim.textDecorationsAtTop": true,
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+    "window.title": "${activeEditorMedium}${separator}${rootName}",
+    "workbench.colorTheme": "Nord",
+    "workbench.editor.focusRecentEditorAfterClose": false,
+    "workbench.editor.labelFormat": "short",
+    "workbench.startupEditor": "none",
+    "workbench.statusBar.visible": true,
+    "zenMode.hideLineNumbers": false,
+    "zenMode.restore": true,
+    "cSpell.userWords": [
+        "Arial",
+        "GIFs",
+        "Prepend",
+        "Tfidf",
+        "Vectorizer",
+        "isnumeric",
+        "ndarray",
+        "nord",
+        "numpy",
+        "onclick",
+        "ondrag",
+        "onkey",
+        "pikachu",
+        "pygame",
+        "sklearn",
+        "spacy",
+        "uncommenting",
+        "vals"
+    ],
+    "python.showStartPage": false,
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "python.analysis.typeCheckingMode": "basic",
+    "rewrap.autoWrap.enabled": true,
+    "rewrap.wrappingColumn": 80,
+    "liveshare.anonymousGuestApproval": "accept",
+    "editor.semanticHighlighting.enabled": true,
+    "tailwindCSS.emmetCompletions": true,
+    "workbench.editor.enablePreviewFromQuickOpen": false,
+    "workbench.list.openMode": "doubleClick",
+    "editor.suggest.showStatusBar": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "explorer.autoReveal": false,
+    "workbench.editorAssociations": {
+        "*.ipynb": "jupyter-notebook"
+    },
+    "yaml.customTags": [
+        // AWS CloudFormation/SAM function tags
+        "!And",
+        "!If",
+        "!Not",
+        "!Equals",
+        "!Or",
+        "!FindInMap sequence",
+        "!Base64",
+        "!Cidr",
+        "!Ref",
+        "!Sub",
+        "!GetAtt",
+        "!GetAZs",
+        "!ImportValue",
+        "!Select",
+        "!Select sequence",
+        "!Split",
+        "!Join sequence"
+    ],
+    "aws.cdk.explorer.enabled": false,
+    "powershell.integratedConsole.showOnStartup": false,
+    "search.exclude": {
+        ".aws-sam": true,
+        ".venv": true
+    },
+    "python.linting.ignorePatterns": [
+        ".vscode/*.py",
+        "**/site-packages/**/*.py",
+        ".aws-sam"
+    ],
+    "python.analysis.diagnosticMode": "workspace",
+    "editor.stickyTabStops": true,
+    "terminal.integrated.sendKeybindingsToShell": true,
+    "workbench.sideBar.location": "right",
+    "terminal.integrated.commandsToSkipShell": [
+        "workbench.action.terminal.focusNext",
+        "workbench.action.terminal.focusPrevious"
+    ],
+    "jupyter.askForKernelRestart": false,
+    "terminal.integrated.inheritEnv": false,
+    "docker.dockerComposeBuild": false,
+    "liveshare.connectionMode": "relay",
+    "typescript.suggest.paths": false,
+    "workbench.editor.wrapTabs": true,
+    "workbench.editor.decorations.badges": true,
+    "workbench.editor.enablePreviewFromCodeNavigation": true,
+    "notebook.outline.showCodeCells": true,
+    "emmet.includeLanguages": {
+        "aspnetcorerazor": "html",
+        "jinja-html": "html"
+    },
+    "csharp.semanticHighlighting.enabled": true,
+    "[markdown]": {
+        "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python"
+    },
+    "workbench.iconTheme": "material-icon-theme",
+    "terminal.external.windowsExec": "C:\\Users\\siepp\\AppData\\Local\\Microsoft\\WindowsApps\\wt.exe",
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "workbench.tree.expandMode": "doubleClick",
+    "window.restoreWindows": "none",
+    "[xml]": {
+        "editor.defaultFormatter": "DotJoshJohnson.xml"
+    },
+    "python.defaultInterpreterPath": "/bin/python3",
+    "terminal.integrated.tabs.enabled": true,
+    "redhat.telemetry.enabled": false,
+    "workbench.editor.untitled.hint": "hidden",
+    "editor.suggest.preview": true,
+    "security.workspace.trust.untrustedFiles": "open",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash"
+        },
+        "zsh": {
+            "path": "zsh"
+        },
+        "fish": {
+            "path": "fish"
+        },
+        "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+        },
+        "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+        },
+        "/bin/bash (migrated)": {
+            "path": "/bin/bash",
+            "args": []
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "fish",
+    "dotfiles.repository": "rynoV/pop-os-config",
+    "notebook.cellToolbarLocation": {
+        "default": "right",
+        "jupyter-notebook": "left"
+    },
+    "git.confirmSync": false,
+    "git.autofetch": true,
+    "terminal.integrated.showLinkHover": false,
+    "editor.scrollbar.vertical": "hidden",
+    "window.zoomLevel": 1,
+    "githubPullRequests.fileListLayout": "tree",
+    "sqltools.useNodeRuntime": true,
+    "window.menuBarVisibility": "toggle",
+    "[svg]": {
+        "editor.defaultFormatter": "jock.svg"
+    },
+    "material-icon-theme.files.associations": {
+        "*.chs": "haskell",
+        "*.hsc": "haskell"
+    },
+    "files.associations": {
+        "*.yy": "bison",
+        "*.ll": "lex"
+    },
+    "cmake.cmakePath": "",
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "workbench.activityBar.visible": false,
+    "xml.server.workDir": "~/.cache/.lemminx"
+}

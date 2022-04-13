@@ -1,0 +1,14 @@
+{
+    "Create interface": {
+        "prefix": "int",
+        "scope": "typescript, typescriptreact",
+        "body": ["interface ${1:name} {", "\t${2:key}: ${3:type}", "}"],
+        "description": "Create an interface"
+    },
+    "Props interface": {
+        "prefix": "pint",
+        "scope": "typescript, typescriptreact",
+        "body": ["interface Props {", "\t${2:key}: ${3:type}", "}"],
+        "description": "Create a props interface"
+    }
+}
