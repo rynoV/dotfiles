@@ -1,0 +1,9 @@
+# Should be ordered from most restrictive to least
+# See docs here: https://rclone.org/filtering/#filter-from-read-filtering-patterns-from-a-file
+- /Documents/win32yank/
+- /Documents/PowerShell/
+- *.mp4
++ /Documents/
++ /Documents/**
+# exclude everything else
+- *

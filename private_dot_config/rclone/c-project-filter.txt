@@ -1,0 +1,7 @@
+# Should be ordered from most restrictive to least
+# See docs here: https://rclone.org/filtering/#filter-from-read-filtering-patterns-from-a-file
+- .git/
+- cmake-build/
+- cmake-build-debug/
+- .idea/
+- doc/
