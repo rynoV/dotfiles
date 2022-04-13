@@ -1,0 +1,8 @@
+!code
+!code/**
+
+.venv/
+env/
+node_modules/
+dist-newstyle/
+.dart_tool/
