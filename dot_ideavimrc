@@ -1,0 +1,12 @@
+set surround
+" set multiple-cursors
+set commentary
+set argtextobj
+" set easymotion
+" set textobj-entire
+" set ReplaceWithRegister
+set exchange
+
+set ideajoin
+
+set clipboard^=unnamedplus,unnamed
