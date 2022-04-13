@@ -1,0 +1,37 @@
+[Default Applications]
+x-scheme-handler/terminal=com.alacritty.Alacritty.desktop
+inode/directory=ranger.desktop
+application/x-gnome-saved-search=ranger.desktop
+application/x-directory=ranger.desktop
+x-scheme-handler/mailto=msedge-pkooggnaalmfkidjmlhoelhdllpphaga-Default.desktop
+x-scheme-handler/http=vivaldi-stable.desktop
+application/xhtml+xml=vivaldi-stable.desktop
+text/html=vivaldi-stable.desktop
+x-scheme-handler/https=vivaldi-stable.desktop
+text/org=emacs.desktop
+x-scheme-handler/appstream=io.elementary.appcenter.desktop
+application/pdf=org.pwmt.zathura-pdf-poppler.desktop
+text/plain=emacsclient.desktop
+x-scheme-handler/webcal=microsoft-edge-beta.desktop
+x-scheme-handler/jetbrains=jetbrains-toolbox.desktop
+x-scheme-handler/jetbrains-gateway=jetbrains-gateway.desktop
+
+[Added Associations]
+x-scheme-handler/mailto=org.gnome.Geary.desktop;msedge-pkooggnaalmfkidjmlhoelhdllpphaga-Default.desktop;
+x-scheme-handler/http=google-chrome.desktop;firefox.desktop;microsoft-edge-beta.desktop;vivaldi-stable.desktop;
+application/xhtml+xml=google-chrome.desktop;firefox.desktop;microsoft-edge-beta.desktop;vivaldi-stable.desktop;
+text/html=google-chrome.desktop;firefox.desktop;microsoft-edge-beta.desktop;vivaldi-stable.desktop;
+x-scheme-handler/https=google-chrome.desktop;firefox.desktop;microsoft-edge-beta.desktop;vivaldi-stable.desktop;
+x-scheme-handler/appstream=io.elementary.appcenter.desktop;
+application/pdf=org.pwmt.zathura-pdf-poppler.desktop;
+font/ttf=org.gnome.font-viewer.desktop;
+text/plain=emacs_emacs.desktop;nvim-qt.desktop;nvim.desktop;
+text/csv=code.desktop;
+application/json=code.desktop;
+application/javascript=code.desktop;
+binary/octet-stream=code.desktop;
+image/png=display-im6.q16.desktop;org.gnome.Nautilus.desktop;
+text/calendar=code.desktop;
+text/x-gettext-translation-template=libreoffice-impress.desktop;
+application/x-mswinurl=vim.desktop;
+text/x-c++src=nvim-qt.desktop;

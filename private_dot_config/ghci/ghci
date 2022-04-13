@@ -1,0 +1,4 @@
+-- From https://typeclasses.com/ghci/config
+-- Makes the GHCI prompt a purple lambda
+:set prompt "\ESC[1;35m\x03BB> \ESC[m"
+:set prompt-cont "\ESC[1;35m > \ESC[m"
