@@ -83,6 +83,7 @@ works.
 
   (setq ring-bell-function 'ignore
         frame-resize-pixelwise t ; Allow the emacs window to resize more precisely
+        mouse-wheel-tilt-scroll t ; Horizontal mouse scrolling
         )
 
   ;; Clean unused buffer every day at midnight
