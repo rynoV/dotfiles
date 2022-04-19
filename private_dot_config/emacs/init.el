@@ -2,6 +2,10 @@
 (require 'package)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+;; This is needed for org-plus-contrib which provides ox-extra
+;; https://emacs.stackexchange.com/questions/8182/how-to-use-org-plus-contrib
+;; https://emacs.stackexchange.com/questions/38184/org-mode-ignore-heading-when-exporting-to-latex/41685#41685
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 (setq package-enable-at-startup nil)
 (package-initialize)
 

@@ -11,23 +11,25 @@ This config is based off [[https://github.com/ianpan870102/yay-evil-emacs/blob/m
 works.
 
 #+begin_src emacs-lisp
-(require 'general)
-(defconst calum/leader "SPC")
-(defconst calum/leader-non-normal "C-SPC")
-(general-create-definer calum/leader-def
-  :states '(normal insert emacs)
-  :prefix calum/leader
-  :non-normal-prefix calum/leader-non-normal
-  :prefix-command 'leader-prefix-command
-  :prefix-map 'leader-prefix-map)
-(calum/leader-def "" nil)
-(general-override-mode)
-;; Setup global leader shortcuts
-;; Note that these need to come before other leader key definitions because they seem to override
-(calum/leader-def
-  "l" 'org-store-link
-  "a" 'org-agenda
-  "c" 'org-capture)
+(use-package general
+  :config
+  (defconst calum/leader "SPC")
+  (defconst calum/leader-non-normal "C-SPC")
+  (general-create-definer calum/leader-def
+    :states '(normal insert emacs)
+    :prefix calum/leader
+    :non-normal-prefix calum/leader-non-normal
+    :prefix-command 'leader-prefix-command
+    :prefix-map 'leader-prefix-map)
+  (calum/leader-def "" nil)
+  (general-override-mode)
+  ;; Setup global leader shortcuts
+  ;; Note that these need to come before other leader key definitions because they seem to override
+  (calum/leader-def
+    "l" 'org-store-link
+    "a" 'org-agenda
+    "c" 'org-capture)
+  )
   #+end_src
 
 * General Emacs Configuration
@@ -250,6 +252,12 @@ Based off https://www.emacswiki.org/emacs/FlySpell#h5o-7"
     "b" '(ispell-buffer
           :which-key "spell check buffer")))
 #+end_src
+** Eldoc
+Just disabling the display in the mode-bar.
+#+begin_src emacs-lisp
+(use-package eldoc
+  :delight)
+#+end_src
 * Third-party packages
 
 ** GUI enhancements
@@ -361,6 +369,7 @@ doesn't support (e.g. Packages buffer, eshell, calendar, magit etc.)
   :after evil
   :custom ((evil-collection-setup-minibuffer t)
            (evil-collection-company-use-tng nil))
+  :delight evil-collection-unimpaired-mode
   :config
   (setq evil-collection-magit-state 'normal)
   (evil-collection-init)
@@ -412,7 +421,6 @@ minor mode. [[https://github.com/emacs-evil/evil-surround][Github repo here]].
 :PROPERTIES:
 :ID:       14d53b60-22e4-416a-807d-33d001476862
 :END:
-
 *** General Setup
 Documentation:
 - [[help:org-capture-templates][Capture templates]]
@@ -661,7 +669,6 @@ Show nicer bullet points for headers.
   :ensure nil
   :delight org-indent-mode)
 #+end_src
-
 
 #+begin_src emacs-lisp
 (require 'ox-md)
