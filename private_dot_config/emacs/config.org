@@ -84,6 +84,7 @@ works.
   (setq ring-bell-function 'ignore
         frame-resize-pixelwise t ; Allow the emacs window to resize more precisely
         mouse-wheel-tilt-scroll t ; Horizontal mouse scrolling
+        mouse-wheel-flip-direction t ; Flip horizontal scrolling
         )
 
   ;; Clean unused buffer every day at midnight
@@ -334,7 +335,9 @@ documentation).
   (setq evil-want-keybinding nil ; Necessary for evil-collection to work
         evil-shift-width calum/indent-width
         evil-want-C-u-scroll t
-        evil-want-Y-yank-to-eol t)
+        evil-want-Y-yank-to-eol t
+        evil-search-module 'evil-search
+        evil-symbol-word-search t)
   :hook (after-init . evil-mode)
   :general
   (:states '(motion normal)
@@ -1023,7 +1026,7 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
 (use-package chezmoi
   :general
   (calum/leader-def
-    :infix "c"
+    :infix "d"
     "" '(:which-key "chezmoi")
     "f" 'chezmoi-find
     "g" 'chezmoi-magit-status
