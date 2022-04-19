@@ -793,8 +793,11 @@ Show nicer bullet points for headers.
 To allow for ignoring headlines with an "ignore" tag in when exporting
 from Org Mode, from [[https://emacs.stackexchange.com/a/41685][here]].
 #+begin_src emacs-lisp
-(require 'ox-extra)
-(ox-extras-activate '(ignore-headlines))
+(use-package org-contrib
+  :config
+  (require 'ox-extra)
+  (ox-extras-activate '(ignore-headlines))
+  )
 #+end_src
 
 Call ~org-download-clipboard~ to paste the most recent screenshot.
