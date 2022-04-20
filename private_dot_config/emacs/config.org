@@ -58,6 +58,12 @@ works.
                            (file-name-directory (or load-file-name buffer-file-name))
                            " > /dev/null 2>&1 & disown") nil nil))
   :general
+  ("C-<down-mouse-1>" ;; Ctrl click to open a link
+                  (lambda (event)
+                    (interactive (list last-command-event))
+                    (posn-set-point (event-end event))
+                    (browse-url (thing-at-point 'url t))))
+
   ("C-S-p" 'execute-extended-command)
   ("C-s" 'save-buffer)
   ("C-p" 'recentf-ido-find-file)
@@ -85,8 +91,8 @@ works.
 
   (setq ring-bell-function 'ignore
         frame-resize-pixelwise t ; Allow the emacs window to resize more precisely
-        mouse-wheel-tilt-scroll t ; Horizontal mouse scrolling
-        mouse-wheel-flip-direction t ; Flip horizontal scrolling
+        mouse-wheel-tilt-scroll t       ; Horizontal mouse scrolling
+        mouse-wheel-flip-direction t    ; Flip horizontal scrolling
         )
 
   ;; Clean unused buffer every day at midnight
