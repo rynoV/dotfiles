@@ -54,6 +54,8 @@ alias la "ls -a"
 
 alias cm chezmoi
 
+test "$TERM" = "xterm-kitty" && alias ssh "kitty +kitten ssh"
+
 set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME ; set -gx PATH $XDG_DATA_HOME/cabal/bin $PATH $XDG_DATA_HOME/ghcup/bin # ghcup-env
 
 set PATH $HOME/.nix-profile/bin /nix/var/nix/profiles/default/bin $PATH

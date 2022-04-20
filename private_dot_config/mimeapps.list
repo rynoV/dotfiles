@@ -1,5 +1,5 @@
 [Default Applications]
-x-scheme-handler/terminal=com.alacritty.Alacritty.desktop
+x-scheme-handler/terminal=kitty.desktop
 inode/directory=ranger.desktop
 application/x-gnome-saved-search=ranger.desktop
 application/x-directory=ranger.desktop
