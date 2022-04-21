@@ -54,6 +54,18 @@ alias la "ls -a"
 
 alias cm chezmoi
 
+if type -q pacman
+    alias pm pacman
+    # Browse remote packages
+    alias pml "pacman -Slq | fzf --preview 'pacman -Si {}' --layout=reverse"
+    # Browse installed packages
+    alias pmq "pacman -Qq | fzf --preview 'pacman -Qil {}' --layout=reverse"
+    # Browse groups
+    alias pmg "pacman -Sgq | fzf --preview 'pacman -Sgq {}' --layout=reverse"
+    # Browse packages in a group passed as the argument
+    alias pmgl "pacman_browse_group"
+end
+
 test "$TERM" = "xterm-kitty" && alias ssh "kitty +kitten ssh"
 
 set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME ; set -gx PATH $XDG_DATA_HOME/cabal/bin $PATH $XDG_DATA_HOME/ghcup/bin # ghcup-env
