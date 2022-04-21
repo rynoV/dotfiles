@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=Firefox Developer Edition
 Exec=firefox-dev %u
-Icon=/home/calum/.local/share/applications/firefox-dev/browser/chrome/icons/default/default128.png
+Icon=/home/calum/.local/firefox-dev/browser/chrome/icons/default/default128.png
 Terminal=false
 Type=Application
 Categories=Network;WebBrowser;Favorite;
