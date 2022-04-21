@@ -1,0 +1,3 @@
+* .pacman-pkglist.txt
+
+- python-pillow installed for ranger images to work
