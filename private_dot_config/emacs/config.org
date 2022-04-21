@@ -59,10 +59,10 @@ works.
                            " > /dev/null 2>&1 & disown") nil nil))
   :general
   ("C-<down-mouse-1>" ;; Ctrl click to open a link
-                  (lambda (event)
-                    (interactive (list last-command-event))
-                    (posn-set-point (event-end event))
-                    (browse-url (thing-at-point 'url t))))
+   (lambda (event)
+     (interactive (list last-command-event))
+     (posn-set-point (event-end event))
+     (browse-url (thing-at-point 'url t))))
 
   ("C-S-p" 'execute-extended-command)
   ("C-s" 'save-buffer)
@@ -94,6 +94,10 @@ works.
         mouse-wheel-tilt-scroll t       ; Horizontal mouse scrolling
         mouse-wheel-flip-direction t    ; Flip horizontal scrolling
         )
+
+  ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
+  (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+  (add-to-list 'default-frame-alist '(alpha . (95 . 95)))
 
   ;; Clean unused buffer every day at midnight
   (midnight-mode 1)
