@@ -13,5 +13,8 @@ AddPackage ranger # Simple, vim-like file manager
 AddPackage ripgrep-all # rga: ripgrep, but also search in PDFs, E-Books, Office documents, zip, tar.gz, etc.
 AddPackage vivaldi # An advanced browser made with the power user in mind.
 AddPackage z # Tracks your most used directories, based on 'frecency'
+AddPackage xclip # Command line interface to the X11 clipboard
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
+AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
+AddPackage --foreign ttf-ms-fonts # Installed to get git-credential-manager-core-bin working, based on advice here: https://github.com/AvaloniaUI/Avalonia/issues/4427#issuecomment-669173654
