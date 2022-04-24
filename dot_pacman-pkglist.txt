@@ -10,6 +10,7 @@ fd
 fish
 flex
 fzf
+ghcup-hs-bin
 git
 git-credential-manager-core-bin
 htop

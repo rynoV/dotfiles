@@ -1,3 +1,8 @@
 function fish_greeting
-    fish_logo
+    if type -q colorscript
+        colorscript --random
+        echo
+    else
+        fish_logo
+    end
 end
