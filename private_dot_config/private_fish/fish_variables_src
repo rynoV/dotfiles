@@ -1,6 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-SETUVAR --export BW_SESSION:AgxKbRXjvaxu5D0m\x2bv8jJQd7jxj1GxXdNm9Dl9Mt8v98fXbKvdQp43fb9PNK4qOA2rZ1VDGiiAgyN0j7PksJrQ\x3d\x3d
+SETUVAR --export BW_SESSION:Ph2PehTivOtnhEsGFzkrWJa5ajWUJiJGhI5hGaDeKbJ9hgOhdoR27GHwr9OFo6L8vLuBpiFYBHc7p4jRO\x2bLr1A\x3d\x3d
 SETUVAR ZO_CMD:zo
 SETUVAR Z_CMD:z
 SETUVAR Z_DATA:/home/calum/\x2elocal/share/z/data
