@@ -5,6 +5,7 @@ base
 bat
 bison
 bitwarden-cli
+copyq
 emacs-nativecomp
 fd
 fish
@@ -34,6 +35,7 @@ polkit
 python-pillow
 ranger
 ripgrep-all
+shell-color-scripts
 sudo
 texinfo
 ttf-ms-fonts
@@ -44,10 +46,13 @@ which
 xclip
 xdg-utils
 xf86-video-fbdev
+xmobar
 xmonad
 xmonad-contrib
 xorg-server
 xorg-server-xephyr
 xorg-xmessage
 z
+zathura
+zathura-pdf-poppler
 zip
