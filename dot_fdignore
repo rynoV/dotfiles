@@ -10,7 +10,12 @@ dist-newstyle/
 .cache
 
 .local/**
-!.local/share
+!.local/share/
 .local/share/**
-!.local/share/applications
+!.local/aur/
+!.local/aur/**
+.local/aur/**/src
+!.local/share/applications/
 !.local/share/applications/**
+!.local/share/chezmoi/
+!.local/share/chezmoi/**

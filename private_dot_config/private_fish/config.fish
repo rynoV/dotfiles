@@ -69,7 +69,8 @@ end
 
 test "$TERM" = "xterm-kitty" && alias ssh "kitty +kitten ssh"
 
-set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME ; set -gx PATH $XDG_DATA_HOME/cabal/bin $PATH $XDG_DATA_HOME/ghcup/bin # ghcup-env
+set --export GHCUP_USE_XDG_DIRS
+set -gx PATH $XDG_DATA_HOME/cabal/bin $PATH $XDG_DATA_HOME/ghcup/bin # ghcup-env
 
 set PATH $HOME/.nix-profile/bin /nix/var/nix/profiles/default/bin $PATH
 set MANPATH $HOME/.nix-profile/share/man /nix/var/nix/profiles/default/share/man $MANPATH
@@ -79,11 +80,16 @@ if type -q any-nix-shell
 end
 
 set --export GNUPGHOME $XDG_DATA_HOME/gnupg
+# https://stackoverflow.com/a/55032706
+set --export GPG_TTY (tty)
+
+set --export CABAL_DIR $XDG_DATA_HOME/cabal
 
 set --export NVM_DIR $XDG_DATA_HOME/nvm
 
 set --export LESSHISTFILE $XDG_STATE_HOME/lesshst
 
+# For "pass" password manager
 set --export PASSWORD_STORE_DIR ~/.var/password-store
 
 # Clean up duplicates in the path, from https://unix.stackexchange.com/a/14896
