@@ -97,6 +97,10 @@ works.
 
   ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
   (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+  ;; Make sure emacsclient frames are made transparent as well
+  (add-hook 'after-make-frame-functions
+            '(lambda (frame)
+               (set-frame-parameter frame 'alpha '(95 . 95))))
   (add-to-list 'default-frame-alist '(alpha . (95 . 95)))
 
   ;; Clean unused buffer every day at midnight
@@ -978,7 +982,8 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   (add-hook 'haskell-mode-hook 'haskell-auto-insert-module-template))
 (use-package lsp-haskell
   :config
-  (setq lsp-haskell-completion-in-comments nil))
+  (setq lsp-haskell-completion-in-comments nil
+        lsp-haskell-server-path "haskell-language-server"))
 #+end_src
 *** YAML
 #+begin_src emacs-lisp
