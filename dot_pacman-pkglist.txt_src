@@ -5,6 +5,7 @@ base
 bat
 bison
 bitwarden-cli
+broot
 copyq
 emacs-nativecomp
 fd
@@ -14,6 +15,7 @@ fzf
 ghcup-hs-bin
 git
 git-credential-manager-core-bin
+handlr
 htop
 kitty
 lightdm
@@ -34,6 +36,7 @@ pkgconf
 polkit
 python-pillow
 ranger
+rclone
 ripgrep-all
 shell-color-scripts
 sudo
@@ -44,11 +47,8 @@ vim
 vivaldi
 which
 xclip
-xdg-utils
+xdg-utils-handlr
 xf86-video-fbdev
-xmobar
-xmonad
-xmonad-contrib
 xorg-server
 xorg-server-xephyr
 xorg-xmessage

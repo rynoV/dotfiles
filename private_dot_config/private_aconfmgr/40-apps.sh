@@ -15,15 +15,18 @@ AddPackage vivaldi # An advanced browser made with the power user in mind.
 AddPackage z # Tracks your most used directories, based on 'frecency'
 AddPackage xclip # Command line interface to the X11 clipboard
 AddPackage copyq # Clipboard manager with searchable and editable history
-AddPackage xdg-utils # Command line tools that assist applications with a variety of desktop integration tasks
 AddPackage zathura # Minimalistic document viewer
 AddPackage zathura-pdf-poppler # Adds pdf support to zathura by using the poppler engine
+AddPackage broot # Fuzzy Search + tree + cd
+AddPackage handlr # Powerful alternative to xdg-utils written in Rust
+AddPackage rclone # Sync files to and from Google Drive, S3, Swift, Cloudfiles, Dropbox and Google Cloud Storage
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
 AddPackage --foreign ttf-ms-fonts # Installed to get git-credential-manager-core-bin working, based on advice here: https://github.com/AvaloniaUI/Avalonia/issues/4427#issuecomment-669173654
 AddPackage --foreign ghcup-hs-bin # an installer for the general purpose language Haskell
 AddPackage --foreign shell-color-scripts # A CLI for the collection of terminal color scripts. Included 52 beautiful terminal color scripts.
+AddPackage --foreign xdg-utils-handlr # A shim for xdg-utils to use handlr under the hood
 
 CopyFile /opt/shell-color-scripts/colorscripts/awk-rgb-test
 CopyFile /opt/shell-color-scripts/colorscripts/00default.sh

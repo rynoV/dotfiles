@@ -88,5 +88,7 @@ CreateLink /etc/fonts/conf.d/69-unifont.conf /usr/share/fontconfig/conf.default/
 CreateLink /etc/fonts/conf.d/80-delicious.conf /usr/share/fontconfig/conf.default/80-delicious.conf
 CreateLink /etc/fonts/conf.d/90-synthetic.conf /usr/share/fontconfig/conf.default/90-synthetic.conf
 
+CopyFile /usr/share/xsessions/xmonad-calum.desktop
+
 SetFileProperty /usr/bin/newgidmap mode 755
 SetFileProperty /usr/bin/newuidmap mode 755
