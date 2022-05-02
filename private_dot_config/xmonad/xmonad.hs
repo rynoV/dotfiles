@@ -13,4 +13,6 @@ main = xmonad def
 
 myStartupHook :: X ()
 myStartupHook = do
-    spawnOnce "picom --no-vsync"
+  spawnOnce "picom --no-vsync"
+  spawnOnce "emacs --daemon"
+  checkKeymap myConfig myKeymap

@@ -140,7 +140,7 @@ works.
   (setq gc-cons-threshold 100000000)
   (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
-  (server-start)
+                                        ;(server-start)
   )
 #+END_SRC
 
@@ -196,9 +196,8 @@ See [[*Load theme][Load theme]] for additional font selection with the poet them
 (use-package frame
   :ensure nil
   :config
-  (when (member calum/code-font (font-family-list))
-    (set-face-attribute 'default nil :family calum/code-font))
   (set-face-attribute 'default nil
+                      :family calum/code-font
                       :height calum/code-font-height
                       :weight 'normal))
 #+END_SRC

@@ -16,8 +16,9 @@ set --export XDG_STATE_HOME $HOME/.local/state
 
 set PATH ~/.local/bin $PATH
 set PATH ~/.local/bin/evil-software $PATH
-set --export VISUAL emacsclient
-set --export EDITOR emacsclient
+set --export VISUAL emacsclient --no-wait --create-frame
+set --export EDITOR emacsclient --no-wait --create-frame
+set --export BROWSER browser
 set MANPATH $MANPATH /usr/share/man
 
 set --export FZF_DEFAULT_OPTS "--cycle --layout=reverse --border --height=90% --preview-window=wrap --marker='*' \
