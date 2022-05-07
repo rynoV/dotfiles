@@ -1,2 +1,2 @@
 #!/bin/sh
-vivaldi-stable --force-dark-mode $@
+qutebrowser $@

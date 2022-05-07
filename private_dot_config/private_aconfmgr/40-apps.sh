@@ -20,6 +20,8 @@ AddPackage zathura-pdf-poppler # Adds pdf support to zathura by using the popple
 AddPackage broot # Fuzzy Search + tree + cd
 AddPackage handlr # Powerful alternative to xdg-utils written in Rust
 AddPackage rclone # Sync files to and from Google Drive, S3, Swift, Cloudfiles, Dropbox and Google Cloud Storage
+AddPackage jq # Command-line JSON processor
+AddPackage qutebrowser # A keyboard-driven, vim-like browser based on PyQt5
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.

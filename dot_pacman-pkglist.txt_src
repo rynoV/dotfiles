@@ -17,6 +17,7 @@ git
 git-credential-manager-core-bin
 handlr
 htop
+jq
 kitty
 lightdm
 lightdm-gtk-greeter
@@ -35,6 +36,7 @@ picom
 pkgconf
 polkit
 python-pillow
+qutebrowser
 ranger
 rclone
 ripgrep-all

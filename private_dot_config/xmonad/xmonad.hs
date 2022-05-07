@@ -1,40 +1,130 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
+import Bitwarden
 import Control.Applicative (liftA2)
-import Data.Char
+import Control.Concurrent (threadDelay)
+import qualified Control.Exception as E
+import Control.Monad (void, when)
+import Data.Aeson (eitherDecode)
+import Data.Aeson.Types (FromJSON)
+import qualified Data.ByteString.Lazy.UTF8 as B
+import Data.Char (isPrint, isSpace)
+import Data.Foldable (forM_)
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe, isJust)
+import GHC.Generics (Generic)
+import System.Environment (getEnv)
 import XMonad
+  ( Default (..),
+    ExtensionClass (..),
+    Full (..),
+    LayoutClass,
+    ManageHook,
+    X,
+    XConfig (..),
+    className,
+    composeAll,
+    io,
+    mod4Mask,
+    sendMessage,
+    spawn,
+    title,
+    trace,
+    windows,
+    xK_Alt_L,
+    xK_Tab,
+    xK_q,
+    xmonad,
+    (-->),
+    (<+>),
+    (=?),
+    (|||),
+  )
 import XMonad.Actions.CycleWindows (cycleRecentWindows)
 import XMonad.Actions.DynamicWorkspaces (removeWorkspace, renameWorkspace, selectWorkspace, withWorkspace)
 import XMonad.Actions.GroupNavigation (Direction (History), historyHook, nextMatch)
-import XMonad.Actions.Search (dictionary, duckduckgo, google, hoogle, intelligent, promptSearch, promptSearchBrowser, selectSearchBrowser)
+import XMonad.Actions.Search (dictionary, duckduckgo, google, hoogle, intelligent, promptSearchBrowser, selectSearchBrowser)
 import XMonad.Config.Desktop ()
 import XMonad.Hooks.EwmhDesktops (addEwmhWorkspaceSort, ewmh, ewmhFullscreen)
 import XMonad.Hooks.ManageDocks (avoidStruts, manageDocks)
 import XMonad.Hooks.ManageHelpers
+  ( doFullFloat,
+    doRectFloat,
+    isFullscreen,
+  )
 import XMonad.Hooks.StatusBar
   ( defToggleStrutsKey,
     statusBarProp,
     withEasySB,
   )
 import XMonad.Hooks.StatusBar.PP
+  ( PP
+      ( ppCurrent,
+        ppExtras,
+        ppHidden,
+        ppHiddenNoWindows,
+        ppOrder,
+        ppSep,
+        ppSort,
+        ppTitleSanitize,
+        ppUrgent
+      ),
+    shorten,
+    wrap,
+    xmobarBorder,
+    xmobarColor,
+    xmobarRaw,
+    xmobarStrip,
+  )
 import XMonad.Layout.CenteredIfSingle (centeredIfSingle)
 import XMonad.Layout.Circle (Circle (Circle))
-import XMonad.Layout.Magnifier
+import XMonad.Layout.Gaps (Direction2D (..), gaps)
+import XMonad.Layout.Grid (Grid (..))
+import XMonad.Layout.Magnifier (magnifiercz)
+import XMonad.Layout.Master (mastered)
+import XMonad.Layout.MultiDishes
 import XMonad.Layout.NoBorders (smartBorders)
+import XMonad.Layout.OneBig
 import XMonad.Layout.Renamed (Rename (PrependWords), renamed)
-import XMonad.Layout.Roledex (Roledex (Roledex))
+import XMonad.Layout.ResizableTile
+import XMonad.Layout.Spacing (smartSpacing, smartSpacingWithEdge, spacingWithEdge)
+import XMonad.Layout.StackTile
+import XMonad.Layout.Tabbed
+import XMonad.Layout.TwoPane
+import XMonad.Layout.WindowNavigation (Navigate (..), windowNavigation)
 import XMonad.Prompt
-import XMonad.Prompt.FuzzyMatch
+  ( XPConfig (..),
+    XPPosition (..),
+    XPrompt (..),
+    getNextCompletion,
+    mkComplFunFromList,
+    mkXPrompt,
+    setBorderColor,
+    vimLikeXPKeymap',
+  )
+import XMonad.Prompt.FuzzyMatch (fuzzyMatch, fuzzySort)
 import XMonad.Prompt.Man (manPrompt)
 import XMonad.Prompt.RunOrRaise (runOrRaisePrompt)
 import XMonad.Prompt.Shell (shellPrompt)
 import XMonad.Prompt.Window
+  ( WindowPrompt (..),
+    allWindows,
+    windowMultiPrompt,
+    wsWindows,
+  )
 import XMonad.Prompt.XMonad (xmonadPrompt)
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig (additionalKeysP, checkKeymap)
+import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Loggers (logTitles)
 import XMonad.Util.NamedScratchpad
+  ( NamedScratchpad (NS),
+    customFloating,
+    namedScratchpadAction,
+    namedScratchpadManageHook,
+  )
+import XMonad.Util.Paste (pasteString, sendKey)
+import XMonad.Util.Run (runProcessWithInput)
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.WorkspaceCompare (filterOutWs)
 
@@ -63,9 +153,11 @@ myConfig =
     `additionalKeysP` myKeymap
 
 myLayoutConfig =
-  renamed [PrependWords "Centered"] (centeredIfSingle 0.8 Full)
-    ||| Full
-    ||| magnifiercz 1.2 Circle
+  windowNavigation $
+    renamed [PrependWords "Centered"] (gaps [(U, 6), (D, 6)] $ centeredIfSingle 0.8 Full)
+      ||| spacingWithEdge 3 (TwoPane (3 / 100) (1 / 2))
+      ||| Full
+      ||| magnifiercz 1.2 Circle
 
 myPromptConfig :: XPConfig
 myPromptConfig =
@@ -84,15 +176,24 @@ myPromptConfig =
     }
 
 myScratchpads =
-  [ NS "htop" "kitty --title htop htop" (title =? "htop") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
+  [ NS "htop" "kitty --title htop htop" (title =? "htop") $ customFloating $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
     NS "terminal" "kitty --title terminal" (title =? "terminal") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
     NS "files" "kitty --title files ranger" (title =? "files") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
   ]
 
+-- Note: M1 is left alt
 myKeymap =
   [ ("M-<Tab>", nextMatch History (return True)),
     ("M1-<Tab>", cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
     ("M-S-p", runOrRaisePrompt myPromptConfig),
+    ("M-<Right>", sendMessage $ Go R),
+    ("M-<Left>", sendMessage $ Go L),
+    ("M-<Up>", sendMessage $ Go U),
+    ("M-<Down>", sendMessage $ Go D),
+    ("M-C-<Right>", sendMessage $ Swap R),
+    ("M-C-<Left>", sendMessage $ Swap L),
+    ("M-C-<Up>", sendMessage $ Swap U),
+    ("M-C-<Down>", sendMessage $ Swap D),
     ( "M-p w",
       windowMultiPrompt
         myPromptConfig {autoComplete = Just 500000}
@@ -109,10 +210,12 @@ myKeymap =
     ("M-p m", manPrompt myPromptConfig),
     ("M-p s", shellPrompt myPromptConfig),
     ("M-p x", xmonadPrompt myPromptConfig),
+    ("M-p p f", bwLoginFillPrompt myPromptConfig),
+    ("M-p p c", bwLoginCopyPrompt myPromptConfig),
     ("C-S-M1-e", spawn "myemacs"),
     ("C-S-M1-b", spawn "browser"),
     ("C-S-M1-t", spawn $ terminal myConfig),
-    ("M-h", namedScratchpadAction myScratchpads "htop"),
+    ("C-S-M1-h", namedScratchpadAction myScratchpads "htop"),
     ("M-t", namedScratchpadAction myScratchpads "terminal"),
     ("M-f", namedScratchpadAction myScratchpads "files"),
     ("M-S-<Backspace>", removeWorkspace),

@@ -22,9 +22,16 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - containers
+- aeson
+- bytestring
+- process
+- utf8-string
 
 library:
   source-dirs: src
+  dependencies:
+  - xmonad
+  - xmonad-contrib
 
 executables:
   xmonad-dev-exe:

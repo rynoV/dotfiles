@@ -70,4 +70,5 @@ packages:
 
 ghc-options:
   "$locals": -Wall
+  "$locals": -haddock
   "$everything": -haddock
