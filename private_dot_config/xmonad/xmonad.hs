@@ -232,6 +232,7 @@ myKeymap =
 
 myStartupHook :: X ()
 myStartupHook = do
+  spawnOnce "xbindkeys"
   spawnOnce "picom --no-vsync"
   -- Note: spawning the daemon using systemd instead of here does not
   -- include environment variables for emacs to access

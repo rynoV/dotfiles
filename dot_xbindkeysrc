@@ -66,17 +66,11 @@
 #"rxvt"
 #  Control + b:2 + Release
 
-"xvkbd -xsendevent -text '\[Down]'"
-  Control+Shift + semicolon
+"light -A 10"
+  XF86MonBrightnessUp
 
-"xvkbd -xsendevent -text '\[Up]'"
-  Control+Shift + apostrophe
-
-"xvkbd -xsendevent -text '\[Left]'"
-  Control+Shift + bracketleft
-
-"xvkbd -xsendevent -text '\[Right]'"
-  Control+Shift + bracketright
+"light -U 10"
+  XF86MonBrightnessDown
 
 ##################################
 # End of xbindkeys configuration #

@@ -22,6 +22,9 @@ AddPackage handlr # Powerful alternative to xdg-utils written in Rust
 AddPackage rclone # Sync files to and from Google Drive, S3, Swift, Cloudfiles, Dropbox and Google Cloud Storage
 AddPackage jq # Command-line JSON processor
 AddPackage qutebrowser # A keyboard-driven, vim-like browser based on PyQt5
+AddPackage light # Program to easily change brightness on backlight-controllers.
+AddPackage xbindkeys # Launch shell commands with your keyboard or your mouse under X
+AddPackage xorg-xset # User preference utility for X
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
@@ -29,6 +32,9 @@ AddPackage --foreign ttf-ms-fonts # Installed to get git-credential-manager-core
 AddPackage --foreign ghcup-hs-bin # an installer for the general purpose language Haskell
 AddPackage --foreign shell-color-scripts # A CLI for the collection of terminal color scripts. Included 52 beautiful terminal color scripts.
 AddPackage --foreign xdg-utils-handlr # A shim for xdg-utils to use handlr under the hood
+
+CreateDir /etc/light
+CopyFile /etc/udev/rules.d/backlight.rules
 
 CopyFile /opt/shell-color-scripts/colorscripts/awk-rgb-test
 CopyFile /opt/shell-color-scripts/colorscripts/00default.sh

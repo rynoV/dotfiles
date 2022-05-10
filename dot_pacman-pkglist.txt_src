@@ -19,6 +19,7 @@ handlr
 htop
 jq
 kitty
+light
 lightdm
 lightdm-gtk-greeter
 linux
@@ -48,6 +49,7 @@ unzip
 vim
 vivaldi
 which
+xbindkeys
 xclip
 xdg-utils-handlr
 xf86-video-fbdev
