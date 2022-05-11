@@ -35,6 +35,15 @@ AddPackage chromium # A web browser built for speed, simplicity, and security
 AddPackage feh # Fast and light imlib2-based image viewer
 AddPackage variety # Changes the wallpaper on a regular interval using user-specified or automatically downloaded images.
 AddPackage alsa-utils # Advanced Linux Sound Architecture - Utilities
+AddPackage blueman # GTK+ Bluetooth Manager
+AddPackage bluez # Daemons for the bluetooth protocol stack
+AddPackage bluez-utils # Development and debugging utilities for the bluetooth protocol stack
+AddPackage pipewire-alsa # Low-latency audio/video router and processor - ALSA configuration
+AddPackage pipewire-pulse # Low-latency audio/video router and processor - PulseAudio replacement
+AddPackage redshift # Adjusts the color temperature of your screen according to your surroundings.
+AddPackage wireplumber # Session / policy manager implementation for PipeWire
+
+
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
@@ -42,6 +51,14 @@ AddPackage --foreign ttf-ms-fonts # Installed to get git-credential-manager-core
 AddPackage --foreign ghcup-hs-bin # an installer for the general purpose language Haskell
 AddPackage --foreign shell-color-scripts # A CLI for the collection of terminal color scripts. Included 52 beautiful terminal color scripts.
 AddPackage --foreign xdg-utils-handlr # A shim for xdg-utils to use handlr under the hood
+
+CopyFile /etc/geoclue/geoclue.conf
+
+CreateLink /etc/systemd/system/bluetooth.target.wants/bluetooth.service /usr/lib/systemd/system/bluetooth.service
+CreateLink /etc/systemd/system/dbus-org.bluez.service /usr/lib/systemd/system/bluetooth.service
+CreateLink /etc/systemd/user/pipewire.service.wants/wireplumber.service /usr/lib/systemd/user/wireplumber.service
+CreateLink /etc/systemd/user/sockets.target.wants/pipewire-pulse.socket /usr/lib/systemd/user/pipewire-pulse.socket
+CreateLink /etc/systemd/user/pipewire-session-manager.service /usr/lib/systemd/user/wireplumber.service
 
 CreateDir /etc/light
 CopyFile /etc/udev/rules.d/backlight.rules
@@ -74,7 +91,6 @@ CopyFile /opt/shell-color-scripts/colorscripts/faces
 CopyFile /opt/shell-color-scripts/colorscripts/fade
 CopyFile /opt/shell-color-scripts/colorscripts/ghosts
 CopyFile /opt/shell-color-scripts/colorscripts/guns
-CopyFile /opt/shell-color-scripts/colorscripts/hex
 CopyFile /opt/shell-color-scripts/colorscripts/illumina
 CopyFile /opt/shell-color-scripts/colorscripts/jangofett
 CopyFile /opt/shell-color-scripts/colorscripts/kaisen
@@ -94,7 +110,6 @@ CopyFile /opt/shell-color-scripts/colorscripts/six
 CopyFile /opt/shell-color-scripts/colorscripts/space-invaders
 CopyFile /opt/shell-color-scripts/colorscripts/spectrum
 CopyFile /opt/shell-color-scripts/colorscripts/square
-CopyFile /opt/shell-color-scripts/colorscripts/suckless
 CopyFile /opt/shell-color-scripts/colorscripts/tanks
 CopyFile /opt/shell-color-scripts/colorscripts/thebat
 CopyFile /opt/shell-color-scripts/colorscripts/thebat2

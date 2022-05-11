@@ -9,6 +9,9 @@ bat
 binutils
 bison
 bitwarden-cli
+blueman
+bluez
+bluez-utils
 broot
 chromium
 copyq
@@ -55,6 +58,8 @@ pacman-contrib
 pass
 patch
 picom
+pipewire-alsa
+pipewire-pulse
 pkgconf
 polkit
 python-adblock
@@ -73,6 +78,7 @@ variety
 vim
 vivaldi
 which
+wireplumber
 xbindkeys
 xclip
 xdg-utils-handlr

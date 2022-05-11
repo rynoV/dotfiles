@@ -1,3 +1,4 @@
+-- Inspiration: https://github.com/thiskappaisgrey/dotfiles/blob/master/.xmonad/xmobars/xmobar-nord.conf
 Config { overrideRedirect = False
        , font     = "xft:jetbrains mono:size=10:antialias=true,Symbols Nerd Font Mono:style=1000-em"
        , bgColor  = "#2E3440"
@@ -35,7 +36,7 @@ Config { overrideRedirect = False
                         , "-i"  , ""
                         ] 200
                     , Run DynNetwork ["--template", "↓ <rx>KB ↑ <tx>KB"] 10
-                    , Run Wireless "" ["--template", "Wifi <qualityvbar>"] 100
+                    , Run Wireless "" ["--template", " <qualityvbar>"] 100
                     , Run Memory
                           [ "--template", "<usedratio>%"
                           , "--low"      , "#A3BE8C"
@@ -60,8 +61,9 @@ Config { overrideRedirect = False
                           , "--highs", " "
                           , "--mediums", "墳 "
                           , "--lows", "奔 "]
+                    , Run ComX "xmobar-bluetooth.fish" [] "xmobar-bluetooth.fish not found" "bluetooth" 30
                     ]
        , sepChar  = "%"
        , alignSep = "}{"
-       , template = "%XMonadLog% }{ %cpu% | : %memory% * %swap% | %wi% | %dynnetwork% | %battery% | %alsa:default:Master% | %date% "
+       , template = "%XMonadLog% }{ %cpu% | : %memory% * %swap% | %wi% | %dynnetwork% | %battery% | %alsa:default:Master% | %bluetooth% | %date% "
        }
