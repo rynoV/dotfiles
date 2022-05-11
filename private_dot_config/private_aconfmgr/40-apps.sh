@@ -22,11 +22,19 @@ AddPackage handlr # Powerful alternative to xdg-utils written in Rust
 AddPackage rclone # Sync files to and from Google Drive, S3, Swift, Cloudfiles, Dropbox and Google Cloud Storage
 AddPackage jq # Command-line JSON processor
 AddPackage qutebrowser # A keyboard-driven, vim-like browser based on PyQt5
+AddPackage python-adblock # Optional with qutebrowser
 AddPackage light # Program to easily change brightness on backlight-controllers.
 AddPackage xbindkeys # Launch shell commands with your keyboard or your mouse under X
 AddPackage xorg-xset # User preference utility for X
+AddPackage arandr # Provide a simple visual front end for XRandR 1.2.
+AddPackage autorandr # Auto-detect connected display hardware and load appropiate X11 setup using xrandr
+AddPackage libnotify # Library for sending desktop notifications, provides notify-send
+AddPackage notification-daemon # Server implementation of the freedesktop.org desktop notification specification
+AddPackage pass # Stores, retrieves, generates, and synchronizes passwords securely
+AddPackage chromium # A web browser built for speed, simplicity, and security
 AddPackage feh # Fast and light imlib2-based image viewer
 AddPackage variety # Changes the wallpaper on a regular interval using user-specified or automatically downloaded images.
+AddPackage alsa-utils # Advanced Linux Sound Architecture - Utilities
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.

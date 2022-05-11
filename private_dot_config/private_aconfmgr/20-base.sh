@@ -13,12 +13,13 @@ AddPackage zip # Compressor/archiver for creating and modifying zipfiles
 AddPackage unzip # For extracting and viewing files in .zip archives
 AddPackage which # A utility to show the full path of commands
 AddPackage polkit # Application development toolkit for controlling system-wide privileges. Installed to allow managing system power as an unpriviliged user
+AddPackage linux-firmware # Firmware files for Linux
 AddPackageGroup base-devel # Development tools needed for Arch Build System and building from source in general
 
-CopyFile /boot/loader/entries/arch-fallback.conf 755
 CopyFile /boot/loader/entries/arch-lts.conf 755
 CopyFile /boot/loader/entries/arch.conf 755
 CopyFile /boot/loader/loader.conf 755
+CreateDir /boot/System\ Volume\ Information
 
 CopyFile /etc/hostname
 CopyFile /etc/hosts
@@ -90,6 +91,8 @@ CreateLink /etc/fonts/conf.d/65-nonlatin.conf /usr/share/fontconfig/conf.default
 CreateLink /etc/fonts/conf.d/69-unifont.conf /usr/share/fontconfig/conf.default/69-unifont.conf
 CreateLink /etc/fonts/conf.d/80-delicious.conf /usr/share/fontconfig/conf.default/80-delicious.conf
 CreateLink /etc/fonts/conf.d/90-synthetic.conf /usr/share/fontconfig/conf.default/90-synthetic.conf
+
+CopyFile /etc/X11/xorg.conf.d/30-touchpad.conf
 
 CopyFile /usr/share/xsessions/xmonad-calum.desktop
 

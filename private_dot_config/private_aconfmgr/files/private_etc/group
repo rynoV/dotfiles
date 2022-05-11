@@ -13,7 +13,7 @@ floppy:x:94:
 scanner:x:96:
 power:x:98:
 nobody:x:65534:
-adm:x:999:daemon
+adm:x:999:daemon,calum
 wheel:x:998:
 utmp:x:997:
 audio:x:996:
