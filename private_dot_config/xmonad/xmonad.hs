@@ -233,6 +233,7 @@ myKeymap =
 myStartupHook :: X ()
 myStartupHook = do
   spawnOnce "xbindkeys"
+  spawnOnce "variety"
   spawnOnce "picom --no-vsync"
   spawnOnce "autorandr --force --change" -- Detect and load monitor configuration
   -- Note: spawning the daemon using systemd instead of here does not

@@ -28,7 +28,7 @@ sgx:x:988:
 storage:x:987:
 tty:x:5:
 uucp:x:986:
-video:x:985:
+video:x:985:calum
 users:x:984:
 systemd-journal:x:983:
 rfkill:x:982:

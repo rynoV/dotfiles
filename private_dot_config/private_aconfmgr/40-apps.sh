@@ -25,6 +25,8 @@ AddPackage qutebrowser # A keyboard-driven, vim-like browser based on PyQt5
 AddPackage light # Program to easily change brightness on backlight-controllers.
 AddPackage xbindkeys # Launch shell commands with your keyboard or your mouse under X
 AddPackage xorg-xset # User preference utility for X
+AddPackage feh # Fast and light imlib2-based image viewer
+AddPackage variety # Changes the wallpaper on a regular interval using user-specified or automatically downloaded images.
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
