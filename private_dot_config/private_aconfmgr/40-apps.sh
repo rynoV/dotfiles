@@ -37,6 +37,7 @@ AddPackage --foreign xdg-utils-handlr # A shim for xdg-utils to use handlr under
 
 CreateDir /etc/light
 CopyFile /etc/udev/rules.d/backlight.rules
+CopyFile /etc/udev/rules.d/50-oryx.rules
 
 CopyFile /opt/shell-color-scripts/colorscripts/awk-rgb-test
 CopyFile /opt/shell-color-scripts/colorscripts/00default.sh

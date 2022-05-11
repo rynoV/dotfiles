@@ -49,3 +49,4 @@ calum:x:1000:
 polkitd:x:102:
 git:x:973:
 lightdm:x:972:
+plugdev:x:1001:calum
