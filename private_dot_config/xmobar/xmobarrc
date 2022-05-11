@@ -12,7 +12,14 @@ Config { overrideRedirect = False
                         , "--high"  , "red"
                         , "--normal", "green"
                         ] 10
-                    , Run DynNetwork ["--template", "rx: <rx>KB tx: <tx>KB"] 10
+                    , Run Battery
+                        [ "--template", "Batt: <left>% * <acstatus> <watts> * <timeleft>",
+                          "--",
+                          "-O", "<fc=green>On</fc>", "-i", "<fc=green>On</fc>",
+                          "-p", "green",
+                          "-a", "notify-send -u critical 'Battery running out'"
+                        ] 200
+                    , Run DynNetwork ["--template", "rx: <rx>KB * tx: <tx>KB"] 10
                     , Run Memory ["--template", "Mem: <usedratio>%"] 10
                     , Run Swap [] 10
                     , Run Date "%a %Y-%m-%d <fc=#8be9fd>%H:%M</fc>" "date" 10
