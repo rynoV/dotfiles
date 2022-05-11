@@ -1,6 +1,8 @@
 aconfmgr-git
+arandr
 autoconf
 automake
+autorandr
 base
 bat
 bison
@@ -19,6 +21,7 @@ handlr
 htop
 jq
 kitty
+libnotify
 light
 lightdm
 lightdm-gtk-greeter
@@ -30,6 +33,7 @@ man-db
 man-pages
 neofetch
 networkmanager
+notification-daemon
 openssh
 pacman-contrib
 patch
