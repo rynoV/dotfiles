@@ -54,11 +54,6 @@ AddPackage --foreign xdg-utils-handlr # A shim for xdg-utils to use handlr under
 
 CopyFile /etc/geoclue/geoclue.conf
 
-CreateLink /etc/systemd/system/bluetooth.target.wants/bluetooth.service /usr/lib/systemd/system/bluetooth.service
-CreateLink /etc/systemd/system/dbus-org.bluez.service /usr/lib/systemd/system/bluetooth.service
-CreateLink /etc/systemd/user/pipewire.service.wants/wireplumber.service /usr/lib/systemd/user/wireplumber.service
-CreateLink /etc/systemd/user/sockets.target.wants/pipewire-pulse.socket /usr/lib/systemd/user/pipewire-pulse.socket
-CreateLink /etc/systemd/user/pipewire-session-manager.service /usr/lib/systemd/user/wireplumber.service
 
 CreateDir /etc/light
 CopyFile /etc/udev/rules.d/backlight.rules
@@ -120,3 +115,5 @@ CopyFile /opt/shell-color-scripts/colorscripts/tiefighter2
 CopyFile /opt/shell-color-scripts/colorscripts/tux
 CopyFile /opt/shell-color-scripts/colorscripts/xmonad
 CopyFile /opt/shell-color-scripts/colorscripts/zwaves
+SetFileProperty /opt/shell-color-scripts/colorscripts/hex deleted y
+SetFileProperty /opt/shell-color-scripts/colorscripts/suckless deleted y
