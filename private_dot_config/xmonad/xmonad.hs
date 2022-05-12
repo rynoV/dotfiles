@@ -216,6 +216,8 @@ myKeymap =
     ("C-S-M1-b", spawn "browser"),
     ("C-S-M1-t", spawn $ terminal myConfig),
     ("C-S-M1-h", namedScratchpadAction myScratchpads "htop"),
+    ("C-S-M1-M-e n", spawn "~/scripts/org-capture n"),
+    ("C-S-M1-M-e t", spawn "~/scripts/org-capture t"),
     ("M-t", namedScratchpadAction myScratchpads "terminal"),
     ("M-f", namedScratchpadAction myScratchpads "files"),
     ("M-S-<Backspace>", removeWorkspace),
@@ -275,6 +277,7 @@ myManageHook :: ManageHook
 myManageHook =
   composeAll
     [ className =? "copyq" --> doRectFloat (W.RationalRect 0.7 0.25 0.25 0.5), -- Right/middle of screen, quarter width, half height
+      title =? "Org Capture" --> doRectFloat (W.RationalRect 0.25 0.25 0.5 0.5),
     -- isDialog --> doFloat
       isFullscreen --> doFullFloat
     ]

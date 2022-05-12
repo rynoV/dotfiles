@@ -1,0 +1,2 @@
+#!/usr/bin/sh
+emacsclient --create-frame --frame-parameters "'(name . \"Org Capture\"))" --eval "(calum/capture-frame \"$@\")"

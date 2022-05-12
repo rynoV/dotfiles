@@ -48,6 +48,7 @@ works.
     (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
       (when file
         (find-file file))))
+
   (defun calum/edit-config ()
     (interactive)
     (chezmoi-find (concat user-emacs-directory "config.org")))
@@ -543,6 +544,23 @@ Use numeric prefix arg to insert number."
     (save-excursion
       (evil-org-top)
       (org-open-at-point)))
+
+  (defun calum/capture-frame-finish (&rest args)
+    (interactive)
+    (if (equal "Org Capture" (frame-parameter nil 'name))
+        (delete-frame)))
+
+  (defun calum/capture-frame-delete-other-windows (&rest args)
+    (interactive)
+    (if (equal "Org Capture" (frame-parameter nil 'name))
+        (delete-other-windows)))
+
+  (defun calum/capture-frame (keys)
+    (interactive)
+    (require 'org-capture)
+    (advice-add 'org-capture-finalize :after #'calum/capture-frame-finish)
+    (advice-add 'org-switch-to-buffer-other-window :after #'calum/capture-frame-delete-other-windows)
+    (org-capture nil keys))
 
   :general
   (calum/leader-def
