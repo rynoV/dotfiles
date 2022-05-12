@@ -27,6 +27,9 @@ settings:
     global: both
   content.javascript.can_access_clipboard:
     github.com: true
+    https://superuser.com: true
+  content.media.audio_capture:
+    https://meet.google.com: true
   content.notifications.enabled:
     https://www.reddit.com: false
     https://www.youtube.com: false

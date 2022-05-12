@@ -7,12 +7,12 @@
 if test (bluetoothctl show | grep "Powered: yes")
     # https://superuser.com/a/1613152
     set --local numdevices (bluetoothctl devices | cut -f2 -d ' ' | while read uuid; bluetoothctl info $uuid; end | grep -e "Connected: yes" | wc --lines)
-    echo -n "$numdevices "
     if test $numdevices -gt 0
-        echo 
+        echo -n 
     else
-        echo 
+        echo -n 
     end
+    echo -n " $numdevices"
 else
     echo 
 end
