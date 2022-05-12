@@ -32,6 +32,7 @@ git
 git-credential-manager-core-bin
 grep
 groff
+gtk2
 gzip
 handlr
 htop
