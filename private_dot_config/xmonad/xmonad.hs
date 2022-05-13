@@ -223,6 +223,7 @@ myKeymap =
     ("M-p p c", bwLoginCopyPrompt myPromptConfig),
     ("C-S-M1-e", spawn "myemacs"),
     ("C-S-M1-b", spawn "browser"),
+    ("C-S-M1-M-b", spawn "private-browser"),
     ("C-S-M1-t", spawn $ terminal myConfig),
     ("C-S-M1-h", namedScratchpadAction myScratchpads "htop"),
     ("C-S-M1-M-e n", spawn "~/scripts/org-capture n"),
