@@ -52,6 +52,12 @@ CopyFile /etc/shadow- 600
 CopyFile /etc/shells
 CopyFile /etc/sudoers
 
+CopyFile /etc/systemd/sleep.conf
+CreateLink /etc/systemd/system/multi-user.target.wants/restore-backlight.service /etc/systemd/system/restore-backlight.service
+CopyFile /etc/systemd/system/restore-backlight.service
+CopyFile /etc/systemd/system/resume@.service
+CreateLink /etc/systemd/system/suspend.target.wants/resume@calum.service /etc/systemd/system/resume@.service
+
 CreateLink /etc/systemd/system/dbus-org.freedesktop.timesync1.service /usr/lib/systemd/system/systemd-timesyncd.service
 CreateLink /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service /usr/lib/systemd/system/systemd-timesyncd.service
 CreateLink /etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service /usr/lib/systemd/system/NetworkManager-dispatcher.service

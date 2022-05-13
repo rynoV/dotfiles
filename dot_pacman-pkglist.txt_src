@@ -72,6 +72,7 @@ redshift
 ripgrep-all
 sed
 shell-color-scripts
+slock
 sudo
 texinfo
 ttf-ms-fonts
@@ -85,6 +86,7 @@ xbindkeys
 xclip
 xdg-utils-handlr
 xf86-video-fbdev
+xf86-video-intel
 xorg-server
 xorg-server-xephyr
 xorg-xinit

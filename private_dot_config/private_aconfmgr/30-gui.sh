@@ -8,8 +8,12 @@ AddPackage xorg-server # Xorg X server
 AddPackage xorg-server-xephyr # A nested X server that runs as an X application
 AddPackage xorg-xmessage # Display a message or query in a window
 AddPackage gtk2 # GObject-based multi-platform GUI toolkit (legacy), needed for git credential manager/gpg to popup a password entry window
+AddPackage slock # A simple screen locker for X
 
 CopyFile /etc/X11/xorg.conf.d/10-monitor.conf
 CopyFile /etc/lightdm/lightdm-gtk-greeter.conf
 CopyFile /etc/lightdm/lightdm.conf
 CopyFile /usr/share/pixmaps/lightdm-wallpaper.png
+
+CreateLink /etc/systemd/system/sleep.target.wants/slock@calum.service /etc/systemd/system/slock@.service
+CopyFile /etc/systemd/system/slock@.service

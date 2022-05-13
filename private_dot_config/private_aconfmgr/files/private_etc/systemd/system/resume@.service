@@ -1,0 +1,12 @@
+[Unit]
+Description=User resume actions
+After=suspend.target
+
+[Service]
+User=%I
+Type=simple
+# Set to low brightness to counteract max brightness after suspend. light -I doesn't seem to work
+ExecStart=/usr/bin/light -S 5
+
+[Install]
+WantedBy=suspend.target

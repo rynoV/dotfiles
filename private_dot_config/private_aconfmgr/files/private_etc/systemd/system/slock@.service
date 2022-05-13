@@ -1,0 +1,13 @@
+[Unit]
+Description=Lock X session using slock for user %i
+Before=sleep.target
+
+[Service]
+User=%i
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/slock
+# Prevent screen flashing, https://wiki.archlinux.org/title/Power_management#Power_management_with_systemd
+ExecStartPost=/usr/bin/sleep 1
+
+[Install]
+WantedBy=sleep.target

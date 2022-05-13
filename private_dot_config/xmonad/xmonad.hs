@@ -186,6 +186,7 @@ myScratchpads =
 myKeymap =
   [ ("M-<Tab>", nextMatch History (return True)),
     ("M1-<Tab>", cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
+    ("M-<Esc>", spawn "systemctl suspend"),
     ("M-S-p", runOrRaisePrompt myPromptConfig),
     ("M-<Right>", sendMessage $ Go R),
     ("M-<Left>", sendMessage $ Go L),

@@ -1,0 +1,9 @@
+[Unit]
+Description="Restore backlight"
+
+[Service]
+Type=simple
+ExecStart="/usr/bin/light -I"
+
+[Install]
+WantedBy=multi-user.target 
