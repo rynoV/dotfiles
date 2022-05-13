@@ -1,0 +1,2 @@
+#!/usr/bin/sh
+emacsclient --create-frame --frame-parameters "'(name . \"Emacs Quick Calc\"))" --eval "(progn (quick-calc) (sit-for 2) (delete-frame))"
