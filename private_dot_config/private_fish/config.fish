@@ -98,6 +98,6 @@ set PATH (printf "%s" "$PATH" | awk -v RS=':' '!a[$1]++ { if (NR > 1) printf RS;
 # Start X at login
 if status is-login
     if test -z "$DISPLAY" -a "$XDG_VTNR" = 1
-        exec startx -- -keeptty >~/.xorg.log 2>&1
+        exec startx -- -keeptty >~/.var/xorg.log 2>&1
     end
 end
