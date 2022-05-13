@@ -94,3 +94,10 @@ set --export PASSWORD_STORE_DIR ~/.var/password-store
 
 # Clean up duplicates in the path, from https://unix.stackexchange.com/a/14896
 set PATH (printf "%s" "$PATH" | awk -v RS=':' '!a[$1]++ { if (NR > 1) printf RS; printf $1 }')
+
+# Start X at login
+if status is-login
+    if test -z "$DISPLAY" -a "$XDG_VTNR" = 1
+        exec startx -- -keeptty >~/.xorg.log 2>&1
+    end
+end

@@ -87,6 +87,7 @@ xdg-utils-handlr
 xf86-video-fbdev
 xorg-server
 xorg-server-xephyr
+xorg-xinit
 xorg-xmessage
 xorg-xset
 z

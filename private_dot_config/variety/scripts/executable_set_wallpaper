@@ -211,10 +211,10 @@ fi
 # For simple WMs, use either feh or nitrogen
 # Implementation note: this uses spaces around list items to enforce matching whole words.
 # This also means that an empty variable won't cause false positives, since it expands to "  "
-SIMPLE_WMS=("bspwm" "dwm" "herbstluftwm" "i3" "i3-with-shmlog" "jwm" "LeftWM" "openbox" "qtile" "qtile-venv" "xmonad", "xmonad-calum")
+SIMPLE_WMS=("bspwm" "dwm" "herbstluftwm" "i3" "i3-with-shmlog" "jwm" "LeftWM" "openbox" "qtile" "qtile-venv" "xmonad" "xmonad-calum")
 if [[ " ${SIMPLE_WMS[*]} " = *" $XDG_CURRENT_DESKTOP "* || " ${SIMPLE_WMS[*]} " = *" $XDG_SESSION_DESKTOP "* ||
       " ${SIMPLE_WMS[*]} " = *" $DESKTOP_SESSION "* ]]; then
-	if command -v "feh" >/dev/null 2>&1; then
+    if command -v "feh" >/dev/null 2>&1; then
         feh --no-fehbg --bg-fill "$WP" 2> /dev/null
     elif command -v "nitrogen" >/dev/null 2>&1; then
         nitrogen --set-zoom-fill --save "$WP" 2> /dev/null
@@ -250,7 +250,7 @@ gsettings set org.mate.background picture-filename "$WP" 2> /dev/null
 # Cinnamon after 2.0
 gsettings set org.cinnamon.desktop.background picture-uri "file://$WP" 2> /dev/null
 if [ "$(gsettings get org.cinnamon.desktop.background picture-options 2>/dev/null)" == "'none'" ]; then
-	gsettings set org.cinnamon.desktop.background picture-options 'zoom'
+    gsettings set org.cinnamon.desktop.background picture-options 'zoom'
 fi
 
 # Awesome Window Manager
@@ -258,7 +258,7 @@ fi
 # NOTE: This config will change the wallpaper after your current awesome theme sets it.
 # As such, the theme's wallpaper will briefly appear before being replaced with Variety's wallpaper.
 if [[ "$XDG_SESSION_DESKTOP $DESKTOP_STARTUP_ID $DESKTOP_SESSION $XDG_CURRENT_DESKTOP" == *"awesome"* ]]; then
-	echo "local gears = require(\"gears\") gears.wallpaper.maximized(\"$1\", nil)" | awesome-client
+    echo "local gears = require(\"gears\") gears.wallpaper.maximized(\"$1\", nil)" | awesome-client
 fi
 
 # =====================================================================================

@@ -46,7 +46,7 @@ import XMonad.Actions.GroupNavigation (Direction (History), historyHook, nextMat
 import XMonad.Actions.Search (dictionary, duckduckgo, google, hoogle, intelligent, promptSearchBrowser, selectSearchBrowser)
 import XMonad.Config.Desktop ()
 import XMonad.Hooks.EwmhDesktops (addEwmhWorkspaceSort, ewmh, ewmhFullscreen)
-import XMonad.Hooks.ManageDocks (avoidStruts, manageDocks)
+import XMonad.Hooks.ManageDocks (avoidStruts, manageDocks, docks)
 import XMonad.Hooks.ManageHelpers
   ( doFullFloat,
     doRectFloat,
@@ -135,6 +135,7 @@ main =
     . addEwmhWorkspaceSort (return $ filterOutWs ["NSP"])
     . ewmh
     . withEasySB (statusBarProp "xmobar" (return myXmobarPP)) defToggleStrutsKey
+    . docks
     $ myConfig
 
 myConfig =
@@ -235,9 +236,7 @@ myKeymap =
 myStartupHook :: X ()
 myStartupHook = do
   spawnOnce "xbindkeys"
-  spawnOnce "variety"
-  spawnOnce "picom --no-vsync"
-  spawnOnce "autorandr --force --change" -- Detect and load monitor configuration
+  spawnOnce "copyq"
   -- Note: spawning the daemon using systemd instead of here does not
   -- include environment variables for emacs to access
   spawnOnce "emacs --daemon"
@@ -278,6 +277,6 @@ myManageHook =
   composeAll
     [ className =? "copyq" --> doRectFloat (W.RationalRect 0.7 0.25 0.25 0.5), -- Right/middle of screen, quarter width, half height
       title =? "Org Capture" --> doRectFloat (W.RationalRect 0.25 0.25 0.5 0.5),
-    -- isDialog --> doFloat
+      -- isDialog --> doFloat
       isFullscreen --> doFullFloat
     ]
