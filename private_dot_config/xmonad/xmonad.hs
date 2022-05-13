@@ -46,7 +46,7 @@ import XMonad.Actions.GroupNavigation (Direction (History), historyHook, nextMat
 import XMonad.Actions.Search (dictionary, duckduckgo, google, hoogle, intelligent, promptSearchBrowser, selectSearchBrowser)
 import XMonad.Config.Desktop ()
 import XMonad.Hooks.EwmhDesktops (addEwmhWorkspaceSort, ewmh, ewmhFullscreen)
-import XMonad.Hooks.ManageDocks (avoidStruts, manageDocks, docks)
+import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
 import XMonad.Hooks.ManageHelpers
   ( doFullFloat,
     doRectFloat,
@@ -126,6 +126,7 @@ import XMonad.Util.NamedScratchpad
 import XMonad.Util.Paste (pasteString, sendKey)
 import XMonad.Util.Run (runProcessWithInput)
 import XMonad.Util.SpawnOnce (spawnOnce)
+import XMonad.Util.Ungrab (unGrab)
 import XMonad.Util.WorkspaceCompare (filterOutWs)
 
 main :: IO ()
@@ -187,6 +188,12 @@ myKeymap =
   [ ("M-<Tab>", nextMatch History (return True)),
     ("M1-<Tab>", cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
     ("M-<Esc>", spawn "systemctl suspend"),
+    -- Click a window or drag a rectangle to screenshot it
+    ("M-s s", unGrab *> spawn "scrot --freeze --line width=2,color=\"red\",mode=\"edge\" --select"),
+    -- Take a screenshot of all monitors
+    ("M-s d", unGrab *> spawn "scrot"),
+    -- Take a screenshot of the current window
+    ("M-s w", unGrab *> spawn "scrot --focused"),
     ("M-S-p", runOrRaisePrompt myPromptConfig),
     ("M-<Right>", sendMessage $ Go R),
     ("M-<Left>", sendMessage $ Go L),
