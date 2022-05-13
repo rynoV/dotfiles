@@ -93,6 +93,7 @@ xorg-server-xephyr
 xorg-xinit
 xorg-xmessage
 xorg-xset
+xorg-xsetroot
 z
 zathura
 zathura-pdf-poppler
