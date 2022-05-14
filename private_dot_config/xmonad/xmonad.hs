@@ -291,8 +291,8 @@ myKeymap =
     ("M-g h", selectSearchBrowser "browser" hoogle),
     ("M-g f", promptSearchBrowser myPromptConfig "browser" hoogle),
     -- Adjust monitor brightness
-    ("M-<F11>", spawn "light -s sysfs/backlight/ddcci14 -U 1"),
-    ("M-<F12>", spawn "light -s sysfs/backlight/ddcci14 -A 1")
+    ("M-<F11>", spawn "light -s sysfs/backlight/ddcci14 -U 1 && light -s sysfs/backlight/ddcci14 -O"),
+    ("M-<F12>", spawn "light -s sysfs/backlight/ddcci14 -A 1 && light -s sysfs/backlight/ddcci14 -O")
   ]
 
 myStartupHook :: X ()
@@ -300,7 +300,7 @@ myStartupHook = do
   -- Note: spawning the daemon using systemd instead of here does not
   -- include environment variables for emacs to access
   spawnOnce "emacs --daemon"
-  spawnOnce "xbindkeys"
+  spawnOnce "xbindkeys --poll-rc"
   spawnOnce "copyq"
   spawnOnce "redshift"
   checkKeymap myConfig myKeymap

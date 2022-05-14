@@ -6,7 +6,7 @@ After=suspend.target
 User=%I
 Type=simple
 # Set to low brightness to counteract max brightness after suspend. light -I doesn't seem to work
-ExecStart=/usr/bin/light -S 5
+ExecStart=/usr/bin/light -I
 
 [Install]
 WantedBy=suspend.target

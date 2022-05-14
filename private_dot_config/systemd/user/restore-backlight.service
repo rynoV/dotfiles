@@ -1,0 +1,9 @@
+[Unit]
+Description="Restore backlight"
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/light -I -v3 # ; /usr/bin/light -s sysfs/backlight/ddcci14 -I -v3
+
+[Install]
+WantedBy=default.target

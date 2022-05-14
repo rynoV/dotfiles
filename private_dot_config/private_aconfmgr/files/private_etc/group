@@ -51,4 +51,4 @@ git:x:973:
 lightdm:x:972:
 plugdev:x:1001:calum
 geoclue:x:971:
-i2c:x:970:
+i2c:x:970:calum

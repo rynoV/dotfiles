@@ -52,8 +52,6 @@ CopyFile /etc/shells
 CopyFile /etc/sudoers
 
 CopyFile /etc/systemd/sleep.conf
-CreateLink /etc/systemd/system/multi-user.target.wants/restore-backlight.service /etc/systemd/system/restore-backlight.service
-CopyFile /etc/systemd/system/restore-backlight.service
 CopyFile /etc/systemd/system/resume@.service
 CreateLink /etc/systemd/system/suspend.target.wants/resume@calum.service /etc/systemd/system/resume@.service
 
