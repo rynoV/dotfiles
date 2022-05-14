@@ -1,3 +1,5 @@
+-- -*- mode: haskell;-*-
+
 -- Inspiration: https://github.com/thiskappaisgrey/dotfiles/blob/master/.xmonad/xmobars/xmobar-nord.conf
 Config { overrideRedirect = False
        , font     = "xft:jetbrains mono:size=10:antialias=true,Symbols Nerd Font Mono:style=1000-em"
@@ -6,7 +8,7 @@ Config { overrideRedirect = False
        , alpha = 225
        , position = TopW L 100
        , lowerOnStart = True
-       , pickBroadest = True
+       , pickBroadest = False
        , commands = [ Run Cpu
                         [ "--template", ": <total>%",
                           "-L", "3"

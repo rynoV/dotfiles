@@ -26,6 +26,7 @@ settings:
   content.blocking.method:
     global: both
   content.javascript.can_access_clipboard:
+    aur.archlinux.org: true
     github.com: true
     https://superuser.com: true
   content.media.audio_capture:
