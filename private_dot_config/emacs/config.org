@@ -272,6 +272,14 @@ Just disabling the display in the mode-bar.
 (use-package eldoc
   :delight)
 #+end_src
+** Ediff
+Make ediff not use a new frame for the control window, it doesn't play
+nicely with xmonad.
+#+begin_src emacs-lisp
+(use-package ediff
+  :config
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain))
+#+end_src
 * Third-party packages
 
 ** GUI enhancements

@@ -8,9 +8,6 @@
     rebase = true
 [fetch]
     prune = true
-[diff]
-    colorMoved = zebra
-    tool = vimdiff
 [alias]
     st = status
     sts = status -s
@@ -20,11 +17,17 @@
     ciam = commit -am
     co = checkout
     cob = checkout -b
+[diff]
+    tool = ediff
+    guitool = ediff
+    colorMoved = zebra
+[difftool "ediff"]
+    cmd = ~/scripts/ediff.sh $LOCAL $REMOTE $MERGED
 [merge]
-    tool = vimdiff
-    conflictstyle = diff3
-[mergetool]
-    prompt = false
+    tool = ediff
+[mergetool "ediff"]
+    cmd = ~/scripts/ediff.sh $LOCAL $REMOTE $MERGED $BASE
+    trustExitCode = true
 [core]
     editor = vim
     autocrlf = input
