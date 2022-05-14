@@ -30,7 +30,6 @@ CopyFile /etc/adjtime
 
 CreateFile /etc/.pwd.lock 600 > /dev/null
 CopyFile /etc/.updated
-CopyFile /etc/fstab
 CopyFile /etc/group
 CopyFile /etc/group-
 CopyFile /etc/gshadow
