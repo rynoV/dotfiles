@@ -42,9 +42,10 @@ AddPackage pipewire-alsa # Low-latency audio/video router and processor - ALSA c
 AddPackage pipewire-pulse # Low-latency audio/video router and processor - PulseAudio replacement
 AddPackage redshift # Adjusts the color temperature of your screen according to your surroundings.
 AddPackage wireplumber # Session / policy manager implementation for PipeWire
+AddPackage scrot # Simple command-line screenshot utility for X
+AddPackage xorg-xsetroot # Classic X utility to set your root window background to a given pattern or color
 
-
-
+AddPackage --foreign ddcci-driver-linux-dkms # A pair of Linux kernel drivers for DDC/CI monitors (DKMS), allows light to control external monitor brightness
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
 AddPackage --foreign ttf-ms-fonts # Installed to get git-credential-manager-core-bin working, based on advice here: https://github.com/AvaloniaUI/Avalonia/issues/4427#issuecomment-669173654
@@ -54,6 +55,7 @@ AddPackage --foreign xdg-utils-handlr # A shim for xdg-utils to use handlr under
 
 CopyFile /etc/geoclue/geoclue.conf
 
+CopyFile /etc/modules-load.d/ddcci.conf
 
 CreateDir /etc/light
 CopyFile /etc/udev/rules.d/backlight.rules

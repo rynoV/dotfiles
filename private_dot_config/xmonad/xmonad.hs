@@ -245,7 +245,10 @@ myKeymap =
     ("M-g t", selectSearchBrowser "browser" (intelligent google)),
     ("M-g d", selectSearchBrowser "browser" dictionary),
     ("M-g h", selectSearchBrowser "browser" hoogle),
-    ("M-g f", promptSearchBrowser myPromptConfig "browser" hoogle)
+    ("M-g f", promptSearchBrowser myPromptConfig "browser" hoogle),
+    -- Adjust monitor brightness
+    ("M-<F11>", spawn "light -s sysfs/backlight/ddcci14 -U 1"),
+    ("M-<F12>", spawn "light -s sysfs/backlight/ddcci14 -A 1")
   ]
 
 myStartupHook :: X ()

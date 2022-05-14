@@ -15,6 +15,7 @@ bluez-utils
 broot
 chromium
 copyq
+ddcci-driver-linux-dkms
 emacs-nativecomp
 fakeroot
 fd
