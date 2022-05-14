@@ -24,6 +24,7 @@ import XMonad
     XConfig (..),
     className,
     composeAll,
+    focus,
     io,
     mod4Mask,
     sendMessage,
@@ -40,10 +41,22 @@ import XMonad
     (=?),
     (|||),
   )
+import XMonad.Actions.CycleWS
+  ( Direction1D (..),
+    emptyWS,
+    moveTo,
+    nextWS,
+    prevWS,
+    shiftToNext,
+    shiftToPrev,
+    toggleWS,
+  )
 import XMonad.Actions.CycleWindows (cycleRecentWindows)
 import XMonad.Actions.DynamicWorkspaces (removeWorkspace, renameWorkspace, selectWorkspace, withWorkspace)
 import XMonad.Actions.GroupNavigation (Direction (History), historyHook, nextMatch)
+import XMonad.Actions.PhysicalScreens (onNextNeighbour, onPrevNeighbour)
 import XMonad.Actions.Search (dictionary, duckduckgo, google, hoogle, intelligent, promptSearchBrowser, selectSearchBrowser)
+import XMonad.Actions.WithAll (withAll)
 import XMonad.Config.Desktop ()
 import XMonad.Hooks.EwmhDesktops (addEwmhWorkspaceSort, ewmh, ewmhFullscreen)
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
@@ -76,6 +89,7 @@ import XMonad.Hooks.StatusBar.PP
     xmobarRaw,
     xmobarStrip,
   )
+import XMonad.Hooks.WorkspaceHistory (workspaceHistoryHookExclude)
 import XMonad.Layout.CenteredIfSingle (centeredIfSingle)
 import XMonad.Layout.Circle (Circle (Circle))
 import XMonad.Layout.Gaps (Direction2D (..), gaps)
@@ -122,6 +136,7 @@ import XMonad.Util.NamedScratchpad
     customFloating,
     namedScratchpadAction,
     namedScratchpadManageHook,
+    scratchpadWorkspaceTag,
   )
 import XMonad.Util.Paste (pasteString, sendKey)
 import XMonad.Util.Run (runProcessWithInput)
@@ -149,8 +164,8 @@ myConfig =
       startupHook = myStartupHook,
       manageHook = myManageHook <+> manageDocks <+> namedScratchpadManageHook myScratchpads,
       layoutHook = smartBorders $ avoidStruts myLayoutConfig,
-      logHook = historyHook,
-      workspaces = ["1"]
+      logHook = historyHook >> workspaceHistoryHookExclude [scratchpadWorkspaceTag],
+      workspaces = ["1", "2"]
     }
     `additionalKeysP` myKeymap
 
@@ -183,11 +198,19 @@ myScratchpads =
     NS "files" "kitty --title files ranger" (title =? "files") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
   ]
 
--- Note: M1 is left alt
+-- Note: M1 is left alt, C-S-M1-M is the "hyper" key and C-S-M1 is the
+-- "meh" key (special keys on my keyboard that emulate these
+-- modifiers)
 myKeymap =
   [ ("M-<Tab>", nextMatch History (return True)),
     ("M1-<Tab>", cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
     ("M-<Esc>", spawn "systemctl suspend"),
+    -- Move focus to prev/next screen
+    ("M-a", onPrevNeighbour def W.view),
+    ("M-o", onNextNeighbour def W.view),
+    -- Move focused window to prev/next screen
+    ("M-S-a", onPrevNeighbour def W.shift),
+    ("M-S-o", onNextNeighbour def W.shift),
     -- Click a window or drag a rectangle to screenshot it
     ("M-s s", unGrab *> spawn "scrot --freeze --line width=2,color=\"red\",mode=\"edge\" --select"),
     -- Take a screenshot of all monitors
@@ -195,6 +218,7 @@ myKeymap =
     -- Take a screenshot of the current window
     ("M-s w", unGrab *> spawn "scrot --focused"),
     ("M-S-p", runOrRaisePrompt myPromptConfig),
+    -- Directional window movement
     ("M-<Right>", sendMessage $ Go R),
     ("M-<Left>", sendMessage $ Go L),
     ("M-<Up>", sendMessage $ Go U),
@@ -203,6 +227,7 @@ myKeymap =
     ("M-C-<Left>", sendMessage $ Swap L),
     ("M-C-<Up>", sendMessage $ Swap U),
     ("M-C-<Down>", sendMessage $ Swap D),
+    -- Prompts
     ( "M-p w",
       windowMultiPrompt
         myPromptConfig {autoComplete = Just 500000}
@@ -221,25 +246,44 @@ myKeymap =
     ("M-p x", xmonadPrompt myPromptConfig),
     ("M-p p f", bwLoginFillPrompt myPromptConfig),
     ("M-p p c", bwLoginCopyPrompt myPromptConfig),
+    -- App launchers
     ("C-S-M1-e", spawn "myemacs"),
     ("C-S-M1-b", spawn "browser"),
     ("C-S-M1-M-b", spawn "private-browser"),
     ("C-S-M1-t", spawn $ terminal myConfig),
-    ("C-S-M1-h", namedScratchpadAction myScratchpads "htop"),
+    -- Emacs launchers (mnemonic "E-macs")
     ("C-S-M1-M-e n", spawn "~/scripts/org-capture n"),
     ("C-S-M1-M-e t", spawn "~/scripts/org-capture t"),
     ("C-S-M1-M-e c", spawn "~/scripts/emacs-calc"),
+    -- Bluetooth (mnemonic "C-onnection")
     ("C-S-M1-M-c o", spawn "bluetoothctl power on"),
     ("C-S-M1-M-c f", spawn "bluetoothctl power off"),
     ("C-S-M1-M-c m", spawn "~/scripts/connect-airpods.sh"),
     ("C-S-M1-M-c c", spawn "~/scripts/connect-airpods-no-mic.sh"),
     ("C-S-M1-M-c d", spawn "~/scripts/disconnect-airpods.sh"),
+    -- Scratchpads
+    ("C-S-M1-h", namedScratchpadAction myScratchpads "htop"),
     ("M-t", namedScratchpadAction myScratchpads "terminal"),
     ("M-f", namedScratchpadAction myScratchpads "files"),
-    ("M-S-<Backspace>", removeWorkspace),
-    ("M-S-v", selectWorkspace myPromptConfig),
-    ("M-n", withWorkspace myPromptConfig (windows . W.shift)),
-    ("M-S-n", renameWorkspace myPromptConfig),
+    -- Workspaces
+    ("M-w <Backspace>", removeWorkspace),
+    ("M-w <Tab>", toggleWS),
+    ("M-w e", moveTo Next emptyWS),
+    ("M-w p", selectWorkspace myPromptConfig),
+    -- Select a workspace to shift the current window to
+    ("M-w s", withWorkspace myPromptConfig (windows . W.shift)),
+    ("M-w r", renameWorkspace myPromptConfig),
+    -- Move to/move window to next/prev workspace
+    ("M-w j", nextWS),
+    ("M-w k", prevWS),
+    ("M-w S-j", shiftToNext >> nextWS),
+    ("M-w S-k", shiftToPrev >> prevWS),
+    ("M-w S-M-j", shiftToNext),
+    ("M-w S-M-k", shiftToPrev),
+    -- Move all windows to the next screen
+    ("M-w a", withAll (\w -> focus w >> onNextNeighbour def W.shift)),
+    -- Searching for things, either through the prompt or using the
+    -- current selection (mnemonic "G-oogle")
     ("M-g g", promptSearchBrowser myPromptConfig "browser" (intelligent google)),
     ("M-g m", promptSearchBrowser myPromptConfig {defaultText = "!archman "} "browser" duckduckgo),
     ("M-g t", selectSearchBrowser "browser" (intelligent google)),
@@ -253,11 +297,11 @@ myKeymap =
 
 myStartupHook :: X ()
 myStartupHook = do
-  spawnOnce "xbindkeys"
-  spawnOnce "copyq"
   -- Note: spawning the daemon using systemd instead of here does not
   -- include environment variables for emacs to access
   spawnOnce "emacs --daemon"
+  spawnOnce "xbindkeys"
+  spawnOnce "copyq"
   checkKeymap myConfig myKeymap
 
 myXmobarPP :: PP
