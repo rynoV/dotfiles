@@ -302,6 +302,7 @@ myStartupHook = do
   spawnOnce "emacs --daemon"
   spawnOnce "xbindkeys"
   spawnOnce "copyq"
+  spawnOnce "redshift"
   checkKeymap myConfig myKeymap
 
 myXmobarPP :: PP
