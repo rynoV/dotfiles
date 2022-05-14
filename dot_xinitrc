@@ -38,5 +38,6 @@ setxkbmap -option caps:ctrl_modifier
 export XDG_CURRENT_DESKTOP=xmonad
 export XDG_SESSION_DESKTOP=xmonad
 autorandr --change # Configure monitors before xmonad starts
+variety &
 picom --no-vsync &
 exec xmonad

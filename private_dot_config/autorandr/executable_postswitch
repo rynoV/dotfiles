@@ -1,5 +1,2 @@
 #!/bin/sh
 notify-send -i display "Display profile" "$AUTORANDR_CURRENT_PROFILE" &
-# important for this to run in the background so when this script runs
-# from .xinitrc variety doesn't stall startup
-variety --next &
