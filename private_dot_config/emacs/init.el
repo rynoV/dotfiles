@@ -33,7 +33,7 @@
  '(lsp-ui-sideline-update-mode nil)
  '(org-agenda-files '("~/org/school.org" "~/org/calum.org" "~/org/notes.org"))
  '(package-selected-packages
-   '(chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-treemacs flycheck evil-iedit-state lsp-ui lsp-ido lsp-haskell lsp-mode prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md evil-numbers magit-todos evil-easymotion lispyville evil-exchange evil-args evil-textobj-line forge general company-posframe yasnippet auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers evil-surround which-key diminish org-bullets use-package))
+   '(sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-treemacs flycheck evil-iedit-state lsp-ui lsp-ido lsp-haskell lsp-mode prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md evil-numbers magit-todos evil-easymotion lispyville evil-exchange evil-args evil-textobj-line forge general company-posframe yasnippet auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers evil-surround which-key diminish org-bullets use-package))
  '(safe-local-variable-values '((eval defun org-babel-execute:yaml (body params) body)))
  '(warning-suppress-types '((comp) (comp) (comp) (comp) (comp) (comp))))
 (custom-set-faces

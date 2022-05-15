@@ -1240,3 +1240,8 @@ Provides us with hints on available keystroke combinations.
   ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
 #+end_src
+
+*** Sudo edit
+#+begin_src emacs-lisp
+(use-package sudo-edit)
+#+end_src
