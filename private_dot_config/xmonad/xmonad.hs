@@ -181,7 +181,12 @@ myPromptConfig =
 myScratchpads =
   [ NS "htop" "kitty --title htop htop" (title =? "htop") $ customFloating $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
     NS "terminal" "kitty --title terminal" (title =? "terminal") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
-    NS "files" "kitty --title files ranger" (title =? "files") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
+    NS "files" "kitty --title files ranger" (title =? "files") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
+    NS
+      "calc"
+      "emacsclient --create-frame --frame-parameters \"'(name . \\\"Emacs Calc\\\")\" --eval \"(full-calc)\""
+      (title =? "Emacs Calc")
+      $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
   ]
 
 -- Note: M1 is left alt, C-S-M1-M is the "hyper" key and C-S-M1 is the
