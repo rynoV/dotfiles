@@ -8,11 +8,10 @@ if test (bluetoothctl show | grep "Powered: yes")
     # https://superuser.com/a/1613152
     set --local numdevices (bluetoothctl devices | cut -f2 -d ' ' | while read uuid; bluetoothctl info $uuid; end | grep -e "Connected: yes" | wc --lines)
     if test $numdevices -gt 0
-        echo -n 
+        echo -n "<fc=#B48EAD> $numdevices</fc>"
     else
-        echo -n 
+        echo -n "<fc=#8FBCBB> $numdevices</fc>"
     end
-    echo -n " $numdevices"
 else
-    echo 
+    echo "<fc=#D08770></fc>"
 end
