@@ -11,6 +11,7 @@ bind --mode insert \co ranger-cd
 
 # XDG folders: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 set --export XDG_CONFIG_HOME $HOME/.config
+set --export XDG_CACHE_HOME $HOME/.cache
 set --export XDG_DATA_HOME $HOME/.local/share
 set --export XDG_STATE_HOME $HOME/.local/state
 

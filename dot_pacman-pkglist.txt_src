@@ -93,9 +93,11 @@ xorg-server
 xorg-server-xephyr
 xorg-xinit
 xorg-xmessage
+xorg-xprop
 xorg-xset
 xorg-xsetroot
 z
 zathura
 zathura-pdf-poppler
+zenity
 zip

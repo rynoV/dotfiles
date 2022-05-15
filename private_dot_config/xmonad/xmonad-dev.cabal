@@ -32,6 +32,7 @@ library
     , bytestring
     , containers
     , process
+    , unix
     , utf8-string
     , xmonad
     , xmonad-contrib
@@ -48,6 +49,7 @@ executable xmonad-dev-exe
     , bytestring
     , containers
     , process
+    , unix
     , utf8-string
     , xmonad
     , xmonad-contrib

@@ -7,6 +7,7 @@ import qualified Control.Exception as E
 import Control.Monad (void, when)
 import Data.Aeson (eitherDecode)
 import Data.Aeson.Types (FromJSON)
+import Data.Bifunctor (second)
 import qualified Data.ByteString.Lazy.UTF8 as B
 import Data.Char (isPrint, isSpace)
 import Data.Foldable (forM_)
@@ -14,33 +15,9 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics (Generic)
 import System.Environment (getEnv)
+import System.IO (hClose, openFile)
+import System.Posix (executeFile, mkstemp)
 import XMonad
-  ( Default (..),
-    ExtensionClass (..),
-    Full (..),
-    LayoutClass,
-    ManageHook,
-    X,
-    XConfig (..),
-    className,
-    composeAll,
-    focus,
-    io,
-    mod4Mask,
-    sendMessage,
-    spawn,
-    title,
-    trace,
-    windows,
-    xK_Alt_L,
-    xK_Tab,
-    xK_q,
-    xmonad,
-    (-->),
-    (<+>),
-    (=?),
-    (|||),
-  )
 import XMonad.Actions.CycleWS
   ( Direction1D (..),
     emptyWS,
@@ -128,9 +105,10 @@ import XMonad.Prompt.Window
   )
 import XMonad.Prompt.XMonad (xmonadPrompt)
 import qualified XMonad.StackSet as W
-import XMonad.Util.EZConfig (additionalKeysP, checkKeymap)
+import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Loggers (logTitles)
+import XMonad.Util.NamedActions
 import XMonad.Util.NamedScratchpad
   ( NamedScratchpad (NS),
     customFloating,
@@ -139,10 +117,11 @@ import XMonad.Util.NamedScratchpad
     scratchpadWorkspaceTag,
   )
 import XMonad.Util.Paste (pasteString, sendKey)
-import XMonad.Util.Run (runProcessWithInput)
+import XMonad.Util.Run (hPutStr, runProcessWithInput)
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.Ungrab (unGrab)
 import XMonad.Util.WorkspaceCompare (filterOutWs)
+import System.Exit (exitSuccess)
 
 main :: IO ()
 main =
@@ -152,7 +131,15 @@ main =
     . ewmh
     . withEasySB (statusBarProp "xmobar" (return myXmobarPP)) defToggleStrutsKey
     . docks
+    . addMyDefaultKeys ((mod4Mask, xK_F1), showKeybindingsAction) addMyKeymap
     $ myConfig
+  where
+    addMyDefaultKeys k ks = addDescrKeys' k (\l -> myDefaultKeys l ^++^ ks l)
+    showKeybindingsAction =
+      addName "Show Keybindings"
+        . zenity "XMonad Keybindings"
+        . unlines
+        . showKm
 
 myConfig =
   def
@@ -167,7 +154,6 @@ myConfig =
       logHook = historyHook >> workspaceHistoryHookExclude [scratchpadWorkspaceTag],
       workspaces = ["1", "2"]
     }
-    `additionalKeysP` myKeymap
 
 myLayoutConfig =
   windowNavigation $
@@ -201,98 +187,103 @@ myScratchpads =
 -- Note: M1 is left alt, C-S-M1-M is the "hyper" key and C-S-M1 is the
 -- "meh" key (special keys on my keyboard that emulate these
 -- modifiers)
+addMyKeymap c = (subtitle "Custom Keys" :) $ mkNamedKeymap c myKeymap
+
 myKeymap =
-  [ ("M-<Tab>", nextMatch History (return True)),
-    ("M1-<Tab>", cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
-    ("M-<Esc>", spawn "systemctl suspend"),
+  [ ("M-<Tab>", addName "Previous window" $ nextMatch History (return True)),
+    ("M1-<Tab>", addName "Cycle windows in MRU order" $ cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
+    ("M-<Esc>", addName "Suspend" $ spawn "systemctl suspend"),
     -- Move focus to prev/next screen
-    ("M-a", onPrevNeighbour def W.view),
-    ("M-o", onNextNeighbour def W.view),
+    ("M-a", addName "Focus previous screen" $ onPrevNeighbour def W.view),
+    ("M-o", addName "Focus previous screen" $ onNextNeighbour def W.view),
     -- Move focused window to prev/next screen
-    ("M-S-a", onPrevNeighbour def W.shift),
-    ("M-S-o", onNextNeighbour def W.shift),
+    ("M-S-a", addName "Move window to previous screen" $ onPrevNeighbour def W.shift),
+    ("M-S-o", addName "Move window to next screen" $ onNextNeighbour def W.shift),
     -- Click a window or drag a rectangle to screenshot it
-    ("M-s s", unGrab *> spawn "scrot --freeze --line width=2,color=\"red\",mode=\"edge\" --select"),
+    ("M-s s", addName "Screenshot window or rectangle" $ unGrab *> spawn "scrot --freeze --line width=2,color=\"red\",mode=\"edge\" --select"),
     -- Take a screenshot of all monitors
-    ("M-s d", unGrab *> spawn "scrot"),
+    ("M-s d", addName "Screenshot all monitors" $ unGrab *> spawn "scrot"),
     -- Take a screenshot of the current window
-    ("M-s w", unGrab *> spawn "scrot --focused"),
-    ("M-S-p", runOrRaisePrompt myPromptConfig),
+    ("M-s w", addName "Screenshot current window" $ unGrab *> spawn "scrot --focused"),
+    ("M-S-p", addName "Run command or raise window of command" $ runOrRaisePrompt myPromptConfig),
     -- Directional window movement
-    ("M-<Right>", sendMessage $ Go R),
-    ("M-<Left>", sendMessage $ Go L),
-    ("M-<Up>", sendMessage $ Go U),
-    ("M-<Down>", sendMessage $ Go D),
-    ("M-C-<Right>", sendMessage $ Swap R),
-    ("M-C-<Left>", sendMessage $ Swap L),
-    ("M-C-<Up>", sendMessage $ Swap U),
-    ("M-C-<Down>", sendMessage $ Swap D),
+    ("M-<Right>", addName "Move to rightward window" $ sendMessage $ Go R),
+    ("M-<Left>", addName "Move to leftward window" $ sendMessage $ Go L),
+    ("M-<Up>", addName "Move to upward window" $ sendMessage $ Go U),
+    ("M-<Down>", addName "Move to downward window" $ sendMessage $ Go D),
+    ("M-C-<Right>", addName "Swap with rightward window" $ sendMessage $ Swap R),
+    ("M-C-<Left>", addName "Swap with leftward window" $ sendMessage $ Swap L),
+    ("M-C-<Up>", addName "Swap with upward window" $ sendMessage $ Swap U),
+    ("M-C-<Down>", addName "Swap with downward window" $ sendMessage $ Swap D),
     -- Prompts
     ( "M-p w",
-      windowMultiPrompt
-        myPromptConfig {autoComplete = Just 500000}
-        [ (BringToMaster, wsWindows),
-          ( Bring, -- Select among all windows not in the current workspace
-            liftA2
-              (M.\\)
-              -- allWindows adds " [n]" to the end of the window names, we take that out so the key comparison works
-              (M.mapKeys (\s -> take (length s - 4) s) <$> allWindows)
-              wsWindows
-          )
-        ]
+      addName "Select a window in the current workspace, or hit ` and bring a window from another workspace" $
+        windowMultiPrompt
+          myPromptConfig {autoComplete = Just 500000}
+          [ (BringToMaster, wsWindows),
+            ( Bring, -- Select among all windows not in the current workspace
+              liftA2
+                (M.\\)
+                -- allWindows adds " [n]" to the end of the window names, we take that out so the key comparison works
+                (M.mapKeys (\s -> take (length s - 4) s) <$> allWindows)
+                wsWindows
+            )
+          ]
     ),
-    ("M-p m", manPrompt myPromptConfig),
-    ("M-p s", shellPrompt myPromptConfig),
-    ("M-p x", xmonadPrompt myPromptConfig),
-    ("M-p p f", bwLoginFillPrompt myPromptConfig),
-    ("M-p p c", bwLoginCopyPrompt myPromptConfig),
+    ("M-p m", addName "Select a man page" $ manPrompt myPromptConfig),
+    ("M-p s", addName "Run a shell command" $ shellPrompt myPromptConfig),
+    ("M-p x", addName "Run an xmonad command" $ xmonadPrompt myPromptConfig),
+    ("M-p p f", addName "Select then type a username and password from bitwarden" $ bwLoginFillPrompt myPromptConfig),
+    ("M-p p c", addName "Select then copy a username and password from bitwarden" $ bwLoginCopyPrompt myPromptConfig),
     -- App launchers
-    ("C-S-M1-e", spawn "myemacs"),
-    ("C-S-M1-b", spawn "browser"),
-    ("C-S-M1-M-b", spawn "private-browser"),
-    ("C-S-M1-t", spawn $ terminal myConfig),
+    ("C-S-M1-e", addName "Launch emacs" $ spawn "myemacs --create-frame"),
+    ("C-S-M1-b", addName "New browser window" $ spawn "browser"),
+    ("C-S-M1-M-b", addName "New private browser window" $ spawn "private-browser"),
+    ("C-S-M1-t", addName "Launch terminal" $ spawn $ terminal myConfig),
     -- Emacs launchers (mnemonic "E-macs")
-    ("C-S-M1-M-e n", spawn "~/scripts/org-capture n"),
-    ("C-S-M1-M-e t", spawn "~/scripts/org-capture t"),
-    ("C-S-M1-M-e c", spawn "~/scripts/emacs-calc"),
+    ("C-S-M1-M-e n", addName "Capture a note" $ spawn "~/scripts/org-capture n"),
+    ("C-S-M1-M-e t", addName "Capture a todo item" $ spawn "~/scripts/org-capture t"),
+    ("C-S-M1-M-e c", addName "Run a quick calculation and copy to clipboard" $ spawn "~/scripts/emacs-calc"),
     -- Bluetooth (mnemonic "C-onnection")
-    ("C-S-M1-M-c o", spawn "bluetoothctl power on"),
-    ("C-S-M1-M-c f", spawn "bluetoothctl power off"),
-    ("C-S-M1-M-c m", spawn "~/scripts/connect-airpods.sh"),
-    ("C-S-M1-M-c c", spawn "~/scripts/connect-airpods-no-mic.sh"),
-    ("C-S-M1-M-c d", spawn "~/scripts/disconnect-airpods.sh"),
+    ("C-S-M1-M-c o", addName "Bluetooth on" $ spawn "bluetoothctl power on"),
+    ("C-S-M1-M-c f", addName "Bluetooth off" $ spawn "bluetoothctl power off"),
+    ("C-S-M1-M-c m", addName "Connect airpods and turn on mic" $ spawn "~/scripts/connect-airpods.sh"),
+    ("C-S-M1-M-c c", addName "Connect airpods" $ spawn "~/scripts/connect-airpods-no-mic.sh"),
+    ("C-S-M1-M-c d", addName "Disconnect airpods" $ spawn "~/scripts/disconnect-airpods.sh"),
     -- Scratchpads
-    ("C-S-M1-h", namedScratchpadAction myScratchpads "htop"),
-    ("M-t", namedScratchpadAction myScratchpads "terminal"),
-    ("M-f", namedScratchpadAction myScratchpads "files"),
+    ("C-S-M1-h", addName "Toggle htop" $ namedScratchpadAction myScratchpads "htop"),
+    ("M-t", addName "Toggle terminal" $ namedScratchpadAction myScratchpads "terminal"),
+    ("M-f", addName "Toggle file manager" $ namedScratchpadAction myScratchpads "files"),
+    ("C-S-M1-c", addName "Toggle calculator" $ namedScratchpadAction myScratchpads "calc"),
     -- Workspaces
-    ("M-w <Backspace>", removeWorkspace),
-    ("M-w <Tab>", toggleWS),
-    ("M-w e", moveTo Next emptyWS),
-    ("M-w p", selectWorkspace myPromptConfig),
+    ("M-w <Backspace>", addName "Delete workspace" removeWorkspace),
+    ("M-w <Tab>", addName "Go to previously visited workspace" toggleWS),
+    ("M-w e", addName "Go to an empty workspace" $ moveTo Next emptyWS),
+    ("M-w p", addName "Select/create a workspace by name" $ selectWorkspace myPromptConfig),
     -- Select a workspace to shift the current window to
-    ("M-w s", withWorkspace myPromptConfig (windows . W.shift)),
-    ("M-w r", renameWorkspace myPromptConfig),
+    ("M-w s", addName "Move window to a workspace" $ withWorkspace myPromptConfig (windows . W.shift)),
+    ("M-w r", addName "Rename workspace" $ renameWorkspace myPromptConfig),
     -- Move to/move window to next/prev workspace
-    ("M-w j", nextWS),
-    ("M-w k", prevWS),
-    ("M-w S-j", shiftToNext >> nextWS),
-    ("M-w S-k", shiftToPrev >> prevWS),
-    ("M-w S-M-j", shiftToNext),
-    ("M-w S-M-k", shiftToPrev),
+    ("M-w j", addName "Move to next workspace" nextWS),
+    ("M-w k", addName "Move to previous workspace" prevWS),
+    ("M-w S-j", addName "Move window to next workspace and follow" $ shiftToNext >> nextWS),
+    ("M-w S-k", addName "Move window to previous workspace and follow" $ shiftToPrev >> prevWS),
+    ("M-w S-M-j", addName "Move window to next workspace" shiftToNext),
+    ("M-w S-M-k", addName "Move window to previous workspace" shiftToPrev),
     -- Move all windows to the next screen
-    ("M-w a", withAll (\w -> focus w >> onNextNeighbour def W.shift)),
+    ("M-w a", addName "Move all windows to the next screen" $ withAll (\w -> focus w >> onNextNeighbour def W.shift)),
     -- Searching for things, either through the prompt or using the
     -- current selection (mnemonic "G-oogle")
-    ("M-g g", promptSearchBrowser myPromptConfig "browser" (intelligent google)),
-    ("M-g m", promptSearchBrowser myPromptConfig {defaultText = "!archman "} "browser" duckduckgo),
-    ("M-g t", selectSearchBrowser "browser" (intelligent google)),
-    ("M-g d", selectSearchBrowser "browser" dictionary),
-    ("M-g h", selectSearchBrowser "browser" hoogle),
-    ("M-g f", promptSearchBrowser myPromptConfig "browser" hoogle),
+    ("M-g g", addName "Google search" $ promptSearchBrowser myPromptConfig "browser" (intelligent google)),
+    ("M-g m", addName "Search Arch man pages" $ promptSearchBrowser myPromptConfig {defaultText = "!archman "} "browser" duckduckgo),
+    ("M-g t", addName "Google the current selection" $ selectSearchBrowser "browser" (intelligent google)),
+    ("M-g d", addName "Lookup the current selection in the dictionary" $ selectSearchBrowser "browser" dictionary),
+    ("M-g h", addName "Hoogle the current selection" $ selectSearchBrowser "browser" hoogle),
+    ("M-g f", addName "Hoogle search" $ promptSearchBrowser myPromptConfig "browser" hoogle),
+    ("M-<F10>", addName "Reload the monitor layout" $ spawn "autorandr --force --change"),
     -- Adjust monitor brightness
-    ("M-<F11>", spawn "light -s sysfs/backlight/ddcci14 -U 1 && light -s sysfs/backlight/ddcci14 -O"),
-    ("M-<F12>", spawn "light -s sysfs/backlight/ddcci14 -A 1 && light -s sysfs/backlight/ddcci14 -O")
+    ("M-<F11>", addName "Decrease monitor brightness" $ spawn "light -s sysfs/backlight/ddcci14 -U 1 && light -s sysfs/backlight/ddcci14 -O"),
+    ("M-<F12>", addName "Increase monitor brightness" $ spawn "light -s sysfs/backlight/ddcci14 -A 1 && light -s sysfs/backlight/ddcci14 -O")
   ]
 
 myStartupHook :: X ()
@@ -303,7 +294,7 @@ myStartupHook = do
   spawnOnce "xbindkeys --poll-rc"
   spawnOnce "copyq"
   spawnOnce "redshift"
-  checkKeymap myConfig myKeymap
+  checkKeymap myConfig (map (second $ const (return () :: X ())) myKeymap)
 
 myXmobarPP :: PP
 myXmobarPP =
@@ -339,8 +330,68 @@ myManageHook :: ManageHook
 myManageHook =
   composeAll
     [ className =? "copyq" --> doRectFloat (W.RationalRect 0.7 0.25 0.25 0.5), -- Right/middle of screen, quarter width, half height
+      className =? "Zenity" --> doFloat,
       title =? "Org Capture" --> doRectFloat (W.RationalRect 0.25 0.25 0.5 0.5),
       title =? "Emacs Quick Calc" --> doRectFloat (W.RationalRect 0.25 0.45 0.5 0.05),
       -- isDialog --> doFloat
       isFullscreen --> doFullFloat
+    ]
+
+-- | Use @zenity@ to show information to the user.
+zenity :: MonadIO m => String -> String -> m ()
+zenity title msg = void . xfork $ do
+  (t, h) <- mkstemp "/tmp/zenity"
+  hPutStr h msg
+  hClose h
+  executeFile
+    "zenity"
+    True
+    [ "--title",
+      title,
+      "--text-info",
+      "--font",
+      "JetBrains Mono",
+      "--width",
+      "800",
+      "--height",
+      "1000",
+      "--filename",
+      t
+    ]
+    Nothing
+
+-- | Custom name default keys
+myDefaultKeys :: XConfig Layout -> [((KeyMask, KeySym), NamedAction)]
+myDefaultKeys conf@XConfig{XMonad.modMask = modm} =
+    [ subtitle "launching and killing programs"
+    , ((modm .|. shiftMask, xK_c     ), addName "Close the focused window" kill) -- %! Close the focused window
+
+    , subtitle "changing layouts"
+    , ((modm,               xK_space ), sendMessage' NextLayout) -- %! Rotate through the available layout algorithms
+    , ((modm .|. shiftMask, xK_space ), addName "Reset the layout" $ setLayout $ XMonad.layoutHook conf) -- %!  Reset the layouts on the current workspace to default
+
+    , separator
+    , ((modm,               xK_n     ), addName "Refresh" refresh) -- %! Resize viewed windows to the correct size
+
+    , subtitle "move focus up or down the window stack"
+    , ((modm,               xK_j     ), addName "Focus down" $ windows W.focusDown) -- %! Move focus to the next window
+    , ((modm,               xK_k     ), addName "Focus up"   $ windows W.focusUp  ) -- %! Move focus to the previous window
+    , ((modm,               xK_m     ), addName "Focus the master" $ windows W.focusMaster  ) -- %! Move focus to the master window
+
+    , subtitle "modifying the window order"
+    , ((modm,               xK_Return), addName "Swap with the master" $ windows W.swapMaster) -- %! Swap the focused window and the master window
+    , ((modm .|. shiftMask, xK_j     ), addName "Swap down" $ windows W.swapDown  ) -- %! Swap the focused window with the next window
+    , ((modm .|. shiftMask, xK_k     ), addName "Swap up"   $ windows W.swapUp    ) -- %! Swap the focused window with the previous window
+
+    , subtitle "resizing the master/slave ratio"
+    , ((modm,               xK_h     ), sendMessage' Shrink) -- %! Shrink the master area
+    , ((modm,               xK_l     ), sendMessage' Expand) -- %! Expand the master area
+
+    , subtitle "change the number of windows in the master area"
+    , ((modm              , xK_comma ), sendMessage' (IncMasterN 1)) -- %! Increment the number of windows in the master area
+    , ((modm              , xK_period), sendMessage' (IncMasterN (-1))) -- %! Deincrement the number of windows in the master area
+
+    , subtitle "quit, or restart"
+    , ((modm .|. shiftMask, xK_q     ), addName "Quit" $ io exitSuccess) -- %! Quit xmonad
+    , ((modm              , xK_q     ), addName "Restart" $ spawn "xmonad --recompile && xmonad --restart") -- %! Restart xmonad
     ]

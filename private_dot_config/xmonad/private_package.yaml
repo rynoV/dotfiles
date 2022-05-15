@@ -26,6 +26,7 @@ dependencies:
 - bytestring
 - process
 - utf8-string
+- unix
 
 library:
   source-dirs: src
