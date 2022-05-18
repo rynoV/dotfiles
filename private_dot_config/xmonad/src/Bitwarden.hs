@@ -99,6 +99,14 @@ mkBwPassPrompt promptLabel passwordFunction xpconfig = do
           (foldr (\u b -> maybe "" (++ (" " ++ b)) (uri u)) "" . uris)
           (login (bwItems M.! c))
 
+bwPasswordFillPrompt :: XPConfig -> X ()
+bwPasswordFillPrompt =
+  mkBwPassPrompt
+    "Password to fill"
+    ( \item -> do
+        forM_ (login item >>= password) pasteString
+    )
+
 bwLoginFillPrompt :: XPConfig -> X ()
 bwLoginFillPrompt =
   mkBwPassPrompt

@@ -122,6 +122,7 @@ import XMonad.Util.Run (hPutStr, runProcessWithInput)
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.Ungrab (unGrab)
 import XMonad.Util.WorkspaceCompare (filterOutWs)
+import Bitwarden (bwPasswordFillPrompt)
 
 main :: IO ()
 main =
@@ -245,6 +246,10 @@ myKeymap =
     ( "M-p p f",
       addName "Select then type a username and password from bitwarden" $
         bwLoginFillPrompt myPromptConfig
+    ),
+    ( "M-p p p",
+      addName "Select then type a password from bitwarden" $
+        bwPasswordFillPrompt myPromptConfig
     ),
     ( "M-p p c",
       addName "Select then copy a username and password from bitwarden" $
