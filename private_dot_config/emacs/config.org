@@ -637,17 +637,15 @@ Use numeric prefix arg to insert number."
            "* TODO %?\n  %i\n")
           ("n" "Note" entry (file+headline "" "Quick Notes")
            "* %U\n%?\n")
-          ;; ("m" "Meeting" entry (file+headline "tech-bytes.org" "Meetings")
-          ;;  "* %T\n%?\n" :prepend t)
+          ("m" "Meeting" entry (file+headline "mlabs.org" "Meetings")
+           "* %U\n%?\n" :prepend t)
           ))
   ;; Custom agenda views based on org files
   (setq org-agenda-custom-commands
         '(("p" "Personal" todo ""
            ((org-agenda-category-filter-preset '("+calum"))))
-          ;; ("b" "Tech Bytes" todo ""
-          ;;  ((org-agenda-category-filter-preset '("+tech-bytes"))))
-          ;; ("c" "Cerno Health" todo ""
-          ;;  ((org-agenda-category-filter-preset '("+cerno"))))
+          ("w" "MLabs" todo ""
+           ((org-agenda-category-filter-preset '("+mlabs"))))
           ("s" . "School")
           ("so" "One Week School Agenda" agenda ""
            ((org-agenda-span 7)
