@@ -37,7 +37,7 @@ import XMonad.Actions.Search (dictionary, duckduckgo, google, hoogle, intelligen
 import XMonad.Actions.WithAll (withAll)
 import XMonad.Config.Desktop ()
 import XMonad.Hooks.EwmhDesktops (addEwmhWorkspaceSort, ewmh, ewmhFullscreen)
-import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
+import XMonad.Hooks.ManageDocks (avoidStruts, manageDocks)
 import XMonad.Hooks.ManageHelpers
   ( doFullFloat,
     doRectFloat,
@@ -130,7 +130,6 @@ main =
     . addEwmhWorkspaceSort (return $ filterOutWs ["NSP"])
     . ewmh
     . withEasySB (statusBarProp "xmobar" (return myXmobarPP)) defToggleStrutsKey
-    . docks
     . addMyDefaultKeys ((mod4Mask, xK_F1), showKeybindingsAction) addMyKeymap
     $ myConfig
   where
@@ -282,6 +281,7 @@ myKeymap =
     ("M-w <Tab>", addName "Go to previously visited workspace" toggleWS),
     ("M-w e", addName "Go to an empty workspace" $ moveTo Next emptyWS),
     ("M-w p", addName "Select/create a workspace by name" $ selectWorkspace myPromptConfig),
+    ("M-w t", addName "Push floating to tiled" $ withFocused $ windows . W.sink),
     -- Select a workspace to shift the current window to
     ( "M-w s",
       addName "Move window to a workspace" $
@@ -320,6 +320,7 @@ myKeymap =
     ),
     ("M-g h", addName "Hoogle the current selection" $ selectSearchBrowser "browser" hoogle),
     ("M-g f", addName "Hoogle search" $ promptSearchBrowser myPromptConfig "browser" hoogle),
+    ("M-<F9>", addName "Redraw and cycle the wallpaper" $ spawn "variety --next"),
     ("M-<F10>", addName "Reload the monitor layout" $ spawn "autorandr --force --change"),
     -- Adjust monitor brightness
     ( "M-<F11>",
@@ -345,7 +346,7 @@ myStartupHook = do
 myXmobarPP :: PP
 myXmobarPP =
   def
-    { ppSep = magenta " • ",
+    { ppSep = " • ",
       ppTitleSanitize = xmobarStrip,
       ppCurrent = wrap " " "" . xmobarBorder "Top" "#8be9fd" 2,
       ppHidden = white . wrap " " "",
@@ -353,7 +354,7 @@ myXmobarPP =
       ppUrgent = red . wrap (yellow "!") (yellow "!"),
       ppOrder = \[ws, l, _, wins] -> [ws, l, wins],
       ppExtras = [logTitles formatFocused formatUnfocused],
-      ppSort = return $ filterOutWs ["NSP"] -- Don't show scratchpads workspace
+      ppSort = return $ filterOutWs [scratchpadWorkspaceTag] -- Don't show scratchpads workspace
     }
   where
     formatFocused = wrap (white "[") (white "]") . magenta . ppWindow

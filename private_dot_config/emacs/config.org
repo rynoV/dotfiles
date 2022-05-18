@@ -1177,7 +1177,7 @@ Provides us with hints on available keystroke combinations.
 (use-package restart-emacs
   ;; Restart with ctrl-super-r
   :general
-  ("C-s-r" 'restart-emacs))
+  ("C-M-r" 'restart-emacs))
 #+END_SRC
 
 *** MRU Buffer Switching

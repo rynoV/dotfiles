@@ -31,11 +31,19 @@ settings:
     https://superuser.com: true
   content.media.audio_capture:
     https://meet.google.com: true
+  content.media.audio_video_capture:
+    https://meet.google.com: true
+  content.media.video_capture:
+    https://meet.google.com: true
   content.notifications.enabled:
+    https://meet.google.com: true
     https://www.reddit.com: false
     https://www.youtube.com: false
   content.pdfjs:
     global: true
+  content.register_protocol_handler:
+    https://calendar.google.com?cid=%25s: false
+    https://outlook.office.com?mailtouri=%25s: false
   downloads.location.directory:
     global: null
   downloads.location.suggestion:

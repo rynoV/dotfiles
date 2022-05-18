@@ -8,6 +8,7 @@ base
 bat
 binutils
 bison
+bitwarden
 bitwarden-cli
 blueman
 bluez

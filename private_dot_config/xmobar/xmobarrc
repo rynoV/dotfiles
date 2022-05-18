@@ -9,6 +9,7 @@ Config { overrideRedirect = False
        , position = TopW L 100
        , lowerOnStart = True
        , pickBroadest = False
+       , persistent = False
        , commands = [ Run Cpu
                         [ "--template", ": <total>%",
                           "-L", "3"
@@ -37,7 +38,10 @@ Config { overrideRedirect = False
                         -- charged status
                         , "-i"  , ""
                         ] 200
-                    , Run DynNetwork ["--template", "↓ <rx>KB ↑ <tx>KB"] 10
+                    , Run DynNetwork
+                          [ "--template", "<rx>KB ↓ <tx>KB ↑"
+                          , "--align", "l"
+                          , "--minwidth", "3"] 10
                     , Run Wireless "" ["--template", " <qualityvbar>"] 100
                     , Run Memory
                           [ "--template", "<usedratio>%"
@@ -67,5 +71,5 @@ Config { overrideRedirect = False
                     ]
        , sepChar  = "%"
        , alignSep = "}{"
-       , template = "%XMonadLog% }{ %cpu% | : %memory% * %swap% | %wi% | %dynnetwork% | %battery% | %alsa:default:Master% | %bluetooth% | %date% "
+       , template = "%XMonadLog% }{ %cpu% • : %memory% * %swap% • %wi% • %dynnetwork% • %battery% • %alsa:default:Master% • %bluetooth% • %date% "
        }
