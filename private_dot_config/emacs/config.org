@@ -552,7 +552,6 @@ Use numeric prefix arg to insert number."
     (save-excursion
       (evil-org-top)
       (org-open-at-point)))
-
   (defun calum/capture-frame-finish (&rest args)
     (interactive)
     (if (equal "Org Capture" (frame-parameter nil 'name))
@@ -577,6 +576,9 @@ Use numeric prefix arg to insert number."
   (calum/leader-def
     :infix "o"
     "" '(nil :which-key "org actions")
+    "j" '(org-journal-new-entry :which-key "new journal entry")
+    "d" 'org-decrypt-entry
+    "e" 'org-encrypt-entry
     "p" 'calum/org-mobile-push
     "f" 'calum/org-mobile-pull
     "s" 'calum/org-mobile-sync
@@ -900,6 +902,17 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
   (evil-org-set-key-theme '(navigation insert textobjects additional calendar todo shift return))
   (require 'evil-org-agenda)
   (calum/evil-org-agenda-set-keys))
+#+end_src
+
+*** Org Journal
+#+begin_src emacs-lisp
+(use-package org-journal
+  :custom
+  (org-journal-dir "~/org/journal/")
+  (org-journal-file-type 'weekly)
+  :config
+  (setq org-crypt-key "Calum Sieppert <sieppertcalum@gmail.com>"
+        org-tags-exclude-from-inheritance '("crypt")))
 #+end_src
 
 ** Snippets
