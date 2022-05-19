@@ -17,6 +17,7 @@ broot
 chromium
 copyq
 ddcci-driver-linux-dkms
+direnv
 emacs-nativecomp
 fakeroot
 fd
@@ -54,6 +55,7 @@ man-db
 man-pages
 neofetch
 networkmanager
+nix
 notification-daemon
 openssh
 pacman

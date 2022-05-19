@@ -25,7 +25,6 @@ AddPackage qutebrowser # A keyboard-driven, vim-like browser based on PyQt5
 AddPackage python-adblock # Optional with qutebrowser
 AddPackage light # Program to easily change brightness on backlight-controllers.
 AddPackage xbindkeys # Launch shell commands with your keyboard or your mouse under X
-AddPackage xorg-xset # User preference utility for X
 AddPackage arandr # Provide a simple visual front end for XRandR 1.2.
 AddPackage autorandr # Auto-detect connected display hardware and load appropiate X11 setup using xrandr
 AddPackage libnotify # Library for sending desktop notifications, provides notify-send
@@ -43,8 +42,12 @@ AddPackage pipewire-pulse # Low-latency audio/video router and processor - Pulse
 AddPackage redshift # Adjusts the color temperature of your screen according to your surroundings.
 AddPackage wireplumber # Session / policy manager implementation for PipeWire
 AddPackage scrot # Simple command-line screenshot utility for X
-AddPackage xorg-xsetroot # Classic X utility to set your root window background to a given pattern or color
+AddPackage nix # A purely functional package manager
+AddPackage atool # A script for managing file archives of various types
+AddPackage bitwarden # A secure and free password manager for all of your devices
+AddPackage direnv # A shell extension that manages your environment
 
+AddPackage --foreign slack-desktop # Slack Desktop (Beta) for Linux
 AddPackage --foreign ddcci-driver-linux-dkms # A pair of Linux kernel drivers for DDC/CI monitors (DKMS), allows light to control external monitor brightness
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign git-credential-manager-core-bin # Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
@@ -52,6 +55,9 @@ AddPackage --foreign ttf-ms-fonts # Installed to get git-credential-manager-core
 AddPackage --foreign ghcup-hs-bin # an installer for the general purpose language Haskell
 AddPackage --foreign shell-color-scripts # A CLI for the collection of terminal color scripts. Included 52 beautiful terminal color scripts.
 AddPackage --foreign xdg-utils-handlr # A shim for xdg-utils to use handlr under the hood
+
+CopyFile /etc/nix/nix.conf
+CreateLink /etc/systemd/system/multi-user.target.wants/nix-daemon.service /usr/lib/systemd/system/nix-daemon.service
 
 CopyFile /etc/geoclue/geoclue.conf
 

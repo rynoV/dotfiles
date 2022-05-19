@@ -1021,6 +1021,14 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   :config
   (setq lsp-haskell-completion-in-comments nil
         lsp-haskell-server-path "haskell-language-server"))
+(use-package direnv
+  :custom (direnv-always-show-summary nil) ;; See the *direnv* buffer instead
+  :config
+  (direnv-mode))
+#+end_src
+*** Nix
+#+begin_src emacs-lisp
+(use-package nix-mode)
 #+end_src
 *** YAML
 #+begin_src emacs-lisp

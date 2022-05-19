@@ -80,6 +80,10 @@ if type -q any-nix-shell
     any-nix-shell fish --info-right | source
 end
 
+if type -q direnv
+    direnv hook fish | source
+end
+
 set --export GNUPGHOME $XDG_DATA_HOME/gnupg
 # https://stackoverflow.com/a/55032706
 set --export GPG_TTY (tty)

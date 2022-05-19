@@ -6,8 +6,7 @@
       paths = [
         # Allows configuration of nix-shell to use fish
         any-nix-shell
-        ripgrep
-        ripgrep-all
+        lorri
       ];
       pathsToLink = [ "/share/man" "/share/doc" "/bin" "/etc" ];
       extraOutputsToInstall = [ "man" "doc" ];

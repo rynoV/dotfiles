@@ -9,6 +9,10 @@ AddPackage xorg-server-xephyr # A nested X server that runs as an X application
 AddPackage xorg-xmessage # Display a message or query in a window
 AddPackage gtk2 # GObject-based multi-platform GUI toolkit (legacy), needed for git credential manager/gpg to popup a password entry window
 AddPackage slock # A simple screen locker for X
+AddPackage xorg-xprop # Property displayer for X
+AddPackage zenity # Display graphical dialog boxes from shell scripts
+AddPackage xorg-xsetroot # Classic X utility to set your root window background to a given pattern or color
+AddPackage xorg-xset # User preference utility for X
 
 CopyFile /etc/X11/xorg.conf.d/10-monitor.conf
 CopyFile /etc/lightdm/lightdm-gtk-greeter.conf
