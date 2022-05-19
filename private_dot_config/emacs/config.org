@@ -302,6 +302,16 @@ sequences (e.g. ~\n, \t~).
     :hook (prog-mode . hes-mode))
 #+END_SRC
 
+*** Unicode fonts
+Makes sure fonts for various icons are found:
+https://github.com/rolandwalker/unicode-fonts
+
+#+begin_src emacs-lisp
+(use-package unicode-fonts
+  :config
+  (unicode-fonts-setup))
+#+end_src
+
 ** Git Integration
 *** Magit
 Tell magit to automatically put us in vi-insert-mode when committing a change.
@@ -666,7 +676,9 @@ Use numeric prefix arg to insert number."
   (setq org-refile-targets '((org-agenda-files . (:maxlevel . 3))))
   ;; Allow specifying refile location using a full path including file name
   (setq org-refile-use-outline-path 'file)
-  (setq org-outline-path-complete-in-steps t)
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-completion-use-ido t)
+
   ;; Automatically create a header if it doesn't already exist in the refile target path
   (setq org-refile-allow-creating-parent-nodes t)
 
@@ -942,9 +954,13 @@ feature and we have flx-ido for that purpose.
     (ido-vertical-mode +1)
     (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
 
-  (use-package ido-completing-read+ :config (ido-ubiquitous-mode +1))
+(use-package ido-completing-read+
+  :custom
+  (ido-cr+-max-items 50000)
+  :config (ido-ubiquitous-mode +1))
 
   (use-package flx-ido :config (flx-ido-mode +1))
+  (use-package crm-custom :config (crm-custom-mode +1))
 #+END_SRC
 *** Company for auto-completion
 Use ~C-n~ and ~C-p~ to navigate the tooltip, and ~C-n~ to start completion.
@@ -1061,7 +1077,9 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   :hook ((haskell-mode . lsp-deferred)
          (lsp-mode . lsp-enable-which-key-integration))
   :config
-  (setq lsp-log-io nil) ; good for debugging, but if set to true can cause a performance hit
+  (setq lsp-log-io nil ; good for debugging, but if set to true can cause a performance hit
+        lsp-modeline-code-actions-segments '(count icon name)
+        )
   )
 
 (require 'lsp-ido)
