@@ -15,8 +15,8 @@ set --export XDG_CACHE_HOME $HOME/.cache
 set --export XDG_DATA_HOME $HOME/.local/share
 set --export XDG_STATE_HOME $HOME/.local/state
 
-set PATH ~/.local/bin $PATH
-set PATH ~/.local/bin/evil-software $PATH
+fish_add_path --path ~/.local/bin
+fish_add_path --path ~/.local/bin/evil-software
 set --export VISUAL emacsclient --no-wait --create-frame
 set --export EDITOR emacsclient --no-wait --create-frame
 set --export BROWSER browser
@@ -37,14 +37,14 @@ set fzf_dir_opts $MY_FZF_FILE_OPTS
 set fzf_fd_opts --hidden --exclude=.git --follow
 
 set --export JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
-set PATH $JAVA_HOME/bin $PATH
+fish_add_path --path $JAVA_HOME/bin
 
-set PATH $PATH /usr/local/go/bin
+fish_add_path --path /usr/local/go/bin
 set --export GOPATH ~/.var/go
 
 set MANPATH $MANPATH /usr/local/texlive/2022/texmf-dist/doc/man
 set INFOPATH $INFOPATH /usr/local/texlive/2022/texmf-dist/doc/info
-set PATH $PATH /usr/local/texlive/2022/bin/x86_64-linux
+fish_add_path --path /usr/local/texlive/2022/bin/x86_64-linux
 
 alias g magit
 
@@ -71,9 +71,9 @@ end
 test "$TERM" = "xterm-kitty" && alias ssh "kitty +kitten ssh"
 
 set --export GHCUP_USE_XDG_DIRS
-set -gx PATH $XDG_DATA_HOME/cabal/bin $PATH $XDG_DATA_HOME/ghcup/bin # ghcup-env
+fish_add_path --path $XDG_DATA_HOME/cabal/bin $XDG_DATA_HOME/ghcup/bin # ghcup-env
 
-set PATH $HOME/.nix-profile/bin /nix/var/nix/profiles/default/bin $PATH
+fish_add_path --path $HOME/.nix-profile/bin /nix/var/nix/profiles/default/bin
 set MANPATH $HOME/.nix-profile/share/man /nix/var/nix/profiles/default/share/man $MANPATH
 
 if type -q any-nix-shell
