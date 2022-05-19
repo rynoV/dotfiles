@@ -45,7 +45,9 @@ settings:
     https://calendar.google.com?cid=%25s: false
     https://outlook.office.com?mailtouri=%25s: false
   downloads.location.directory:
-    global: null
+    global: ~/Downloads
+  downloads.location.prompt:
+    global: false
   downloads.location.suggestion:
     global: both
   downloads.position:

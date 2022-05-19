@@ -15,6 +15,7 @@ x-scheme-handler/mailto=msedge-pkooggnaalmfkidjmlhoelhdllpphaga-Default.desktop;
 
 [Default Applications]
 application/pdf=org.pwmt.zathura-pdf-poppler.desktop;
+application/toml=emacsclient.desktop;
 application/x-directory=ranger.desktop;
 application/x-gnome-saved-search=ranger.desktop;
 application/xhtml+xml=org.qutebrowser.qutebrowser.desktop;
