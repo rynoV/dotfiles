@@ -7,3 +7,6 @@
 ["scripts/xmobar"]
     type = "git-repo"
     url = "https://github.com/jaor/xmobar"
+[".config/ranger/plugins/ranger-archives"]
+    type = "git-repo"
+    url = "https://github.com/maximtrp/ranger-archives"
