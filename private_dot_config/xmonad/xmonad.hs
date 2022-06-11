@@ -1,6 +1,10 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 import Bitwarden
+  ( bwLoginCopyPrompt,
+    bwLoginFillPrompt,
+    bwPasswordFillPrompt,
+  )
 import Control.Applicative (liftA2)
 import Control.Concurrent (threadDelay)
 import qualified Control.Exception as E
@@ -11,6 +15,7 @@ import Data.Bifunctor (second)
 import qualified Data.ByteString.Lazy.UTF8 as B
 import Data.Char (isPrint, isSpace)
 import Data.Foldable (forM_)
+import Data.List (isInfixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics (Generic)
@@ -21,6 +26,7 @@ import System.Posix (executeFile, mkstemp)
 import XMonad
 import XMonad.Actions.CycleWS
   ( Direction1D (..),
+    WSType ((:&:)),
     emptyWS,
     moveTo,
     nextWS,
@@ -28,6 +34,7 @@ import XMonad.Actions.CycleWS
     shiftToNext,
     shiftToPrev,
     toggleWS,
+    toggleWS', ignoringWSs, anyWS, shiftTo,
   )
 import XMonad.Actions.CycleWindows (cycleRecentWindows)
 import XMonad.Actions.DynamicWorkspaces (removeWorkspace, renameWorkspace, selectWorkspace, withWorkspace)
@@ -43,6 +50,7 @@ import XMonad.Hooks.ManageHelpers
     doRectFloat,
     isFullscreen,
   )
+import XMonad.Hooks.RefocusLast (refocusLastLogHook)
 import XMonad.Hooks.StatusBar
   ( defToggleStrutsKey,
     statusBarProp,
@@ -84,6 +92,7 @@ import XMonad.Layout.StackTile
 import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Layout.WindowNavigation (Navigate (..), windowNavigation)
+import XMonad.Prelude (WindowScreen, find)
 import XMonad.Prompt
   ( XPConfig (..),
     XPPosition (..),
@@ -108,21 +117,22 @@ import XMonad.Prompt.XMonad (xmonadPrompt)
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap)
 import qualified XMonad.Util.ExtensibleState as XS
-import XMonad.Util.Loggers (logTitles)
+import XMonad.Util.Loggers (Logger, logTitles)
 import XMonad.Util.NamedActions
 import XMonad.Util.NamedScratchpad
   ( NamedScratchpad (NS),
     customFloating,
     namedScratchpadAction,
     namedScratchpadManageHook,
+    nsHideOnFocusLoss,
     scratchpadWorkspaceTag,
   )
+import XMonad.Util.NamedWindows (getName, getNameWMClass)
 import XMonad.Util.Paste (pasteString, sendKey)
 import XMonad.Util.Run (hPutStr, runProcessWithInput)
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.Ungrab (unGrab)
 import XMonad.Util.WorkspaceCompare (filterOutWs)
-import Bitwarden (bwPasswordFillPrompt)
 
 main :: IO ()
 main =
@@ -151,7 +161,11 @@ myConfig =
       startupHook = myStartupHook,
       manageHook = myManageHook <+> manageDocks <+> namedScratchpadManageHook myScratchpads,
       layoutHook = smartBorders $ avoidStruts myLayoutConfig,
-      logHook = historyHook >> workspaceHistoryHookExclude [scratchpadWorkspaceTag],
+      logHook =
+        historyHook
+          >> workspaceHistoryHookExclude [scratchpadWorkspaceTag]
+          >> refocusLastLogHook
+          >> nsHideOnFocusLoss myScratchpads,
       workspaces = ["1", "2"]
     }
 
@@ -183,6 +197,11 @@ myScratchpads =
     NS "terminal" "kitty --title terminal" (title =? "terminal") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
     NS "files" "kitty --title files ranger" (title =? "files") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
     NS
+      "timetracking"
+      "qutebrowser --target window https://mlabs.harvestapp.com/time"
+      (("Timesheet" `isInfixOf`) <$> title)
+      $ customFloating $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
+    NS
       "calc"
       "emacsclient --create-frame --frame-parameters \"'(name . \\\"Emacs Calc\\\")\" --eval \"(full-calc)\""
       (title =? "Emacs Calc")
@@ -190,6 +209,21 @@ myScratchpads =
   ]
 
 addMyKeymap c = (subtitle "Custom Keys" :) $ mkNamedKeymap c myKeymap
+
+ignoreScratchpadWS :: WSType
+ignoreScratchpadWS = ignoringWSs [scratchpadWorkspaceTag]
+
+moveToWS :: Direction1D -> X ()
+moveToWS = flip moveTo $ anyWS :&: ignoreScratchpadWS
+
+shiftToWS :: Direction1D -> X ()
+shiftToWS = flip shiftTo $ anyWS :&: ignoreScratchpadWS
+
+moveToNextWS, moveToPrevWS, shiftToNextWS, shiftToPrevWS :: X ()
+moveToNextWS = moveToWS Next
+moveToPrevWS = moveToWS Prev
+shiftToNextWS = shiftToWS Next
+shiftToPrevWS = shiftToWS Prev
 
 -- Note: M1 is left alt, C-S-M1-M is the "hyper" key and C-S-M1 is the
 -- "meh" key (special keys on my keyboard that emulate these
@@ -255,11 +289,14 @@ myKeymap =
       addName "Select then copy a username and password from bitwarden" $
         bwLoginCopyPrompt myPromptConfig
     ),
+    ("M-p e", addName "Emoji picker" $ spawn "rofimoji"),
     -- App launchers
     ("C-S-M1-e", addName "Launch emacs" $ spawn "myemacs --create-frame"),
     ("C-S-M1-b", addName "New browser window" $ spawn "browser"),
-    ("C-S-M1-M-b", addName "New private browser window" $ spawn "private-browser"),
+    ("C-S-M1-M-b p", addName "New private browser window" $ spawn "private-browser"),
+    ("C-S-M1-M-b c", addName "Open clipboard link in chromium" $ spawn "xclip -selection clipboard -out | xargs chromium"),
     ("C-S-M1-t", addName "Launch terminal" $ spawn $ terminal myConfig),
+    ("C-S-M1-s", addName "Launch slack" $ spawn "slack"),
     -- Emacs launchers (mnemonic "E-macs")
     ("C-S-M1-M-e n", addName "Capture a note" $ spawn "~/scripts/org-capture n"),
     ("C-S-M1-M-e t", addName "Capture a todo item" $ spawn "~/scripts/org-capture t"),
@@ -278,13 +315,14 @@ myKeymap =
     ("C-S-M1-M-c d", addName "Disconnect airpods" $ spawn "~/scripts/disconnect-airpods.sh"),
     -- Scratchpads
     ("C-S-M1-h", addName "Toggle htop" $ namedScratchpadAction myScratchpads "htop"),
+    ("C-S-M1-o", addName "Toggle timetracking" $ namedScratchpadAction myScratchpads "timetracking"),
     ("M-t", addName "Toggle terminal" $ namedScratchpadAction myScratchpads "terminal"),
     ("M-f", addName "Toggle file manager" $ namedScratchpadAction myScratchpads "files"),
     ("C-S-M1-c", addName "Toggle calculator" $ namedScratchpadAction myScratchpads "calc"),
     -- Workspaces
     ("M-w <Backspace>", addName "Delete workspace" removeWorkspace),
-    ("M-w <Tab>", addName "Go to previously visited workspace" toggleWS),
-    ("M-w e", addName "Go to an empty workspace" $ moveTo Next emptyWS),
+    ("M-w <Tab>", addName "Go to previously visited workspace" $ toggleWS' [scratchpadWorkspaceTag]),
+    ("M-w e", addName "Go to an empty workspace" $ moveTo Next $ emptyWS :&: ignoreScratchpadWS),
     ("M-w p", addName "Select/create a workspace by name" $ selectWorkspace myPromptConfig),
     ("M-w t", addName "Push floating to tiled" $ withFocused $ windows . W.sink),
     -- Select a workspace to shift the current window to
@@ -294,12 +332,13 @@ myKeymap =
     ),
     ("M-w r", addName "Rename workspace" $ renameWorkspace myPromptConfig),
     -- Move to/move window to next/prev workspace
-    ("M-w j", addName "Move to next workspace" nextWS),
-    ("M-w k", addName "Move to previous workspace" prevWS),
-    ("M-w S-j", addName "Move window to next workspace and follow" $ shiftToNext >> nextWS),
-    ("M-w S-k", addName "Move window to previous workspace and follow" $ shiftToPrev >> prevWS),
-    ("M-w S-M-j", addName "Move window to next workspace" shiftToNext),
-    ("M-w S-M-k", addName "Move window to previous workspace" shiftToPrev),
+    ("M-w j", addName "Move to next workspace" moveToNextWS),
+    -- ("M-w j", addName "Move to next workspace" nextWS),
+    -- ("M-w k", addName "Move to previous workspace" prevWS),
+    ("M-w S-j", addName "Move window to next workspace and follow" $ shiftToNextWS >> moveToNextWS),
+    ("M-w S-k", addName "Move window to previous workspace and follow" $ shiftToPrevWS >> moveToPrevWS),
+    ("M-w S-M-j", addName "Move window to next workspace" shiftToNextWS),
+    ("M-w S-M-k", addName "Move window to previous workspace" shiftToPrevWS),
     -- Move all windows to the next screen
     ( "M-w a",
       addName "Move all windows to the next screen" $
@@ -358,7 +397,7 @@ myXmobarPP =
       ppHiddenNoWindows = lowWhite . wrap " " "",
       ppUrgent = red . wrap (yellow "!") (yellow "!"),
       ppOrder = \[ws, l, _, wins] -> [ws, l, wins],
-      ppExtras = [logTitles formatFocused formatUnfocused],
+      ppExtras = [myLogTitles formatFocused formatUnfocused],
       ppSort = return $ filterOutWs [scratchpadWorkspaceTag] -- Don't show scratchpads workspace
     }
   where
@@ -440,3 +479,26 @@ myDefaultKeys conf@XConfig {XMonad.modMask = modm} =
     ((modm .|. shiftMask, xK_q), addName "Quit" $ io exitSuccess), -- %! Quit xmonad
     ((modm, xK_q), addName "Restart" $ spawn "xmonad --recompile && xmonad --restart") -- %! Restart xmonad
   ]
+
+-- | A modified version of @logTitles@ that uses the window class
+-- instead of the title for a more compact display
+myLogTitles :: (String -> String) -> (String -> String) -> Logger
+myLogTitles formatFoc formatUnfoc = do
+  sid <- gets $ W.screen . W.current . windowset
+  (`withScreen` sid) $ \screen -> do
+    let focWin = fmap W.focus . W.stack . W.workspace $ screen
+        wins = maybe [] W.integrate . W.stack . W.workspace $ screen
+    winNames <- traverse (fmap show . getNameWMClass) wins
+    pure . Just . unwords $
+      zipWith
+        (\w n -> if Just w == focWin then formatFoc n else formatUnfoc n)
+        wins
+        winNames
+
+-- | A helper function to create screen-specific loggers.
+withScreen :: (WindowScreen -> Logger) -> ScreenId -> Logger
+withScreen f n = do
+  ss <- withWindowSet $ return . W.screens
+  case find ((== n) . W.screen) ss of
+    Just s -> f s
+    Nothing -> pure Nothing
