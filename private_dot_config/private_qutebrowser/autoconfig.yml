@@ -52,6 +52,8 @@ settings:
     global: both
   downloads.position:
     global: bottom
+  downloads.remove_finished:
+    global: 5000
   editor.command:
     global:
     - emacsclient

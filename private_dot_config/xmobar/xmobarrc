@@ -25,7 +25,8 @@ Config { overrideRedirect = False
                         , "--high"     , "#A3BE8C"
                         , "--",
                           "-p", "#A3BE8C",
-                          "-a", "notify-send -u critical 'Battery running out'"
+                          "-A", "10",
+                          "-a", "notify-send --wait -u critical 'Battery running out'"
                         , "-l"   ,  "#BF616A"
                         , "-m"   ,  "#EBCB8B"
                         , "-h"   ,  "#A3BE8C"
@@ -37,7 +38,7 @@ Config { overrideRedirect = False
                         , "-O"  , ": <left>% <timeleft>"
                         -- charged status
                         , "-i"  , ""
-                        ] 200
+                        ] 50
                     , Run DynNetwork
                           [ "--template", "<rx>KB ↓ <tx>KB ↑"
                           , "--align", "l"

@@ -9,11 +9,13 @@
   <property name="lastSavePath" value="/home/calum/OneDriveSchool/year3/winter/CPSC_411/final"/>
   <property name="lastOpenPath" value="/home/calum/.local/share/fake-home"/>
   <property name="lastImagePath" value=""/>
+  <property name="edgePanSpeed" value="20.00000000"/>
+  <property name="edgePanMaxMult" value="5.00000000"/>
   <property name="zoomStep" value="10.00000000"/>
   <property name="zoomStepScroll" value="2.00000000"/>
   <property name="displayDpi" value="72"/>
-  <property name="mainWndWidth" value="1912"/>
-  <property name="mainWndHeight" value="1017"/>
+  <property name="mainWndWidth" value="1536"/>
+  <property name="mainWndHeight" value="1043"/>
   <property name="maximized" value="false"/>
   <property name="showToolbar" value="true"/>
   <property name="showSidebar" value="false"/>

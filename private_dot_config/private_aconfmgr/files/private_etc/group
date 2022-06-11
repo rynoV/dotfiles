@@ -52,3 +52,5 @@ lightdm:x:972:
 plugdev:x:1001:calum
 geoclue:x:971:
 i2c:x:970:calum
+nix-users:x:969:
+nixbld:x:968:nixbld01,nixbld02,nixbld03,nixbld04,nixbld05,nixbld06,nixbld07,nixbld08,nixbld09,nixbld10

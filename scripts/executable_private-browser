@@ -1,2 +1,2 @@
 #!/bin/sh
-qutebrowser --temp-basedir -s content.private_browsing true
+qutebrowser --target private-window -s content.private_browsing true
