@@ -33,7 +33,7 @@ fi
 
 xset s off # Disable screen saver
 xsetroot -cursor_name left_ptr # Set cursor style
-setxkbmap -option caps:ctrl_modifier
+setxkbmap -option caps:ctrl_modifier -option compose:ralt
 
 export XDG_CURRENT_DESKTOP=xmonad
 export XDG_SESSION_DESKTOP=xmonad

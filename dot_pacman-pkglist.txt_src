@@ -58,6 +58,7 @@ neofetch
 networkmanager
 nix
 notification-daemon
+noto-fonts-emoji
 openssh
 pacman
 pacman-contrib
@@ -70,11 +71,14 @@ pkgconf
 polkit
 python-adblock
 python-pillow
+qmk
 qutebrowser
 ranger
 rclone
 redshift
 ripgrep-all
+rofi
+rofimoji
 scrot
 sed
 shell-color-scripts
@@ -82,6 +86,12 @@ slack-desktop
 slock
 sudo
 texinfo
+texlive-core
+texlive-fontsextra
+texlive-formatsextra
+texlive-latexextra
+texlive-pictures
+texlive-science
 ttf-ms-fonts
 unzip
 variety
@@ -92,6 +102,8 @@ wireplumber
 xbindkeys
 xclip
 xdg-utils-handlr
+xdotool
+xf86-input-wacom
 xf86-video-fbdev
 xf86-video-intel
 xorg-server
@@ -101,6 +113,7 @@ xorg-xmessage
 xorg-xprop
 xorg-xset
 xorg-xsetroot
+xournalpp
 z
 zathura
 zathura-pdf-poppler

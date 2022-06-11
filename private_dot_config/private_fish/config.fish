@@ -42,9 +42,12 @@ fish_add_path --path $JAVA_HOME/bin
 fish_add_path --path /usr/local/go/bin
 set --export GOPATH ~/.var/go
 
-set MANPATH $MANPATH /usr/local/texlive/2022/texmf-dist/doc/man
-set INFOPATH $INFOPATH /usr/local/texlive/2022/texmf-dist/doc/info
-fish_add_path --path /usr/local/texlive/2022/bin/x86_64-linux
+set --export TEXMFHOME ~/.local/share/texmf
+set --export TEXMFVAR ~/.var/texmf
+set --export TEXMFCONFIG ~/.config/texmf
+
+# For GTK 4 apps
+set --export GTK_THEME Nordic
 
 alias g magit
 
