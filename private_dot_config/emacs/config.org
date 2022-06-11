@@ -126,8 +126,8 @@ works.
   ;; Allow opening recent files
   ;; https://www.emacswiki.org/emacs/RecentFiles
   (recentf-mode 1)
-  (setq recentf-max-menu-items 25)
-  (setq recentf-max-saved-items 25)
+  (setq recentf-max-menu-items 100
+        recentf-max-saved-items 100)
 
   ;; Always use spaces for indentation
   (setq-default indent-tabs-mode nil
@@ -1003,6 +1003,20 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   :config
   (company-posframe-mode 1))
 #+end_src
+*** Project support
+#+begin_src emacs-lisp
+(use-package rg)
+(use-package projectile
+  :delight
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :general
+  (calum/leader-def
+    :keymaps 'projectile-mode-map
+    "p" '(:keymap projectile-command-map :which-key "project")))
+(use-package treemacs-projectile)
+#+end_src
 ** Programming Languages
 *** Lisp
 
@@ -1032,14 +1046,29 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   ;; indenting to the previous non-blank line instead of using the
   ;; haskell indent function
   (add-to-list 'indent-line-ignored-functions 'haskell-indentation-indent-line)
-  (add-hook 'haskell-mode-hook 'haskell-auto-insert-module-template))
+  (add-hook 'haskell-mode-hook 'haskell-auto-insert-module-template)
+  ;; Use C-M-a/e/h to move to previous/next function/select the
+  ;; current function
+  (add-hook 'haskell-mode-hook 'haskell-decl-scan-mode)
+  (require 'speedbar)
+  (speedbar-add-supported-extension ".hs")
+  (require 'haskell-interactive-mode)
+  (require 'haskell-process)
+  (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+  (add-hook 'haskell-mode-hook 'haskell-collapse-mode)
+  (add-hook 'haskell-mode-hook '(lambda ()
+                                  (setq evil-shift-width 2
+                                        tab-width 2)))
+  (setq haskell-process-use-presentation-mode t
+        haskell-interactive-mode-eval-mode 'haskell-mode))
 (use-package lsp-haskell
   :config
   (setq lsp-haskell-completion-in-comments nil
         lsp-haskell-server-path "haskell-language-server"))
 (use-package direnv
-  :custom (direnv-always-show-summary nil) ;; See the *direnv* buffer instead
+  :custom (direnv-always-show-summary t)
   :config
+  (add-to-list 'direnv-non-file-modes 'haskell-interactive-mode)
   (direnv-mode))
 #+end_src
 *** Nix
@@ -1052,33 +1081,44 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
 #+end_src
 *** LSP Mode
 #+begin_src emacs-lisp
-(use-package flycheck)
-(use-package evil-iedit-state)
+(use-package flycheck
+  :delight)
+(use-package evil-iedit-state
+  :general
+  ([remap iedit-mode] 'evil-iedit-state/iedit-mode))
 (use-package lsp-mode
+  :delight
+  :delight lsp-lens-mode
   :commands (lsp lsp-deferred)
   :init
   ;; This essentially just let's the which-key integration know where to look
   (setq lsp-keymap-prefix "SPC i")
+  (lsp-enable-which-key-integration)
   :preface
   (defun calum/lsp-iedit-highlights ()
     "Wrapper around lsp-iedit-highlights that integrates evil-iedit-state"
     (interactive)
+    (require 'evil-iedit-state)
     (lsp-iedit-highlights)
     (evil-iedit-state))
   :general
   (:keymaps '(evil-normal-state-map) "C-." nil)
-  (:states 'motion :keymaps 'lsp-mode-map
+  (:keymaps 'lsp-mode-map
            "C-." 'lsp-execute-code-action)
   ;; This is what actually sets up the binding
   (calum/leader-def :keymaps 'lsp-mode-map
     "i" '(:keymap lsp-command-map :which-key "lsp")
     "i e" 'calum/lsp-iedit-highlights
-    "i g s" '(lsp-treemacs-symbols :which-key "symbols"))
+    "i g s" '(lsp-treemacs-symbols :which-key "symbols")
+    "i g a" nil
+    "i g a" '(lsp-ido-workspace-symbol :which-key "find symbol"))
   :hook ((haskell-mode . lsp-deferred)
-         (lsp-mode . lsp-enable-which-key-integration))
+         )
   :config
   (setq lsp-log-io nil ; good for debugging, but if set to true can cause a performance hit
         lsp-modeline-code-actions-segments '(count icon name)
+        lsp-modeline-diagnostics-enable t
+        lsp-modeline-diagnostics-scope :workspace
         )
   )
 
@@ -1094,7 +1134,10 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
         lsp-ui-idle-delay 0.5
         lsp-ui-sideline-delay 0.5))
 
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+(use-package lsp-treemacs
+  :commands lsp-treemacs-errors-list
+  :config
+  (lsp-treemacs-sync-mode 1))
 #+end_src
 *** Flex & Bison
 #+begin_src emacs-lisp
@@ -1281,4 +1324,11 @@ Provides us with hints on available keystroke combinations.
 *** Sudo edit
 #+begin_src emacs-lisp
 (use-package sudo-edit)
+#+end_src
+
+*** Minimap
+#+begin_src emacs-lisp
+(use-package minimap
+  :custom (minimap-window-location 'right
+           minimap-hide-cursor t))
 #+end_src
