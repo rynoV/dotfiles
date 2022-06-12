@@ -1,0 +1,5 @@
+* My XMonad Config
+
+Unicode data files source:
+https://github.com/fdw/rofimoji/tree/main/src/picker/data (note: some
+files may be slightly modified to remove HTML markup in descriptions)

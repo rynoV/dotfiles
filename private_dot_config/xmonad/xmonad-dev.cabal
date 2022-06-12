@@ -14,6 +14,16 @@ maintainer:     example@example.com
 copyright:      2022 Author name here
 license:        BSD3
 build-type:     Simple
+data-files:
+    data/arrows.txt
+    data/emojis.txt
+    data/emoticons.txt
+    data/general_punctuation.txt
+    data/geometric_shapes.txt
+    data/gitmoji.txt
+    data/math.txt
+    data/miscellaneous_symbols.txt
+    data/nerd_font.txt
 
 source-repository head
   type: git
@@ -22,6 +32,8 @@ source-repository head
 library
   exposed-modules:
       Bitwarden
+      PromptKeymap
+      SymbolPicker
   other-modules:
       Paths_xmonad_dev
   hs-source-dirs:
@@ -31,6 +43,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , filepath
     , process
     , unix
     , utf8-string
@@ -48,6 +61,7 @@ executable xmonad-dev-exe
     , base >=4.7 && <5
     , bytestring
     , containers
+    , filepath
     , process
     , unix
     , utf8-string

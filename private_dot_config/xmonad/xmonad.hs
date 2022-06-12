@@ -11,7 +11,7 @@ import qualified Control.Exception as E
 import Control.Monad (void, when)
 import Data.Aeson (eitherDecode)
 import Data.Aeson.Types (FromJSON)
-import Data.Bifunctor (second)
+import Data.Bifunctor (bimap, first, second)
 import qualified Data.ByteString.Lazy.UTF8 as B
 import Data.Char (isPrint, isSpace)
 import Data.Foldable (forM_)
@@ -19,6 +19,7 @@ import Data.List (isInfixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics (Generic)
+import PromptKeymap (myVimLikeXPKeymap')
 import System.Environment (getEnv)
 import System.Exit (exitSuccess)
 import System.IO (hClose, openFile)
@@ -27,14 +28,17 @@ import XMonad
 import XMonad.Actions.CycleWS
   ( Direction1D (..),
     WSType ((:&:)),
+    anyWS,
     emptyWS,
+    ignoringWSs,
     moveTo,
     nextWS,
     prevWS,
+    shiftTo,
     shiftToNext,
     shiftToPrev,
     toggleWS,
-    toggleWS', ignoringWSs, anyWS, shiftTo,
+    toggleWS',
   )
 import XMonad.Actions.CycleWindows (cycleRecentWindows)
 import XMonad.Actions.DynamicWorkspaces (removeWorkspace, renameWorkspace, selectWorkspace, withWorkspace)
@@ -93,16 +97,7 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Layout.WindowNavigation (Navigate (..), windowNavigation)
 import XMonad.Prelude (WindowScreen, find)
-import XMonad.Prompt
-  ( XPConfig (..),
-    XPPosition (..),
-    XPrompt (..),
-    getNextCompletion,
-    mkComplFunFromList,
-    mkXPrompt,
-    setBorderColor,
-    vimLikeXPKeymap',
-  )
+import XMonad.Prompt (XPConfig (..), XPPosition (..), setBorderColor)
 import XMonad.Prompt.FuzzyMatch (fuzzyMatch, fuzzySort)
 import XMonad.Prompt.Man (manPrompt)
 import XMonad.Prompt.RunOrRaise (runOrRaisePrompt)
@@ -133,6 +128,7 @@ import XMonad.Util.Run (hPutStr, runProcessWithInput)
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.Ungrab (unGrab)
 import XMonad.Util.WorkspaceCompare (filterOutWs)
+import SymbolPicker (mkSymbolPrompt)
 
 main :: IO ()
 main =
@@ -179,14 +175,15 @@ myLayoutConfig =
 myPromptConfig :: XPConfig
 myPromptConfig =
   def
-    { font = "xft:jetbrains mono:size=12",
+    { -- Note: seems like xft doesn't support colour emoji
+      font = "xft:jetbrains mono:size=12,symbola:size=12,Symbols Nerd Font Mono:style=1000-em:size=12",
       height = 35,
       position = CenteredAt 0.5 0.5,
       bgColor = "#2E3440",
       fgColor = "#ECEFF4",
       bgHLight = "#88C0D0",
       borderColor = "#88C0D0",
-      promptKeymap = vimLikeXPKeymap' (setBorderColor "#5E81AC") ("[n] " ++) (filter isPrint) isSpace,
+      promptKeymap = myVimLikeXPKeymap' (setBorderColor "#5E81AC") ("[n] " ++) (filter isPrint) isSpace,
       defaultPrompter = ("[i] " ++),
       searchPredicate = fuzzyMatch,
       sorter = fuzzySort
@@ -289,7 +286,26 @@ myKeymap =
       addName "Select then copy a username and password from bitwarden" $
         bwLoginCopyPrompt myPromptConfig
     ),
-    ("M-p e", addName "Emoji picker" $ spawn "rofimoji"),
+    -- Unicode/emoji prompts
+    -- ("M-p e e", addName "Emoji picker" $ spawn "rofimoji"),
+    ("M-p e e", addName "Emoji picker (common emoji)" $
+      mkSymbolPrompt "emoticons.txt" "Emoji" myPromptConfig),
+    ("M-p e j", addName "All emoji picker (slower)" $
+      mkSymbolPrompt "emojis.txt" "Emoji" myPromptConfig),
+    ("M-p e a", addName "Arrow symbol picker" $
+      mkSymbolPrompt "arrows.txt" "Arrow" myPromptConfig),
+    ("M-p e p", addName "Punctuation symbols" $
+      mkSymbolPrompt "general_punctuation.txt" "Punc" myPromptConfig),
+    ("M-p e s", addName "Shape symbols" $
+      mkSymbolPrompt "geometric_shapes.txt" "Shape" myPromptConfig),
+    ("M-p e g", addName "Gitmoji symbols" $
+      mkSymbolPrompt "gitmoji.txt" "Gitmoji" myPromptConfig),
+    ("M-p e m", addName "Math symbols" $
+      mkSymbolPrompt "math.txt" "Math" myPromptConfig),
+    ("M-p e r", addName "Random symbols" $
+      mkSymbolPrompt "miscellaneous_symbols.txt" "Misc" myPromptConfig),
+    ("M-p e n", addName "Nerd font symbols" $
+      mkSymbolPrompt "nerd_font.txt" "Nerd" myPromptConfig),
     -- App launchers
     ("C-S-M1-e", addName "Launch emacs" $ spawn "myemacs --create-frame"),
     ("C-S-M1-b", addName "New browser window" $ spawn "browser"),

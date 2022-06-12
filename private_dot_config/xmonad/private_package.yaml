@@ -27,6 +27,10 @@ dependencies:
 - process
 - utf8-string
 - unix
+- filepath
+
+data-files:
+- data/*
 
 library:
   source-dirs: src
