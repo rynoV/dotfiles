@@ -1,0 +1,19 @@
+theme = "nord"
+
+[editor]
+mouse = false
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.whitespace.render]
+tab = "all"
+
+[editor.whitespace.characters]
+nbsp = "⍽"
+tab = "→"
+
+[keys.normal]
+Z = { Z = ":wq" }

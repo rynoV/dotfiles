@@ -42,6 +42,7 @@ groff
 gtk2
 gzip
 handlr
+helix
 htop
 jq
 kitty
@@ -96,6 +97,7 @@ texlive-latexextra
 texlive-pictures
 texlive-science
 ttf-ms-fonts
+udisks2
 unzip
 variety
 vim
@@ -111,7 +113,9 @@ xf86-video-fbdev
 xf86-video-intel
 xorg-server
 xorg-server-xephyr
+xorg-xev
 xorg-xinit
+xorg-xinput
 xorg-xmessage
 xorg-xprop
 xorg-xset

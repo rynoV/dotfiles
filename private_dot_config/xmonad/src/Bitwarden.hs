@@ -57,7 +57,7 @@ data BWItem = BWItem
 instance FromJSON BWItem
 
 data BWLogin = BWLogin
-  { uris :: [BWUri],
+  { uris :: Maybe [BWUri],
     username :: Maybe String,
     password :: Maybe String
   }
@@ -96,8 +96,8 @@ mkBwPassPrompt promptLabel passwordFunction xpconfig = do
       c
         ++ maybe
           ""
-          (foldr (\u b -> maybe "" (++ (" " ++ b)) (uri u)) "" . uris)
-          (login (bwItems M.! c))
+          (foldr (\u b -> maybe "" (++ (" " ++ b)) (uri u)) "")
+          (login (bwItems M.! c) >>= uris)
 
 bwPasswordFillPrompt :: XPConfig -> X ()
 bwPasswordFillPrompt =

@@ -29,6 +29,7 @@ settings:
     aur.archlinux.org: true
     github.com: true
     https://superuser.com: true
+    mlabs.slab.com: true
   content.media.audio_capture:
     https://meet.google.com: true
   content.media.audio_video_capture:
@@ -37,12 +38,14 @@ settings:
     https://meet.google.com: true
   content.notifications.enabled:
     https://meet.google.com: true
+    https://www.netflix.com: false
     https://www.reddit.com: false
     https://www.youtube.com: false
   content.pdfjs:
     global: true
   content.register_protocol_handler:
     https://calendar.google.com?cid=%25s: false
+    https://mail.google.com?extsrc=mailto&url=%25s: false
     https://outlook.office.com?mailtouri=%25s: false
   downloads.location.directory:
     global: ~/Downloads

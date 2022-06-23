@@ -20,6 +20,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics (Generic)
 import PromptKeymap (myVimLikeXPKeymap')
+import SymbolPicker (mkSymbolPrompt)
 import System.Environment (getEnv)
 import System.Exit (exitSuccess)
 import System.IO (hClose, openFile)
@@ -128,7 +129,6 @@ import XMonad.Util.Run (hPutStr, runProcessWithInput)
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.Ungrab (unGrab)
 import XMonad.Util.WorkspaceCompare (filterOutWs)
-import SymbolPicker (mkSymbolPrompt)
 
 main :: IO ()
 main =
@@ -288,24 +288,42 @@ myKeymap =
     ),
     -- Unicode/emoji prompts
     -- ("M-p e e", addName "Emoji picker" $ spawn "rofimoji"),
-    ("M-p e e", addName "Emoji picker (common emoji)" $
-      mkSymbolPrompt "emoticons.txt" "Emoji" myPromptConfig),
-    ("M-p e j", addName "All emoji picker (slower)" $
-      mkSymbolPrompt "emojis.txt" "Emoji" myPromptConfig),
-    ("M-p e a", addName "Arrow symbol picker" $
-      mkSymbolPrompt "arrows.txt" "Arrow" myPromptConfig),
-    ("M-p e p", addName "Punctuation symbols" $
-      mkSymbolPrompt "general_punctuation.txt" "Punc" myPromptConfig),
-    ("M-p e s", addName "Shape symbols" $
-      mkSymbolPrompt "geometric_shapes.txt" "Shape" myPromptConfig),
-    ("M-p e g", addName "Gitmoji symbols" $
-      mkSymbolPrompt "gitmoji.txt" "Gitmoji" myPromptConfig),
-    ("M-p e m", addName "Math symbols" $
-      mkSymbolPrompt "math.txt" "Math" myPromptConfig),
-    ("M-p e r", addName "Random symbols" $
-      mkSymbolPrompt "miscellaneous_symbols.txt" "Misc" myPromptConfig),
-    ("M-p e n", addName "Nerd font symbols" $
-      mkSymbolPrompt "nerd_font.txt" "Nerd" myPromptConfig),
+    ( "M-p e e",
+      addName "Emoji picker (common emoji)" $
+        mkSymbolPrompt "emoticons.txt" "Emoji" myPromptConfig
+    ),
+    ( "M-p e j",
+      addName "All emoji picker (slower)" $
+        mkSymbolPrompt "emojis.txt" "Emoji" myPromptConfig
+    ),
+    ( "M-p e a",
+      addName "Arrow symbol picker" $
+        mkSymbolPrompt "arrows.txt" "Arrow" myPromptConfig
+    ),
+    ( "M-p e p",
+      addName "Punctuation symbols" $
+        mkSymbolPrompt "general_punctuation.txt" "Punc" myPromptConfig
+    ),
+    ( "M-p e s",
+      addName "Shape symbols" $
+        mkSymbolPrompt "geometric_shapes.txt" "Shape" myPromptConfig
+    ),
+    ( "M-p e g",
+      addName "Gitmoji symbols" $
+        mkSymbolPrompt "gitmoji.txt" "Gitmoji" myPromptConfig
+    ),
+    ( "M-p e m",
+      addName "Math symbols" $
+        mkSymbolPrompt "math.txt" "Math" myPromptConfig
+    ),
+    ( "M-p e r",
+      addName "Random symbols" $
+        mkSymbolPrompt "miscellaneous_symbols.txt" "Misc" myPromptConfig
+    ),
+    ( "M-p e n",
+      addName "Nerd font symbols" $
+        mkSymbolPrompt "nerd_font.txt" "Nerd" myPromptConfig
+    ),
     -- App launchers
     ("C-S-M1-e", addName "Launch emacs" $ spawn "myemacs --create-frame"),
     ("C-S-M1-b", addName "New browser window" $ spawn "browser"),

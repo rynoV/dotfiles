@@ -1308,7 +1308,9 @@ Provides us with hints on available keystroke combinations.
 #+begin_src emacs-lisp
 (use-package writeroom-mode
   :config
-  (setq writeroom-global-effects (remove 'writeroom-set-alpha writeroom-global-effects)
+  (setq writeroom-global-effects
+        (remove 'writeroom-set-fullscreen
+                (remove 'writeroom-set-alpha writeroom-global-effects))
         writeroom-width 100))
 #+end_src
 

@@ -75,9 +75,8 @@ mkSymbolPrompt' symbolsFilePath promptLabel xpconfig = do
 
 getSymbols :: FilePath -> IO Symbols
 getSymbols =
-  readFile
-    >>> fmap
-      (lines >>> foldMap (parseSymbolLine >>> uncurry M.singleton))
+  runKleisli $
+    Kleisli readFile >>^ lines >>> foldMap (parseSymbolLine >>> uncurry M.singleton)
   where
     -- Symbol lines contain a single UTF-8 character followed by a
     -- space and then a description
