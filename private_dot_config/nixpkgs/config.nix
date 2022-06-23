@@ -7,6 +7,9 @@
         # Allows configuration of nix-shell to use fish
         any-nix-shell
         lorri
+        rnix-lsp
+        cachix
+        nixFlakes
       ];
       pathsToLink = [ "/share/man" "/share/doc" "/bin" "/etc" ];
       extraOutputsToInstall = [ "man" "doc" ];

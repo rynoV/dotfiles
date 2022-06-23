@@ -1,3 +1,5 @@
+# -*- mode: fish; -*-
+
 fish_vi_key_bindings
 
 bind --mode insert \cf accept-autosuggestion
@@ -48,6 +50,8 @@ set --export TEXMFCONFIG ~/.config/texmf
 
 # For GTK 4 apps
 set --export GTK_THEME Nordic
+
+set --export CACHIX_AUTH_TOKEN {{ (bitwarden "item" "MLabs Read Cachix Key").notes }}
 
 alias g magit
 

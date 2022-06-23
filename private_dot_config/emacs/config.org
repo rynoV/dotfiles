@@ -1017,7 +1017,7 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
     "p" '(:keymap projectile-command-map :which-key "project")))
 (use-package treemacs-projectile)
 #+end_src
-** Programming Languages
+** Programming Languages/Tools
 *** Lisp
 
 #+begin_src emacs-lisp
@@ -1071,9 +1071,19 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   (add-to-list 'direnv-non-file-modes 'haskell-interactive-mode)
   (direnv-mode))
 #+end_src
+*** Purescript
+#+begin_src emacs-lisp
+(use-package purescript-mode
+  :hook
+  (purescript-mode . lsp-deferred)
+  (purescript-mode . (lambda () (turn-on-purescript-indentation)))
+)
+#+end_src
 *** Nix
 #+begin_src emacs-lisp
-(use-package nix-mode)
+(use-package nix-mode
+  :hook
+  (nix-mode . lsp-deferred))
 #+end_src
 *** YAML
 #+begin_src emacs-lisp
@@ -1119,6 +1129,7 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
         lsp-modeline-code-actions-segments '(count icon name)
         lsp-modeline-diagnostics-enable t
         lsp-modeline-diagnostics-scope :workspace
+        lsp-purescript-server-executable "purescript-language-server"
         )
   )
 
@@ -1147,6 +1158,12 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
 *** Fish
 #+begin_src emacs-lisp
 (use-package fish-mode)
+#+end_src
+*** Docker
+#+begin_src emacs-lisp
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
 #+end_src
 
 ** Miscellaneous

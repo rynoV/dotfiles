@@ -17,8 +17,11 @@ bluez-utils
 broot
 chromium
 copyq
+ctop
 ddcci-driver-linux-dkms
 direnv
+docker
+docker-compose
 emacs-nativecomp
 fakeroot
 fd
