@@ -27,6 +27,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(auth-source-save-behavior nil)
  '(browse-url-browser-function 'browse-url-default-browser)
  '(lsp-ui-sideline-delay 0.5)
  '(lsp-ui-sideline-show-hover t)
@@ -39,8 +40,12 @@
                               (lambda nil
                                 (setq-local buffer-auto-save-file-name nil))))
  '(package-selected-packages
-   '(docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-treemacs flycheck evil-iedit-state lsp-ui lsp-ido lsp-haskell lsp-mode prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md evil-numbers magit-todos evil-easymotion lispyville evil-exchange evil-args evil-textobj-line forge general company-posframe yasnippet auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers evil-surround which-key diminish org-bullets use-package))
- '(safe-local-variable-values '((eval defun org-babel-execute:yaml (body params) body)))
+   '(magit-delta git-link emacs-open-github-from-here evil-ledger flycheck-ledger ledger-mode git-gutter dhall-mode all-the-icons slack dirvish typescript-mode typescript ranger consult-lsp affe consult-company consult-yasnippet consult-dir consult-projectile embark-consult embark marginalia orderless vertico consult docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-treemacs flycheck evil-iedit-state lsp-ui lsp-ido lsp-haskell lsp-mode prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md evil-numbers magit-todos evil-easymotion lispyville evil-exchange evil-args evil-textobj-line forge general company-posframe yasnippet auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers evil-surround which-key diminish org-bullets use-package))
+ '(safe-local-variable-values
+   '((lsp-haskell-formatting-provider . "fourmolu")
+     (eval defun org-babel-execute:yaml
+           (body params)
+           body)))
  '(warning-suppress-types '((comp) (comp) (comp) (comp) (comp) (comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

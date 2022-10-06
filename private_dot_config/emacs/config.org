@@ -36,7 +36,6 @@ works.
 
 #+begin_src emacs-lisp
 (use-package emacs
-  :ensure ido
   :preface
   (defvar calum/indent-width 4)
   (defvar calum/code-font "JetBrains Mono")
@@ -58,6 +57,25 @@ works.
     (shell-command (concat "terminal --working-directory "
                            (file-name-directory (or load-file-name buffer-file-name))
                            " > /dev/null 2>&1 & disown") nil nil))
+
+  (defun buffer-backed-by-file-p (buffer)
+    "https://emacs.stackexchange.com/a/35907"
+    (let ((backing-file (buffer-file-name buffer)))
+      (if (buffer-modified-p buffer)
+          t
+        (if backing-file
+            (file-exists-p (buffer-file-name buffer))
+          t))))
+
+  (defun kill-removed-buffers ()
+    "Kill all buffers whose files have been deleted/moved, from
+https://emacs.stackexchange.com/a/35907"
+    (interactive)
+    (require 'dash)
+    (let ((to-kill (-remove 'buffer-backed-by-file-p (buffer-list))))
+      (mapc 'kill-buffer to-kill)
+      (message "Killed %s buffers" (length to-kill))))
+
   :general
   ("C-<down-mouse-1>" ;; Ctrl click to open a link
    (lambda (event)
@@ -83,6 +101,16 @@ works.
            "u" 'winner-undo
            "y" 'winner-redo)
   :config
+  (setq-default word-wrap t)
+
+  (setq
+   ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+   read-extended-command-predicate #'command-completion-default-include-p
+   enable-recursive-minibuffers t
+   ;; Emacs 28; recommended by embark
+   y-or-n-p-use-read-key t
+   )
+
   (if (member "--magit" command-line-args)
       (progn
         (setq command-line-args (delete "--magit" command-line-args))
@@ -140,6 +168,10 @@ works.
   ;; https://stackoverflow.com/a/2081978/14703577
   (setq split-height-threshold nil)
   (setq split-width-threshold 100)
+
+  ;; Increased because desktop mode was running into the limit after
+  ;; adding dirvish
+  (setq max-lisp-eval-depth 5000)
 
   ;; Recommended by lsp-mode https://emacs-lsp.github.io/lsp-mode/page/performance/
   (setq gc-cons-threshold 100000000)
@@ -348,12 +380,21 @@ Tell magit to automatically put us in vi-insert-mode when committing a change.
   ;; https://magit.vc/manual/magit/Wip-Modes.html
   (magit-wip-mode 1)
 
-  (setq magit-diff-refine-hunk t)
+  (setq magit-diff-refine-hunk t
+        )
 
   ;; From the mamual on magit-branch-or-checkout
   (transient-replace-suffix 'magit-branch 'magit-checkout
     '("b" "dwim" magit-branch-or-checkout)))
 #+END_SRC
+
+https://github.com/dandavison/magit-delta
+Slows down magit alot, and breaks the display, seemingly due to large
+file (a package-lock.json)
+#+begin_src emacs-lisp
+;; (use-package magit-delta
+;;   :hook (magit-mode . magit-delta-mode))
+#+end_src
 
 *** Forge
 [[https://magit.vc/manual/forge/index.html#Top][Forge]] for Github integration in Magit. Expects the ~~/.authinfo~ file
@@ -364,6 +405,13 @@ documentation).
     :after magit
     :config
     (setq auth-sources '("~/.config/emacs/.authinfo")))
+#+end_src
+
+*** Git Gutter
+#+begin_src emacs-lisp
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode +1))
 #+end_src
 
 ** Vim
@@ -386,6 +434,16 @@ documentation).
            ;; Don't interfere with company keybinds
            "C-n" nil
            "C-p" nil)
+  (:states 'normal
+           ;; select the previously pasted text
+           "gp" "`[v`]"
+           ;; run the macro in the q register
+           "Q" "@q")
+  (:states 'visual
+           ;; run macro in the q register on all selected lines
+           "Q" (kbd ":norm @q RET")
+           ;; repeat on all selected lines
+           "." (kbd ":norm . RET"))
   :config
   ;; Setup C-r for redo
   (evil-set-undo-system 'undo-tree)
@@ -925,6 +983,36 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
         org-tags-exclude-from-inheritance '("crypt")))
 #+end_src
 
+*** Ledger
+https://github.com/ledger/ledger-mode
+https://github.com/atheriel/evil-ledger
+#+begin_src emacs-lisp
+(use-package ledger-mode
+  :mode ("\\.dat\\'"
+         "\\.ledger\\'")
+  :custom (ledger-clear-whole-transactions t)
+  :preface
+  ; Clean up the ledger buffer before saving. `save-excursion' doesn't
+  ; work for some reason.
+  (defun calum/ledger-before-save-hook ()
+    (when (eq major-mode 'ledger-mode)
+      (let ((temp-point (point)))
+        (when (buffer-modified-p)
+          (with-demoted-errors "Error: %S" (ledger-mode-clean-buffer)))
+        (goto-char temp-point))))
+
+  :config
+  (add-hook 'before-save-hook #'calum/ledger-before-save-hook)
+  (add-hook 'ledger-mode-hook #'ledger-flymake-enable))
+
+(use-package evil-ledger
+  :ensure t
+  :after ledger-mode
+  :config
+  (setq evil-ledger-sort-key "S")
+  (add-hook 'ledger-mode-hook #'evil-ledger-mode))
+#+end_src
+
 ** Snippets
 
 #+begin_src emacs-lisp
@@ -935,64 +1023,360 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
   (yas-global-mode 1))
 #+end_src
 ** Completion and search
-*** Ido, ido-vertical, ido-ubiquitous and fuzzy matching
-Selecting buffers/files with great efficiency. We install ido-vertical
-to get a better view of the available options (use ~C-n~, ~C-p~ or
-arrow keys to navigate). Ido-ubiquitous (from the
-~ido-completing-read+~ package) provides us ido-like completions in
-describing functions and variables etc. Fuzzy matching is a nice
-feature and we have flx-ido for that purpose.
-#+BEGIN_SRC emacs-lisp
-  (use-package ido
-    :config
-    (ido-mode +1)
-    (setq ido-everywhere t
-          ido-enable-flex-matching t))
+*** Minibuffer completion
+- [ ] Update magit completing read
+- [ ] Replace recent file C-p shortcut
+- [ ] Make sure lsp is setup properly
+  - [ ] Replace lsp-ido-workspace-symbol
 
-  (use-package ido-vertical-mode
-    :config
-    (ido-vertical-mode +1)
-    (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
 
-(use-package ido-completing-read+
-  :custom
-  (ido-cr+-max-items 50000)
-  :config (ido-ubiquitous-mode +1))
+#+begin_src emacs-lisp
+(use-package consult
+  :general
+  ([remap evil-ex-search-forward] 'consult-line)
+  (calum/leader-def
+    "b" 'consult-buffer)
+  ;; Replace bindings. Lazily loaded due to `use-package'.
+  :bind (;; C-c bindings (mode-specific-map)
+         ("C-c h" . consult-history)
+         ("C-c m" . consult-mode-command)
+         ("C-c k" . consult-kmacro)
+         ;; C-x bindings (ctl-x-map)
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+         ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+         ("C-x m" . consult-man)      ;; orig. compose-mail
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ("<help> a" . consult-apropos)            ;; orig. apropos-command
+         ;; M-g bindings (goto-map)
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-org-heading)
+         ("M-g a" . consult-org-agenda)
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g j" . evil-collection-consult-jump-list)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings (search-map)
+         ("M-s d" . consult-find)
+         ("M-s D" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s m" . consult-multi-occur)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
-  (use-package flx-ido :config (flx-ido-mode +1))
-  (use-package crm-custom :config (crm-custom-mode +1))
-#+END_SRC
+  :init
+
+  ;; Optionally configure the register formatting. This improves the register
+  ;; preview for `consult-register', `consult-register-load',
+  ;; `consult-register-store' and the Emacs built-ins.
+  (setq register-preview-delay 0.5
+        register-preview-function #'consult-register-format)
+
+  ;; Optionally tweak the register preview window.
+  ;; This adds thin lines, sorting and hides the mode line of the window.
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+
+  :config
+
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme
+   :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-recent-file
+   consult--source-project-recent-file
+   :preview-key (kbd "M-."))
+
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key (kbd "C-+"))
+
+  ;; By default `consult-project-function' uses `project-root' from project.el.
+  ;; Optionally configure a different project root function.
+  (autoload 'projectile-project-root "projectile")
+  (setq consult-project-function (lambda (_) (projectile-project-root))))
+#+end_src
+**** Consult extensions
+#+begin_src emacs-lisp
+(use-package consult-projectile
+  :config
+  (setq consult-projectile-sources
+        '(consult-projectile--source-projectile-buffer
+          consult-projectile--source-projectile-file
+          consult-projectile--source-projectile-recentf
+          consult-projectile--source-projectile-dir
+          consult-projectile--source-projectile-project
+          )))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map minibuffer-local-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file))
+  :config
+  (setq consult-dir-project-list-function #'consult-dir-projectile-dirs))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package consult-yasnippet)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package consult-company
+  :config
+  (define-key company-mode-map [remap completion-at-point] #'consult-company))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package wgrep)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package consult-lsp)
+#+end_src
+*** Completion UI
+[[https://github.com/minad/vertico][Vertical completion UI]]; [[https://github.com/minad/vertico/wiki][Wiki]]
+#+begin_src emacs-lisp
+(use-package vertico
+  :init
+  (vertico-mode)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle t)
+
+  (setq completion-in-region-function
+        (lambda (&rest args)
+          (apply (if vertico-mode
+                     #'consult-completion-in-region
+                   #'completion--in-region)
+                 args)))
+
+  ;; Show arrow before current candidate
+  (advice-add #'vertico--format-candidate :around
+              (lambda (orig cand prefix suffix index _start)
+                (setq cand (funcall orig cand prefix suffix index _start))
+                (concat
+                 (if (= vertico--index index)
+                     (propertize "» " 'face 'vertico-current)
+                   "  ")
+                 cand)))
+
+
+  ;; Show input below candidates
+  (defun vertico-bottom--display-candidates (lines)
+    "Display LINES in bottom."
+    (move-overlay vertico--candidates-ov (point-min) (point-min))
+    (unless (eq vertico-resize t)
+      (setq lines (nconc (make-list (max 0 (- vertico-count (length lines))) "\n") lines)))
+    (let ((string (apply #'concat lines)))
+      (add-face-text-property 0 (length string) 'default 'append string)
+      (overlay-put vertico--candidates-ov 'before-string string)
+      (overlay-put vertico--candidates-ov 'after-string nil))
+    (vertico--resize-window (length lines)))
+
+  (advice-add #'vertico--display-candidates :override #'vertico-bottom--display-candidates)
+  )
+#+end_src
+
+Enable richer annotations using the [[https://github.com/minad/marginalia][Marginalia]] package
+#+begin_src emacs-lisp
+(use-package marginalia
+  ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+  :bind (("M-A" . marginalia-cycle)
+         :map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+
+  ;; The :init configuration is always executed (Not lazy!)
+  :init
+
+  ;; Must be in the :init section of use-package such that the mode gets
+  ;; enabled right away. Note that this forces loading the package.
+  (marginalia-mode))
+#+end_src
+
+https://github.com/oantolin/embark
+#+begin_src emacs-lisp
+(use-package embark
+  :bind
+  (("C-," . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  :init
+
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  :config
+
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
+
+  ;; Use a minimal indicator, and type C-h for help
+  (setq embark-indicators
+        '(embark-minimal-indicator
+          embark-highlight-indicator
+          embark-isearch-highlight-indicator))
+  )
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :ensure t
+  :after (embark consult)
+  :demand t ; only necessary if you have the hook below
+  ;; if you want to have consult previews as you move around an
+  ;; auto-updating embark collect buffer
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+*** Completion style
+https://github.com/oantolin/orderless
+
+Config based on:
+https://github.com/minad/consult/wiki#minads-orderless-configuration
+
+Use %pattern to try out variants of characters in pattern, for example
+%2 to match 2 or unicode superscript 2 (and probably other things).
+#+begin_src emacs-lisp
+(use-package orderless
+  :config
+  (defvar +orderless-dispatch-alist
+    '((?% . char-fold-to-regexp)
+      (?! . orderless-without-literal)
+      (?`. orderless-initialism)
+      (?= . orderless-literal)
+      (?~ . orderless-flex)))
+
+  (defun +orderless--suffix-regexp ()
+    (if (and (boundp 'consult--tofu-char) (boundp 'consult--tofu-range))
+        (format "[%c-%c]*$"
+                consult--tofu-char
+                (+ consult--tofu-char consult--tofu-range -1))
+      "$"))
+
+  ;; Recognizes the following patterns:
+  ;; * ~flex flex~
+  ;; * =literal literal=
+  ;; * %char-fold char-fold%
+  ;; * `initialism initialism`
+  ;; * !without-literal without-literal!
+  ;; * .ext (file extension)
+  ;; * regexp$ (regexp matching at end)
+  (defun +orderless-dispatch (word _index _total)
+    (cond
+     ;; Ensure that $ works with Consult commands, which add disambiguation suffixes
+     ((string-suffix-p "$" word)
+      `(orderless-regexp . ,(concat (substring word 0 -1) (+orderless--suffix-regexp))))
+     ;; File extensions
+     ((and (or minibuffer-completing-file-name
+               (derived-mode-p 'eshell-mode))
+           (string-match-p "\\`\\.." word))
+      `(orderless-regexp . ,(concat "\\." (substring word 1) (+orderless--suffix-regexp))))
+     ;; Ignore single !
+     ((equal "!" word) `(orderless-literal . ""))
+     ;; Prefix and suffix
+     ((if-let (x (assq (aref word 0) +orderless-dispatch-alist))
+          (cons (cdr x) (substring word 1))
+        (when-let (x (assq (aref word (1- (length word))) +orderless-dispatch-alist))
+          (cons (cdr x) (substring word 0 -1)))))))
+
+  ;; Define orderless style with initialism by default
+  (orderless-define-completion-style +calum/orderless-completion-style
+    (orderless-matching-styles
+     '(orderless-flex
+       orderless-initialism
+       orderless-prefixes
+       orderless-literal
+       orderless-regexp)))
+
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides
+        '((file (styles partial-completion)) ;; partial-completion is tried first
+          ;; (buffer (styles +calum/orderless-completion-style))
+          ;; (command (styles +calum/orderless-completion-style))
+          ;; (variable (styles +calum/orderless-completion-style))
+          ;; (symbol (styles +calum/orderless-completion-style))
+          )
+        orderless-component-separator #'orderless-escapable-split-on-space ;; allow escaping space with backslash!
+        orderless-style-dispatchers '(+orderless-dispatch)
+        ))
+#+end_src
 *** Company for auto-completion
 Use ~C-n~ and ~C-p~ to navigate the tooltip, and ~C-n~ to start completion.
 #+BEGIN_SRC emacs-lisp
-  (use-package company
-    :delight company-mode
-    :hook ((prog-mode . company-mode)
-           (org-mode . company-mode))
-    :custom-face
-    ;; Use same font as code for company tooltip
-    (company-tooltip ((t (:family calum/code-font))))
-    (company-tooltip-selection ((t (:background "dim gray"))))
-    :general
-    ("C-n" 'company-manual-begin)
-    (:keymaps 'company-active-map
-              "C-n" 'company-select-next
-              "C-p" 'company-select-previous)
-    :config
-    (setq company-minimum-prefix-length 1
-          company-begin-commands '() ; Don't auto begin completion
-          company-selection-wrap-around t
-          company-tooltip-align-annotations nil)
+(use-package company
+  :delight company-mode
+  :hook ((prog-mode . company-mode)
+         (org-mode . company-mode))
+  :custom-face
+  ;; Use same font as code for company tooltip
+  (company-tooltip ((t (:family calum/code-font))))
+  (company-tooltip-selection ((t (:background "dim gray"))))
+  :general
+  ("C-n" 'company-manual-begin)
+  ("C-M-/" 'company-other-backend)
+  (:keymaps 'company-active-map
+            "C-n" 'company-select-next
+            "C-p" 'company-select-previous)
+  :config
+  (setq company-minimum-prefix-length 1
+        company-begin-commands '()    ; Don't auto begin completion
+        company-selection-wrap-around t
+        company-tooltip-align-annotations nil
+        company-require-match nil)
 
-    ;; Add yasnippet support for all company backends
-    ;; https://github.com/syl20bnr/spacemacs/pull/179
-    (defun company-mode/backend-with-yas (backend)
-      (if (and (listp backend) (member 'company-yasnippet backend))
-          backend
-        (append (if (consp backend) backend (list backend))
-                '(:with company-yasnippet))))
+  ;; Add yasnippet support for all company backends
+  ;; https://github.com/syl20bnr/spacemacs/pull/179
+  (defun company-mode/backend-with-yas (backend)
+    (if (and (listp backend) (member 'company-yasnippet backend))
+        backend
+      (append (if (consp backend) backend (list backend))
+              '(:with company-yasnippet))))
 
-    (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends)))
+  (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends)))
 #+END_SRC
 
 [[https://github.com/tumashu/company-posframe][Company plugin]] that shows company popup as a child frame so that it
@@ -1011,11 +1395,64 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   :ensure t
   :init
   (projectile-mode +1)
+  :preface
+  (defun calum/select-project-magit ()
+    (interactive)
+    (setq current-prefix-arg '(4))
+    (call-interactively 'projectile-vc))
   :general
   (calum/leader-def
     :keymaps 'projectile-mode-map
-    "p" '(:keymap projectile-command-map :which-key "project")))
+    "p" '(:keymap projectile-command-map :which-key "project")
+    "p w" 'calum/select-project-magit))
 (use-package treemacs-projectile)
+#+end_src
+*** TODO File manager
+Note: for all-the-icons, needed to run ~all-the-icons-install-fonts~.
+#+begin_src emacs-lisp
+(use-package dirvish
+  :init
+  ;; Let Dirvish take over Dired globally
+  (dirvish-override-dired-mode)
+  :custom
+  (dirvish-attributes '(all-the-icons file-size collapse subtree-state vc-state))
+  (dirvish-bookmark-entries
+   '(("h" "~/"                          "Home")
+     ("d" "~/Downloads/"                "Downloads")))
+  (dirvish-reuse-session t)
+  :config
+  (dirvish-peek-mode)
+  (setq dired-dwim-target t)
+  :bind
+  ;; Bind `dirvish|dirvish-side|dirvish-dwim' as you see fit
+  (("C-c f" . dirvish-fd)
+   :map dired-mode-map ; Dirvish respects all the keybindings in this map
+   ("h" . dired-up-directory)
+   ("j" . dired-next-line)
+   ("k" . dired-previous-line)
+   ("l" . dired-find-file)
+   ("i" . wdired-change-to-wdired-mode)
+   ("." . dired-omit-mode)
+   ("b"   . dirvish-bookmark-jump)
+   ("f"   . dirvish-file-info-menu)
+   ("y"   . dirvish-yank-menu)
+   ("N"   . dirvish-narrow)
+   ("^"   . dirvish-history-last)
+   ("s"   . dirvish-quicksort) ; remapped `dired-sort-toggle-or-edit'
+   ("?"   . dirvish-dispatch)  ; remapped `dired-summary'
+   ("TAB" . dirvish-subtree-toggle)
+   ("SPC" . dirvish-history-jump)
+   ("M-n" . dirvish-history-go-forward)
+   ("M-p" . dirvish-history-go-backward)
+   ("M-l" . dirvish-ls-switches-menu)
+   ("M-m" . dirvish-mark-menu)
+   ("M-f" . dirvish-toggle-fullscreen)
+   ("M-s" . dirvish-setup-menu)
+   ("M-e" . dirvish-emerge-menu)
+   ("M-j" . dirvish-fd-jump)))
+
+(use-package all-the-icons
+  :if (display-graphic-p))
 #+end_src
 ** Programming Languages/Tools
 *** Lisp
@@ -1057,16 +1494,18 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
   (add-hook 'haskell-mode-hook 'haskell-collapse-mode)
   (add-hook 'haskell-mode-hook '(lambda ()
-                                  (setq evil-shift-width 2
-                                        tab-width 2)))
+                                  (setq-local evil-shift-width 2
+                                              tab-width 2)))
   (setq haskell-process-use-presentation-mode t
         haskell-interactive-mode-eval-mode 'haskell-mode))
 (use-package lsp-haskell
+  :hook
+  (haskell-mode . lsp-deferred)
   :config
   (setq lsp-haskell-completion-in-comments nil
         lsp-haskell-server-path "haskell-language-server"))
 (use-package direnv
-  :custom (direnv-always-show-summary t)
+  :custom (direnv-always-show-summary nil)
   :config
   (add-to-list 'direnv-non-file-modes 'haskell-interactive-mode)
   (direnv-mode))
@@ -1076,8 +1515,37 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
 (use-package purescript-mode
   :hook
   (purescript-mode . lsp-deferred)
-  (purescript-mode . (lambda () (turn-on-purescript-indentation)))
-)
+  (purescript-mode . (lambda ()
+                       (turn-on-purescript-indentation)
+
+                       (setq minor-mode-map-alist
+                             (cons '(electric-pair-mode . electric-pair-mode-map)
+                                   (remove
+                                    (assoc 'electric-pair-mode electric-pair-mode-map)
+                                    minor-mode-map-alist)))
+                       (purescript-decl-scan-mode t)
+                       (setq-local evil-shift-width 2
+                                   tab-width 2)))
+  :preface
+  (defun calum/purescript-typed-hole ()
+    (interactive)
+    (evil-with-single-undo
+      (funcall (kmacro-lambda-form [?v ?i ?W ?S ?b ?% ?i ?  ?: ?: ?  ?? ?w escape ?\C-s] 0 "%d"))))
+  :general
+  (calum/leader-def :keymaps 'purescript-mode-map
+    "q" '(:which-key "macros")
+    "q t" 'calum/purescript-typed-hole)
+  (with-eval-after-load 'lsp
+    (setq company-backends
+        '((company-capf :with company-dabbrev-code :separate)
+          (company-files)
+          (company-dabbrev :with company-yasnippet)))))
+#+end_src
+*** Dhall
+#+begin_src emacs-lisp
+(use-package dhall-mode
+  :ensure t
+  :mode "\\.dhall\\'")
 #+end_src
 *** Nix
 #+begin_src emacs-lisp
@@ -1104,6 +1572,18 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
   ;; This essentially just let's the which-key integration know where to look
   (setq lsp-keymap-prefix "SPC i")
   (lsp-enable-which-key-integration)
+  (defcustom-lsp lsp-purescript-formatter "purs-tidy"
+    "Formatter to use for purescript. See https://github.com/nwolverson/vscode-ide-purescript/blob/master/package.json"
+    :type 'string
+    :group 'lsp-purescript
+    :package-version '(lsp-mode . "8.0.1")
+    :lsp-path "purescript.formatter")
+  (defcustom-lsp lsp-purescript-censor-warnings ["WildcardInferredType"]
+    "Warnings to censor for purescript. See https://github.com/nwolverson/vscode-ide-purescript/blob/master/package.json"
+    :type '(lsp-repeatable-vector string)
+    :group 'lsp-purescript
+    :package-version '(lsp-mode . "8.0.1")
+    :lsp-path "purescript.censorWarnings")
   :preface
   (defun calum/lsp-iedit-highlights ()
     "Wrapper around lsp-iedit-highlights that integrates evil-iedit-state"
@@ -1117,23 +1597,21 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
            "C-." 'lsp-execute-code-action)
   ;; This is what actually sets up the binding
   (calum/leader-def :keymaps 'lsp-mode-map
+    "f" 'lsp-format-buffer
     "i" '(:keymap lsp-command-map :which-key "lsp")
     "i e" 'calum/lsp-iedit-highlights
     "i g s" '(lsp-treemacs-symbols :which-key "symbols")
     "i g a" nil
     "i g a" '(lsp-ido-workspace-symbol :which-key "find symbol"))
-  :hook ((haskell-mode . lsp-deferred)
-         )
   :config
   (setq lsp-log-io nil ; good for debugging, but if set to true can cause a performance hit
         lsp-modeline-code-actions-segments '(count icon name)
         lsp-modeline-diagnostics-enable t
         lsp-modeline-diagnostics-scope :workspace
         lsp-purescript-server-executable "purescript-language-server"
+        lsp-auto-execute-action nil
         )
   )
-
-(require 'lsp-ido)
 
 (use-package lsp-ui
   :commands lsp-ui-mode
@@ -1164,6 +1642,12 @@ works with variable-pitch font, recommended [[https://github.com/company-mode/co
 (use-package docker
   :ensure t
   :bind ("C-c d" . docker))
+#+end_src
+*** Typescript
+#+begin_src emacs-lisp
+(use-package typescript-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\.tsx" . typescript-mode)))
 #+end_src
 
 ** Miscellaneous
@@ -1330,7 +1814,7 @@ Provides us with hints on available keystroke combinations.
                                       "<<" "<~>" "<=|" "<~~" "<~" "<$>" "<$" "<+>" "<+" "</>" "</" "<*"
                                       "<*>" "<->" "<!--" ":>" ":<" ":::" "::" ":?" ":?>" ":=" "::=" "=>>"
                                       "==>" "=/=" "=!=" "=>" "===" "=:=" "==" "!==" "!!" "!=" ">]" ">:"
-                                      ">>-" ">>=" ">=>" ">>>" ">-" ">=" "&&&" "&&" "|||>" "||>" "|>" "|]"
+                                      ">>-" ">>=" "=<<" ">=>" ">>>" ">-" ">=" "&&&" "&&" "|||>" "||>" "|>" "|]"
                                       "|}" "|=>" "|->" "|=" "||-" "|-" "||=" "||" ".." ".?" ".=" ".-" "..<"
                                       "..." "+++" "+>" "++" "[||]" "[<" "[|" "{|" "??" "?." "?=" "?:" "##"
                                       "###" "####" "#[" "#{" "#=" "#!" "#:" "#_(" "#_" "#?" "#(" ";;" "_|_"
@@ -1351,3 +1835,68 @@ Provides us with hints on available keystroke combinations.
   :custom (minimap-window-location 'right
            minimap-hide-cursor t))
 #+end_src
+
+*** Slack
+See [[https://github.com/yuya373/emacs-slack#how-to-get-token-and-cookie][here]] for instructions on getting the slack token and cookie.
+#+begin_src emacs-lisp
+(use-package slack
+  :commands (slack-start)
+  :init
+  (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
+  (setq slack-prefer-current-team t)
+  :config
+  (slack-register-team
+   :name "mlabs-corp"
+   :default t
+   :token "xoxc-1974274253845-3554162517520-3557821842192-0105cdaec51cf0d48965904df6424bb1acae5d90f10d2f3d71d20008dafd1215"
+   :cookie "xoxd-i0LaH9nsgPgXYDRi8Iz2%2BA7Xe2jNmLIAD0Ar5BjjOGgyYbvcYVsAdFFuEm0wQSU%2BDsbV24bbtmiF3zCY%2FucHc%2BOEly0d%2FlE6czE7Re%2BvPv4n%2FUJh8%2FK4OEg%2BIQR2Ibus2o0Ol8XII9ST%2BVPfuOsXvXnF0eTH1q%2F4gBVwQ1VCyIi5GktiX2jh8EZUSw%3D%3D"
+   :subscribed-channels '(iohk)
+   :full-and-display-names t)
+
+  (evil-define-key 'normal slack-info-mode-map
+    ",u" 'slack-room-update-messages)
+  (evil-define-key 'normal slack-mode-map
+    ",c" 'slack-buffer-kill
+    ",ra" 'slack-message-add-reaction
+    ",rr" 'slack-message-remove-reaction
+    ",rs" 'slack-message-show-reaction-users
+    ",pl" 'slack-room-pins-list
+    ",pa" 'slack-message-pins-add
+    ",pr" 'slack-message-pins-remove
+    ",mm" 'slack-message-write-another-buffer
+    ",me" 'slack-message-edit
+    ",md" 'slack-message-delete
+    ",u" 'slack-room-update-messages
+    ",2" 'slack-message-embed-mention
+    ",3" 'slack-message-embed-channel
+    "\C-n" 'slack-buffer-goto-next-message
+    "\C-p" 'slack-buffer-goto-prev-message)
+   (evil-define-key 'normal slack-edit-message-mode-map
+    ",k" 'slack-message-cancel-edit
+    ",s" 'slack-message-send-from-buffer
+    ",2" 'slack-message-embed-mention
+    ",3" 'slack-message-embed-channel))
+
+(use-package alert
+  :commands (alert)
+  :init
+  (setq alert-default-style 'notifier))
+#+end_src
+
+*** Open GitHub
+#+begin_src emacs-lisp
+(use-package git-link)
+#+end_src
+
+* Keybinds
+- [[https://github.com/syl20bnr/spacemacs/wiki/Keymaps-guide][Keymap hierarchy]], also [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Searching-Keymaps.html][see]] for a more thorough list, but the former
+  covers the main ones
+- Evil's maps are in emulation mode maps, in order of precedence:
+  - Intercept keymaps - evil-make-intercept-map
+  - Local state keymap - evil-local-set-key
+  - Minor-mode keymaps - evil-define-minor-mode-key
+  - Auxiliary keymaps - evil-define-key
+  - Overriding keymaps - evil-make-overriding-map
+  - Global state keymap - evil-global-set-key
+- Keys bound in "motion" state are inherited in the normal, visual, and
+  operator state keymaps if they are not shadowed
