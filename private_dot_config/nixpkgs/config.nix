@@ -10,8 +10,9 @@
         rnix-lsp
         cachix
         nixFlakes
+        nix-direnv
       ];
-      pathsToLink = [ "/share/man" "/share/doc" "/bin" "/etc" ];
+      pathsToLink = [ "/share/man" "/share/doc" "/bin" "/etc" "/share/nix-direnv" ];
       extraOutputsToInstall = [ "man" "doc" ];
     };
   };
