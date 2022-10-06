@@ -107,6 +107,17 @@ set --export LESSHISTFILE $XDG_STATE_HOME/lesshst
 # For "pass" password manager
 set --export PASSWORD_STORE_DIR ~/.var/password-store
 
+# From
+# https://wiki.archlinux.org/title/SSH_keys#Start_ssh-agent_with_systemd_user
+# so that ~/.config/systemd/user/ssh-agent.service works
+set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
+
+set --export LANG "en_CA.UTF-8"
+set --export LC_ALL "en_CA.UTF-8"
+
+# Nix gives trouble about locales if I don't have this set https://nixos.wiki/wiki/Locales
+set --export LOCALE_ARCHIVE /usr/lib/locale/locale-archive
+
 # Clean up duplicates in the path, from https://unix.stackexchange.com/a/14896
 set PATH (printf "%s" "$PATH" | awk -v RS=':' '!a[$1]++ { if (NR > 1) printf RS; printf $1 }')
 
