@@ -1,0 +1,8 @@
+sorting:
+  # Possible values: extension, name, time, size, version
+  column: extension
+  # Possible values: first, last, none
+  dir-grouping: first
+icons:
+  # Separator between icon and the name
+  separator: "  "

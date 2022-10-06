@@ -10,3 +10,6 @@
 [".config/ranger/plugins/ranger-archives"]
     type = "git-repo"
     url = "https://github.com/maximtrp/ranger-archives"
+[".config/ranger/plugins/zoxide"]
+    type = "git-repo"
+    url = "https://github.com/jchook/ranger-zoxide"
