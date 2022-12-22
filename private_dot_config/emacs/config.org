@@ -2,7 +2,7 @@
 #+Author: Calum Sieppert
 #+Date: 2021
 # Allow evaluation of src blocks without results blocks popping up
-#+PROPERTY: header-args :results silent
+#+PROPERTY: header-args :results silent :tangle yes
 #+STARTUP: nolatexpreview
 
 This config is based off [[https://github.com/ianpan870102/yay-evil-emacs/blob/master/config.org][this file]].
@@ -697,23 +697,38 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
   )
 #+end_src
 
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 (use-package org
   :if (not calum/magit-mode)
   :ensure auctex
   :ensure cdlatex
+  :delight
+  (visual-line-mode)
+  (auto-fill-function)                  ; Hide auto fill mode
+<<org-config>>
+)
+#+END_SRC
+
+**** ~<<org-config>>~
+:PROPERTIES:
+:header-args: :noweb-ref org-config :tangle no
+:END:
+
+***** Hooks
+#+begin_src emacs-lisp
   :hook ((org-mode . visual-line-mode)
          (org-mode . org-indent-mode)
-         ;; Auto wrap lines while typing if they get too long
-         (org-mode . turn-on-org-cdlatex)
          ;; org-cdlatex-mode is useful for working with latex in org
-         (org-mode . turn-on-auto-fill)
+         (org-mode . turn-on-org-cdlatex)
+         ;; Wrap lines visually at the fill column
+         (org-mode . visual-fill-column-mode)
          (org-mode . calum/set-keyword-faces-org)
          (org-metaleft . calum/org-metaleft-hook)
          (org-metaright . calum/org-metaright-hook))
-  :delight
-  (visual-line-mode)
-  (auto-fill-function) ; Hide auto fill mode
+  #+end_src
+
+***** Definitions
+  #+begin_src emacs-lisp
   :preface
   (defun calum/set-keyword-faces-org ()
     "https://hugocisneros.com/org-config/#hide-face-characters"
@@ -811,7 +826,10 @@ Use numeric prefix arg to insert number."
     (advice-add 'org-capture-finalize :after #'calum/capture-frame-finish)
     (advice-add 'org-switch-to-buffer-other-window :after #'calum/capture-frame-delete-other-windows)
     (org-capture nil keys))
+#+end_src
 
+***** Keybinds
+#+begin_src emacs-lisp
   :general
   (calum/leader-def
     :keymaps 'override
@@ -835,6 +853,10 @@ Use numeric prefix arg to insert number."
             "C-d" 'cdlatex-tab
             "C-s" 'calum/insert-superscript
             "C-M-s" 'calum/insert-subscript)
+  #+end_src
+
+***** Faces
+  #+begin_src emacs-lisp
   :custom-face
   ;; set basic title font
   (org-level-8 ((nil :weight bold :inherit 'default)))
@@ -844,42 +866,126 @@ Use numeric prefix arg to insert number."
   (org-level-5 ((nil :inherit 'org-level-8)))
   (org-level-4 ((nil :inherit 'org-level-8)))
   (org-level-3 ((nil :inherit 'org-level-8 :height 1.1)))
-  (org-level-2 ((nil :inherit 'org-level-8 :height 1.2)))  (org-level-1 ((nil :inherit 'org-level-8 :height 1.3)))  :config
-  (setq org-ellipsis " ⤸ "
-        org-hidden-keywords '(title)
-        org-cycle-level-faces nil
-        org-n-level-faces 4
-        org-pretty-entities t
-        org-startup-indented t)
+  (org-level-2 ((nil :inherit 'org-level-8 :height 1.2)))
+  (org-level-1 ((nil :inherit 'org-level-8 :height 1.3)))
+  #+end_src
 
-  (setq org-format-latex-options
-        '(:foreground default
-                      :background default
-                      :scale 1.4
-                      :html-foreground "Black"
-                      :html-background "Transparent"
-                      :html-scale 1.0
-                      :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
-
+***** Variables
+#+begin_src emacs-lisp
+:custom
+(org-ellipsis " ⤸ ")
+(org-hidden-keywords '(title))
+(org-cycle-level-faces nil)
+(org-n-level-faces 4)
+(org-pretty-entities t)
+(org-startup-indented t)
+;; Add refiled items to the top of lists instead of the bottom
+(org-reverse-note-order t)
+(org-format-latex-options
+ '(:foreground default
+               :background default
+               :scale 1.4
+               :html-foreground "Black"
+               :html-background "Transparent"
+               :html-scale 1.0
+               :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
   ;; Use org-agenda-file-to-front (C-c [) to add the current file to
   ;; the list of agenda files
-  (setq org-directory "~/org")
-  (make-directory org-directory t)
-  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (org-directory "~/org")
+  (org-default-notes-file (concat org-directory "/notes.org"))
   ;; Set to the name of the file where notes captured on mobile will
   ;; be stored
-  (setq org-mobile-inbox-for-pull org-default-notes-file)
-  (setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
-  (make-directory org-mobile-directory t)
-
   ;; setsid required for xdg-open to work, from here
   ;; https://askubuntu.com/a/883905
-  (setq org-file-apps '((auto-mode . emacs)
-                        (directory . "setsid -w xdg-open %s")
-                        ("\\.mm\\'" . default)
-                        ("\\.x?html?\\'" . default)
-                        ("\\.pdf\\'" . "setsid -w xdg-open %s")
-                        (t . "setsid -w xdg-open %s")))
+  (org-file-apps '((auto-mode . emacs)
+                   (directory . "setsid -w xdg-open %s")
+                   ("\\.mm\\'" . default)
+                   ("\\.x?html?\\'" . default)
+                   ("\\.pdf\\'" . "setsid -w xdg-open %s")
+                   (t . "setsid -w xdg-open %s")))
+  ;; Don't keep indenting when adding whitespace
+  (org-src-preserve-indentation t)
+  ;; Tab indents using the src block's language's behaviour
+  (org-src-tab-acts-natively t)
+  ;; Don't ask for confirmation when evaluating src blocks
+  (org-confirm-babel-evaluate nil)
+  ;; Look across all agenda files for refiling
+  (org-refile-targets '((org-agenda-files . (:maxlevel . 3))))
+  ;; Allow specifying refile location using a full path including file name
+  (org-refile-use-outline-path 'file)
+  (org-outline-path-complete-in-steps nil)
+  (org-completion-use-ido t)
+
+  ;; Automatically create a header if it doesn't already exist in the refile target path
+  (org-refile-allow-creating-parent-nodes t)
+
+  ;; Don't start clock from the previous clock out
+  (org-clock-continuously nil)
+  ;; Save clock history and the current clock when emacs closes
+  (org-clock-persist t)
+
+  (org-M-RET-may-split-line nil)
+
+  ;; Start agenda on current day
+  (org-agenda-start-on-weekday nil)
+  ;; Don't show inline images with their actual width
+  (org-image-actual-width nil)
+  #+end_src
+
+****** Capture Templates
+  #+begin_src emacs-lisp
+(org-capture-templates
+ '(("t" "Todo" entry (file+headline "" "Tasks")
+    "* TODO %?\n  %i\n")
+   ("n" "Note" entry (file+headline "" "Quick Notes")
+    "* %U\n%?\n")
+   ("m" "Meeting" entry (file+headline "mlabs.org" "Meetings")
+    "* %U\n%?\n" :prepend t)
+   ))
+#+end_src
+
+****** Agenda custom commands
+#+begin_src emacs-lisp
+(org-agenda-custom-commands
+ '(("p" "Personal" todo ""
+    ((org-agenda-category-filter-preset '("+calum"))))
+   ("w" . "MLabs")
+   ("wc" "CTL" todo ""
+    ((org-agenda-category-filter-preset '("+ctl"))
+     (org-agenda-files '("~/org/mlabs.org"))
+     ))
+   ("ww" "Other" todo ""
+    ((org-agenda-category-filter-preset '("+mlabs"))
+     (org-agenda-files '("~/org/mlabs.org"))
+     ))
+   ("s" . "School")
+   ("so" "One Week School Agenda" agenda ""
+    ((org-agenda-span 7)
+     (org-super-agenda-groups nil)))
+   ("st" "Two Week School Agenda" agenda ""
+    ((org-agenda-span 14)
+     (org-super-agenda-groups nil)))
+   ("ss" "School Agenda" agenda ""
+    ((org-agenda-span 21)
+     (org-super-agenda-groups nil)))
+   ("sm" "School Tasks without Assessments" todo ""
+    ((org-agenda-category-filter-preset '("+school"))
+     (org-agenda-files '("~/org/school.org"))
+     ))
+   ("sn" "School Tasks with Assessments" todo ""
+    ((org-agenda-category-filter-preset '("+school" "+assessments"))
+     (org-agenda-files '("~/org/school.org"))
+     ))
+   ("u" "Unscheduled TODO" todo ""
+    ((org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp))
+     (org-agenda-files '("~/org/school.org"))
+     ))))
+#+end_src
+
+***** Config
+  #+begin_src emacs-lisp
+  :config
+  (make-directory org-directory t)
 
   (org-link-set-parameters "editpdf"
                            :follow (lambda (path)
@@ -887,90 +993,33 @@ Use numeric prefix arg to insert number."
                                                     "xournalpp" (expand-file-name path)))
                            :complete 'org-link-complete-file)
 
-  ;; Don't keep indenting when adding whitespace
-  (setq org-src-preserve-indentation t)
-  ;; Tab indents using the src block's language's behaviour
-  (setq org-src-tab-acts-natively t)
-  ;; Don't ask for confirmation when evaluating src blocks
-  (setq org-confirm-babel-evaluate nil)
-  ;; Configure capture templates
-  (setq org-capture-templates
-        '(("t" "Todo" entry (file+headline "" "Tasks")
-           "* TODO %?\n  %i\n")
-          ("n" "Note" entry (file+headline "" "Quick Notes")
-           "* %U\n%?\n")
-          ("m" "Meeting" entry (file+headline "mlabs.org" "Meetings")
-           "* %U\n%?\n" :prepend t)
-          ))
-  ;; Custom agenda views based on org files
-  (setq org-agenda-custom-commands
-        '(("p" "Personal" todo ""
-           ((org-agenda-category-filter-preset '("+calum"))))
-          ("w" . "MLabs")
-          ("wc" "CTL" todo ""
-           ((org-agenda-category-filter-preset '("+ctl"))
-            (org-agenda-files '("~/org/mlabs.org"))
-            ))
-          ("ww" "Other" todo ""
-           ((org-agenda-category-filter-preset '("+mlabs"))
-            (org-agenda-files '("~/org/mlabs.org"))
-            ))
-          ("s" . "School")
-          ("so" "One Week School Agenda" agenda ""
-           ((org-agenda-span 7)
-            (org-super-agenda-groups nil)))
-          ("st" "Two Week School Agenda" agenda ""
-           ((org-agenda-span 14)
-            (org-super-agenda-groups nil)))
-          ("ss" "School Agenda" agenda ""
-           ((org-agenda-span 21)
-            (org-super-agenda-groups nil)))
-          ("sm" "School Tasks without Assessments" todo ""
-           ((org-agenda-category-filter-preset '("+school"))
-            (org-agenda-files '("~/org/school.org"))
-            ))
-          ("sn" "School Tasks with Assessments" todo ""
-           ((org-agenda-category-filter-preset '("+school" "+assessments"))
-            (org-agenda-files '("~/org/school.org"))
-            ))
-          ("u" "Unscheduled TODO" todo ""
-           ((org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp))
-            (org-agenda-files '("~/org/school.org"))
-            ))))
-  ;; Look across all agenda files for refiling
-  (setq org-refile-targets '((org-agenda-files . (:maxlevel . 3))))
-  ;; Allow specifying refile location using a full path including file name
-  (setq org-refile-use-outline-path 'file)
-  (setq org-outline-path-complete-in-steps nil)
-  (setq org-completion-use-ido t)
 
-  ;; Automatically create a header if it doesn't already exist in the refile target path
-  (setq org-refile-allow-creating-parent-nodes t)
-
-  ;; Don't start clock from the previous clock out
-  (setq org-clock-continuously nil)
-  ;; Save clock history and the current clock when emacs closes
-  (setq org-clock-persist t)
   (org-clock-persistence-insinuate)
 
   ;; After refiling something, save all the buffers automatically
-  (advice-add 'org-refile :after '(lambda (&rest _)
+  (advice-add 'org-refile :after #'(lambda (&rest _)
                                     (org-save-all-org-buffers)))
 
-  (setq org-M-RET-may-split-line nil)
-
-  ;; Start agenda on current day
-  (setq org-agenda-start-on-weekday nil)
   (org-babel-do-load-languages
    'org-babel-load-languages '((emacs-lisp . t)
                                (python . t)))
+#+end_src
 
-  ;; Don't show inline images with their actual width
-  (setq org-image-actual-width nil)
+*** Org Mobile
+#+begin_src emacs-lisp
+(use-package org-mobile
+  :after org
+  :ensure nil
+  :custom
+  (org-mobile-inbox-for-pull org-default-notes-file)
+  :preface
+  (defvar org-mobile-directory "~/Dropbox/Apps/MobileOrg")
+  :config
+  (make-directory org-mobile-directory t)
   )
 #+end_src
 
-*** Additional Packages
+*** Org Aesthetics
 Show nicer bullet points for headers: https://github.com/integral-dw/org-superstar-mode
 
 #+begin_src emacs-lisp
@@ -1008,6 +1057,7 @@ Show nicer bullet points for headers: https://github.com/integral-dw/org-superst
   )
 #+end_src
 
+*** Org Inlinetask
 https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 #+begin_src emacs-lisp
 (use-package org-inlinetask
@@ -1019,6 +1069,7 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
   (org-inlinetask ((nil :foreground nil :inherit 'bold))))
 #+end_src
 
+*** Org Indent
 [[https://emacs.stackexchange.com/a/22552][Org-indent must be diminished after loading.]]
 #+begin_src emacs-lisp
 (use-package org-indent
@@ -1027,6 +1078,7 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
   :delight org-indent-mode)
 #+end_src
 
+*** Exporters
 #+begin_src emacs-lisp
 (require 'ox-md)
 #+end_src
@@ -1035,6 +1087,7 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 (use-package ox-gfm)
 #+end_src
 
+**** Org Latex Export
 #+begin_src emacs-lisp
 (require 'ox-latex)
 (add-to-list 'org-latex-classes
@@ -1147,6 +1200,7 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+end_src
 
+*** Org Contrib
 To allow for ignoring headlines with an "ignore" tag in when exporting
 from Org Mode, from [[https://emacs.stackexchange.com/a/41685][here]].
 #+begin_src emacs-lisp
@@ -1157,6 +1211,7 @@ from Org Mode, from [[https://emacs.stackexchange.com/a/41685][here]].
   )
 #+end_src
 
+*** Org Download
 Call ~org-download-clipboard~ to paste the most recent screenshot.
 #+begin_src emacs-lisp
 (use-package org-download
@@ -1167,7 +1222,7 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
         org-download-image-org-width 900))
 #+end_src
 
-*** Super Agenda
+*** Org Super Agenda
 [[https://github.com/alphapapa/org-super-agenda][Org super agenda]] for organizing the agenda view in different ways.
 #+begin_src emacs-lisp
 (use-package org-super-agenda
@@ -2104,29 +2159,6 @@ Provides us with hints on available keystroke combinations.
     (if (featurep 'xemacs) (kbd "<C-iso-left-tab>") (kbd "<C-S-iso-lefttab>")) 'iflipb-previous-buffer))
 #+end_src
 
-*** Jumping
-
-#+begin_src emacs-lisp
-(use-package evil-easymotion
-  :general
-  ;; leader leader to access easy motion
-  (calum/leader-def
-   :infix calum/leader
-   "" '(:keymap evilem-map :which-key "easy motion"))
-  :config
-  ;; Make motions use everything visible in the window
-  ;; https://github.com/PythonNut/evil-easymotion/pull/56#issuecomment-826142248
-  (put 'visible 'bounds-of-thing-at-point (lambda () (cons (window-start) (window-end))))
-  (evilem-make-motion evilem-motion-forward-word-begin #'evil-forward-word-begin :scope 'visible)
-  (evilem-make-motion evilem-motion-forward-WORD-begin #'evil-forward-WORD-begin :scope 'visible)
-  (evilem-make-motion evilem-motion-forward-word-end #'evil-forward-word-end :scope 'visible)
-  (evilem-make-motion evilem-motion-forward-WORD-end #'evil-forward-WORD-end :scope 'visible)
-  (evilem-make-motion evilem-motion-backward-word-begin #'evil-backward-word-begin :scope 'visible)
-  (evilem-make-motion evilem-motion-backward-WORD-begin #'evil-backward-WORD-begin :scope 'visible)
-  (evilem-make-motion evilem-motion-backward-word-end #'evil-backward-word-end :scope 'visible)
-  (evilem-make-motion evilem-motion-backward-WORD-end #'evil-backward-WORD-end :scope 'visible)
-  (cl-loop for (key . value) in (cdr evilem-map)
-           do (evil-add-command-properties value :jump t)))
 *** Jumping
 
 #+begin_src emacs-lisp

@@ -60,7 +60,8 @@
  '(package-selected-packages
    '(adaptive-wrap org-superstar org-inlinetask consult-flycheck tempel-collection tempel emacs-lisp kind-icon cape corfu all-the-icons-completion code-review graphql-mode ox-json imenu-list markdown hercules quelpa emacs-surround meow magit-delta git-link emacs-open-github-from-here flycheck-ledger ledger-mode git-gutter dhall-mode all-the-icons slack dirvish typescript-mode typescript ranger consult-lsp affe consult-dir consult-projectile embark-consult embark marginalia orderless vertico consult docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-treemacs flycheck lsp-ui lsp-ido lsp-haskell lsp-mode prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md magit-todos forge auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers which-key diminish use-package))
  '(safe-local-variable-values
-   '((minor-mode . outline)
+   '((visual-fill-column-mode)
+     (minor-mode . outline)
      (lsp-haskell-server-path . "haskell-language-server-wrapper")
      (lsp-haskell-server-path . "haskell-language-server-8.8.4")
      (lsp-haskell-formatting-provider . "fourmolu")
