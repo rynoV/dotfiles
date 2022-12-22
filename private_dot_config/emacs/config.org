@@ -14,13 +14,13 @@ works.
 
 #+begin_src emacs-lisp
 (use-package general
- :config
- (defconst calum/leader "C-c")
- (defconst calum/leader-non-normal "C-c")
- (general-create-definer calum/leader-def
-   :prefix calum/leader)
- (general-override-mode)
-)
+  :config
+  (defconst calum/leader "C-c")
+  (defconst calum/leader-non-normal "C-c")
+  (general-create-definer calum/leader-def
+    :prefix calum/leader)
+  (general-override-mode)
+  )
   #+end_src
 
 * General Emacs Configuration
@@ -1352,9 +1352,6 @@ https://github.com/atheriel/evil-ledger
 
 ** Completion and search
 *** Minibuffer completion with consult
-- [ ] Make sure lsp is setup properly
-  - [ ] Replace lsp-ido-workspace-symbol
-
 #+begin_src emacs-lisp
 (use-package consult
   :general
@@ -1380,7 +1377,7 @@ https://github.com/atheriel/evil-ledger
   ("<help> a" 'consult-apropos) ;; orig. apropos-command
   ;; M-g bindings (goto-map)
   ("M-g e" 'consult-compile-error)
-  ("M-g f" 'consult-flycheck)     ;; Alternative: consult-flymake
+  ("M-g f" 'consult-flymake)     ;; Alternative: consult-flycheck
   ("M-g g" 'consult-goto-line)   ;; orig. goto-line
   ("M-g M-g" 'consult-goto-line) ;; orig. goto-line
   ("M-g o" 'consult-org-heading)
@@ -1481,11 +1478,7 @@ https://github.com/atheriel/evil-ledger
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package consult-lsp)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package consult-flycheck)
+(use-package consult-eglot)
 #+end_src
 *** Completion UI
 [[https://github.com/minad/vertico][Vertical completion UI]]; [[https://github.com/minad/vertico/wiki][Wiki]]
@@ -1703,6 +1696,7 @@ Use %pattern to try out variants of characters in pattern, for example
         completion-category-defaults nil
         completion-category-overrides
         '((file (styles partial-completion)) ;; partial-completion is tried first
+          (eglot (styles orderless))
           ;; (buffer (styles +calum/orderless-completion-style))
           ;; (command (styles +calum/orderless-completion-style))
           ;; (variable (styles +calum/orderless-completion-style))
@@ -1946,6 +1940,7 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 *** Haskell
 #+begin_src emacs-lisp
 (use-package haskell-mode
+  :hook (haskell-mode . eglot-ensure)
   :config
   ;; A hack to make evil indent with "o" and "O" a little nicer by
   ;; indenting to the previous non-blank line instead of using the
@@ -1965,12 +1960,6 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
                                   (setq-local tab-width 2)))
   (setq haskell-process-use-presentation-mode t
         haskell-interactive-mode-eval-mode 'haskell-mode))
-(use-package lsp-haskell
-  :hook
-  (haskell-mode . lsp-deferred)
-  :config
-  (setq lsp-haskell-completion-in-comments nil
-        lsp-haskell-server-path "haskell-language-server"))
 (use-package direnv
   :custom (direnv-always-show-summary nil)
   :config
@@ -1981,7 +1970,7 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 #+begin_src emacs-lisp
 (use-package purescript-mode
   :hook
-  (purescript-mode . lsp-deferred)
+  (purescript-mode . eglot-ensure)
   (purescript-mode . (lambda ()
                        (turn-on-purescript-indentation)
 
@@ -2004,86 +1993,45 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 #+begin_src emacs-lisp
 (use-package nix-mode
   :hook
-  (nix-mode . lsp-deferred))
+  (nix-mode . eglot-ensure)
+  )
 #+end_src
 *** YAML
 #+begin_src emacs-lisp
 (use-package yaml-mode)
 #+end_src
-*** LSP Mode
+*** Language Server Protocol (LSP)
 #+begin_src emacs-lisp
-(use-package flycheck
-  :delight)
-(use-package lsp-mode
-  :delight
-  :delight lsp-lens-mode
-  :commands (lsp lsp-deferred)
-  :init
-  ;; This essentially just let's the which-key integration know where to look
-  (setq lsp-keymap-prefix "C-c i")
-  (lsp-enable-which-key-integration)
-  (defcustom-lsp lsp-purescript-formatter "purs-tidy"
-    "Formatter to use for purescript. See https://github.com/nwolverson/vscode-ide-purescript/blob/master/package.json"
-    :type 'string
-    :group 'lsp-purescript
-    :package-version '(lsp-mode . "8.0.1")
-    :lsp-path "purescript.formatter")
-  (defcustom-lsp lsp-purescript-censor-warnings ["WildcardInferredType"]
-    "Warnings to censor for purescript. See https://github.com/nwolverson/vscode-ide-purescript/blob/master/package.json"
-    :type '(lsp-repeatable-vector string)
-    :group 'lsp-purescript
-    :package-version '(lsp-mode . "8.0.1")
-    :lsp-path "purescript.censorWarnings")
-  :preface
-  (defun calum/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-          '(orderless))
-    (setq-local completion-at-point-functions
-                (list
-                 'tempel-expand
-                 ;; When deleting the original completion input, refetch from LSP
-                 (cape-capf-buster #'lsp-completion-at-point)
-                 ;; Also try file paths
-                 'cape-file)
-                ))
-  :hook
-  (lsp-completion-mode . calum/lsp-mode-setup-completion)
+(use-package eglot
+  :custom
+  (eglot-autoshutdown t)
+  (eglot-confirm-server-initiated-edits nil)
   :general
-  (:keymaps 'lsp-mode-map
-            "C-." 'lsp-execute-code-action)
-  ;; This is what actually sets up the binding
-  (calum/leader-def :keymaps 'lsp-mode-map
-    "f" 'lsp-format-buffer
-    "i" '(:keymap lsp-command-map :which-key "lsp")
-    "i g s" '(lsp-treemacs-symbols :which-key "symbols")
-    "i g a" nil
-    "i g a" '(lsp-ido-workspace-symbol :which-key "find symbol"))
+  (:keymaps 'eglot-mode-map
+            "C-." 'eglot-code-actions)
+  (calum/leader-def :keymaps 'eglot-mode-map
+    "f" 'eglot-format
+    )
+  (calum/leader-def :keymaps 'eglot-mode-map
+    :infix "i"
+    :prefix-command 'eglot-actions-map
+    "o" 'eglot-code-action-organize-imports
+    "r" 'eglot-rename
+    "f" 'eglot-format-buffer
+    "q" 'eglot-code-action-quickfix
+    "x" 'eglot-code-action-extract
+    "n" 'eglot-code-action-inline
+    "w" 'eglot-code-action-rewrite
+    )
   :config
-  (setq lsp-log-io nil ; good for debugging, but if set to true can cause a performance hit
-        lsp-modeline-code-actions-segments '(count icon name)
-        lsp-modeline-diagnostics-enable t
-        lsp-modeline-diagnostics-scope :workspace
-        lsp-purescript-server-executable "purescript-language-server"
-        lsp-auto-execute-action nil
-        lsp-completion-provider :none
-        )
+  (setq-default eglot-workspace-configuration
+                '(:purescript (
+                               :formatter "purs-tidy"
+                               :censorWarnings ["WildcardInferredType"])
+                              ))
   )
-
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :config
-  (setq lsp-ui-sideline-show-hover nil
-        lsp-ui-sideline-show-diagnostics t
-        lsp-ui-sideline-show-symbol nil
-        lsp-ui-sideline-update-mode nil
-        lsp-ui-idle-delay 0.5
-        lsp-ui-sideline-delay 0.5))
-
-(use-package lsp-treemacs
-  :commands lsp-treemacs-errors-list
-  :config
-  (lsp-treemacs-sync-mode 1))
 #+end_src
+
 *** Flex & Bison
 #+begin_src emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.ll\\'" . c-mode))
