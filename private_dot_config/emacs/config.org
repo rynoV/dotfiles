@@ -1,3 +1,5 @@
+# -*- visual-fill-column-mode: nil -*-
+
 #+Title: Calum's Emacs Config
 #+Author: Calum Sieppert
 #+Date: 2021
@@ -23,13 +25,34 @@ works.
 
 * General Emacs Configuration
 
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 (use-package emacs
+<<emacs-config>>
+)
+#+END_SRC
+
+** ~<<emacs-config>>~
+:PROPERTIES:
+:header-args: :noweb-ref emacs-config :tangle no
+:END:
+
+*** Definitions
+#+begin_src emacs-lisp
   :preface
   (defvar calum/indent-width 4)
   (defvar calum/code-font "JetBrains Mono")
   (defvar calum/code-font-height 120)
   (defvar calum/magit-mode nil)
+
+  (defun unpop-to-mark-command ()
+    "Unpop off mark ring. Does nothing if mark ring is empty. https://stackoverflow.com/a/14539202"
+    (interactive)
+    (when mark-ring
+      (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
+      (set-marker (mark-marker) (car (last mark-ring)) (current-buffer))
+      (when (null (mark t)) (ding))
+      (setq mark-ring (nbutlast mark-ring))
+      (goto-char (marker-position (car (last mark-ring))))))
 
   ;; Like the kill-word functions, but don't yank
   (defun delete-word (arg)
@@ -96,7 +119,10 @@ https://emacs.stackexchange.com/a/35907"
     (direnv-update-directory-environment "~/" nil)
     (apply orig-fun args)
     (direnv-update-environment))
+#+end_src
 
+*** Keybindings
+#+begin_src emacs-lisp
   :general
   ("C-<down-mouse-1>" ;; Ctrl click to open a link
    (lambda (event)
@@ -130,26 +156,73 @@ https://emacs.stackexchange.com/a/35907"
     "u" 'winner-undo
     "y" 'winner-redo
     "o" 'delete-other-windows)
+  #+end_src
+
+*** Variables
+#+begin_src emacs-lisp
+:custom
+(enable-recursive-minibuffers t)
+;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+(read-extended-command-predicate #'command-completion-default-include-p)
+;; Emacs 28; recommended by embark
+(y-or-n-p-use-read-key t)
+;; Don't use system clipboard by default
+(select-enable-clipboard t)
+(select-enable-primary nil)
+(mouse-drag-copy-region nil)
+(initial-scratch-message "")
+(set-mark-command-repeat-pop t)
+(kill-read-only-ok t)
+(kill-do-not-save-duplicates t)
+(ring-bell-function 'ignore)
+; Allow the emacs window to resize more precisely
+(frame-resize-pixelwise t)
+; Horizontal mouse scrolling
+(mouse-wheel-tilt-scroll t)
+; Flip horizontal scrolling
+(mouse-wheel-flip-direction t)
+; Enable indentation+completion using the TAB key
+(tab-always-indent 'complete)
+; Don't TAB cycle if there are only a few completion candidates
+(completion-cycle-threshold nil)
+;; Hide title bar
+(default-frame-alist '((undecorated . t)))
+
+;; better scrolling experience
+(scroll-margin 0)
+(scroll-conservatively 101)
+(scroll-preserve-screen-position t)
+(auto-window-vscroll nil)
+
+(recentf-max-menu-items 100)
+(recentf-max-saved-items 100)
+
+;; Omit default startup screen
+(inhibit-startup-screen t)
+
+;; Split windows horizontally
+;; https://stackoverflow.com/a/2081978/14703577
+(split-width-threshold 100)
+
+;; Increased because desktop mode was running into the limit after
+;; adding dirvish
+(max-lisp-eval-depth 5000)
+
+;; Recommended by lsp-mode https://emacs-lsp.github.io/lsp-mode/page/performance/
+(gc-cons-threshold 100000000)
+(read-process-output-max (* 1024 1024)) ;; 1mb
+#+end_src
+
+*** Config
+  #+begin_src emacs-lisp
   :config
   (advice-add 'browse-url :around #'wrap-with-direnv-disabled)
 
-  (setq-default word-wrap t)
-
-  (setq
-   ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-   read-extended-command-predicate #'command-completion-default-include-p
-   enable-recursive-minibuffers t
-   ;; Emacs 28; recommended by embark
-   y-or-n-p-use-read-key t
-   ;; Don't use system clipboard by default
-   select-enable-clipboard t
-   select-enable-primary nil
-   mouse-drag-copy-region nil
-   initial-scratch-message ""
-   set-mark-command-repeat-pop t
-   kill-read-only-ok t
-   kill-do-not-save-duplicates t
-   )
+  (setq-default
+   word-wrap t
+   ;; Always use spaces for indentation
+   indent-tabs-mode nil
+   tab-width calum/indent-width)
 
   (if (member "--magit" command-line-args)
       (progn
@@ -157,14 +230,6 @@ https://emacs.stackexchange.com/a/35907"
         (setq calum/magit-mode t)
         ;; Shows "magit <git repo>" as the frame title when Magit is open
         (setq frame-title-format "%b")))
-
-  (setq ring-bell-function 'ignore
-        frame-resize-pixelwise t ; Allow the emacs window to resize more precisely
-        mouse-wheel-tilt-scroll t       ; Horizontal mouse scrolling
-        mouse-wheel-flip-direction t    ; Flip horizontal scrolling
-        tab-always-indent 'complete ; Enable indentation+completion using the TAB key
-        completion-cycle-threshold nil ; Don't TAB cycle if there are only a few completion candidates
-        )
 
   ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
   (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
@@ -185,42 +250,9 @@ https://emacs.stackexchange.com/a/35907"
 
   (tool-bar-mode -1)
   (menu-bar-mode -1)
-  ;; Hide title bar
-  (setq default-frame-alist '((undecorated . t)))
-
-  ;; better scrolling experience
-  (setq scroll-margin 0
-        scroll-conservatively 101
-        scroll-preserve-screen-position t
-        auto-window-vscroll nil)
-
   ;; Allow opening recent files
   ;; https://www.emacswiki.org/emacs/RecentFiles
   (recentf-mode 1)
-  (setq recentf-max-menu-items 100
-        recentf-max-saved-items 100)
-
-  ;; Always use spaces for indentation
-  (setq-default indent-tabs-mode nil
-                tab-width calum/indent-width)
-
-  ;; Omit default startup screen
-  (setq inhibit-startup-screen t)
-
-  ;; Split windows horizontally
-  ;; https://stackoverflow.com/a/2081978/14703577
-  (setq split-width-threshold 1)
-
-  ;; Increased because desktop mode was running into the limit after
-  ;; adding dirvish
-  (setq max-lisp-eval-depth 5000)
-
-  ;; Recommended by lsp-mode https://emacs-lsp.github.io/lsp-mode/page/performance/
-  (setq gc-cons-threshold 100000000)
-  (setq read-process-output-max (* 1024 1024)) ;; 1mb
-
-                                        ;(server-start)
-  )
 #+END_SRC
 
 * Configuration for built-in packages
@@ -1033,7 +1065,7 @@ Show nicer bullet points for headers: https://github.com/integral-dw/org-superst
                           (point-min) (point-max))))
       (unless (< list-items 100)
         (org-superstar-toggle-lightweight-lists)))
-    (org-superstar))
+    (org-superstar-mode))
   :hook
   (org-mode . superstar-auto-lightweight-mode)
   :custom-face
