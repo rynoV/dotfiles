@@ -1,0 +1,34 @@
+;; -*- mode: lisp-data; eval: (outline-minor-mode 1); -*-
+
+prog-mode
+
+(fixme (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "FIXME ")
+(todo (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "TODO ")
+(bug (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "BUG ")
+(hack (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "HACK ")
+
+text-mode
+
+(asciibox "+-" (make-string (length str) ?-) "-+" n
+          "| " (s str)                       " |" n
+          "+-" (make-string (length str) ?-) "-+" n)
+
+purescript-mode haskell-mode
+
+(f (p "name" name) " :: " p n name " " p " = " q)
+
+org-mode latex-mode
+
+(m "\\(" q "\\)")
+;; On a line with text in it already, expanding this will insert an
+;; extra newline
+(d & n "\\[" n> q n "\\]")
+
+emacs-lisp-mode org-mode
+
+(pkg "(use-package " p ")")
+
+;; Local Variables:
+;; mode: lisp-data
+;; outline-regexp: "[a-z]"
+;; End:
