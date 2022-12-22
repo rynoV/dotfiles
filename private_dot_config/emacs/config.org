@@ -976,7 +976,17 @@ Show nicer bullet points for headers: https://github.com/integral-dw/org-superst
 #+begin_src emacs-lisp
 (use-package org-superstar
   :after org
-  :hook (org-mode . org-superstar-mode)
+  :preface
+  (defun superstar-auto-lightweight-mode ()
+    "Start Org Superstar differently depending on the number of lists items. From https://github.com/integral-dw/org-superstar-mode#fast-plain-list-items"
+    (let ((list-items
+           (count-matches "^[ \t]*?\\([+-]\\|[ \t]\\*\\)"
+                          (point-min) (point-max))))
+      (unless (< list-items 100)
+        (org-superstar-toggle-lightweight-lists)))
+    (org-superstar))
+  :hook
+  (org-mode . superstar-auto-lightweight-mode)
   :custom-face
   (org-superstar-first ((nil :foreground "#B48EAD")))
   :custom
