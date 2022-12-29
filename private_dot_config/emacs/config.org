@@ -33,129 +33,171 @@ works.
 
 ** ~<<emacs-config>>~
 :PROPERTIES:
-:header-args: :noweb-ref emacs-config :tangle no
+:header-args: :noweb-ref emacs-config :tangle no :results silent
 :END:
 
 *** Definitions
 #+begin_src emacs-lisp
-  :preface
-  (defvar calum/indent-width 4)
-  (defvar calum/code-font "JetBrains Mono")
-  (defvar calum/code-font-height 120)
-  (defvar calum/magit-mode nil)
+:preface
+(defvar calum/indent-width 4)
+(defvar calum/code-font "JetBrains Mono")
+(defvar calum/code-font-height 120)
+(defvar calum/magit-mode nil)
 
-  (defun unpop-to-mark-command ()
-    "Unpop off mark ring. Does nothing if mark ring is empty. https://stackoverflow.com/a/14539202"
-    (interactive)
-    (when mark-ring
-      (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
-      (set-marker (mark-marker) (car (last mark-ring)) (current-buffer))
-      (when (null (mark t)) (ding))
-      (setq mark-ring (nbutlast mark-ring))
-      (goto-char (marker-position (car (last mark-ring))))))
+(defun calum/advise-push-mark-before (func)
+  "Advise FUNC to push the current mark before executing."
+  (advice-add func :before #'(lambda (&rest _) "push-mark" (push-mark))))
 
-  ;; Like the kill-word functions, but don't yank
-  (defun delete-word (arg)
-    "Delete characters forward until encountering the end of a word.
+(defun calum/bounds-of-number-at-point ()
+  "Based on thingatpt.el's =number-at-point="
+  (cond
+   ((thing-at-point-looking-at "\\(0x\\|#x\\)\\([a-fA-F0-9]+\\)" 500)
+    (cons (match-beginning 2) (match-end 2)))
+   ((thing-at-point-looking-at "-?[0-9]+\\.?[0-9]*" 500)
+    (cons (match-beginning 0) (match-end 0)))))
+
+(defun calum/copy-binding-for-key (key-list)
+  "Prompt for a key and save it's bound command to the kill ring."
+  (interactive (list (help--read-key-sequence)))
+  (kill-new (symbol-name (key-binding
+                          (mapcan (lambda (x) (pcase-let* ((`(,seq . ,raw-seq) x)) raw-seq)) key-list)))))
+
+(defun calum/copy-and-insert-binding-for-key (key-list)
+  "Prompt for a key, save it's bound command to the kill ring, and insert it."
+  (interactive (list (help--read-key-sequence)))
+  (calum/copy-binding-for-key key-list)
+  (yank))
+
+(defun unpop-to-mark-command ()
+  "Unpop off mark ring. Does nothing if mark ring is empty. https://stackoverflow.com/a/14539202"
+  (interactive)
+  (when mark-ring
+    (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
+    (set-marker (mark-marker) (car (last mark-ring)) (current-buffer))
+    (when (null (mark t)) (ding))
+    (setq mark-ring (nbutlast mark-ring))
+    (goto-char (marker-position (car (last mark-ring))))))
+
+;; Like the kill-word functions, but don't yank
+(defun delete-word (arg)
+  "Delete characters forward until encountering the end of a word.
 With argument ARG, do this that many times."
-    (interactive "p")
-    (delete-region (point) (progn (forward-word arg) (point))))
+  (interactive "p")
+  (delete-region (point) (progn (forward-word arg) (point))))
 
-  (defun backward-delete-word (arg)
-    "Delete characters backward until encountering the beginning of a word.
+(defun backward-delete-word (arg)
+  "Delete characters backward until encountering the beginning of a word.
 With argument ARG, do this that many times."
-    (interactive "p")
-    (delete-word (- arg)))
+  (interactive "p")
+  (delete-word (- arg)))
 
-  (defun calum/copy-current-kill-to-clipboard ()
-    "https://emacs.stackexchange.com/a/52179"
-    (interactive)
-    (gui-set-selection 'CLIPBOARD (current-kill 0)))
-  (defun recentf-ido-find-file ()
-    "Find a recent file using Ido. From https://www.emacswiki.org/emacs/RecentFiles#h5o-8"
-    (interactive)
-    (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
-      (when file
-        (find-file file))))
+(defun calum/copy-current-kill-to-clipboard ()
+  "https://emacs.stackexchange.com/a/52179"
+  (interactive)
+  (gui-set-selection 'CLIPBOARD (current-kill 0)))
+(defun recentf-ido-find-file ()
+  "Find a recent file using Ido. From https://www.emacswiki.org/emacs/RecentFiles#h5o-8"
+  (interactive)
+  (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
+    (when file
+      (find-file file))))
 
-  (defun calum/edit-config ()
-    (interactive)
-    (chezmoi-find (concat user-emacs-directory "config.org")))
-  (defun calum/open-terminal-here ()
-    "Based on https://emacs.stackexchange.com/a/7652 for opening a terminal in the folder of the current file"
-    (interactive "@")
-    (shell-command (concat "terminal --working-directory "
-                           (file-name-directory (or load-file-name buffer-file-name))
-                           " > /dev/null 2>&1 & disown") nil nil))
+(defun calum/edit-config ()
+  (interactive)
+  (chezmoi-find (concat user-emacs-directory "config.org")))
+(defun calum/open-terminal-here ()
+  "Based on https://emacs.stackexchange.com/a/7652 for opening a terminal in the folder of the current file"
+  (interactive "@")
+  (shell-command (concat "terminal --working-directory "
+                         (file-name-directory (or load-file-name buffer-file-name))
+                         " > /dev/null 2>&1 & disown") nil nil))
 
-  (defun buffer-backed-by-file-p (buffer)
-    "https://emacs.stackexchange.com/a/35907"
-    (let ((backing-file (buffer-file-name buffer)))
-      (if (buffer-modified-p buffer)
-          t
-        (if backing-file
-            (file-exists-p (buffer-file-name buffer))
-          t))))
+(defun buffer-backed-by-file-p (buffer)
+  "https://emacs.stackexchange.com/a/35907"
+  (let ((backing-file (buffer-file-name buffer)))
+    (if (buffer-modified-p buffer)
+        t
+      (if backing-file
+          (file-exists-p (buffer-file-name buffer))
+        t))))
 
-  (defun kill-removed-buffers ()
-    "Kill all buffers whose files have been deleted/moved, from
+(defun kill-removed-buffers ()
+  "Kill all buffers whose files have been deleted/moved, from
 https://emacs.stackexchange.com/a/35907"
-    (interactive)
-    (require 'dash)
-    (let ((to-kill (-remove 'buffer-backed-by-file-p (buffer-list))))
-      (mapc 'kill-buffer to-kill)
-      (message "Killed %s buffers" (length to-kill))))
+  (interactive)
+  (require 'dash)
+  (let ((to-kill (-remove 'buffer-backed-by-file-p (buffer-list))))
+    (mapc 'kill-buffer to-kill)
+    (message "Killed %s buffers" (length to-kill))))
 
-  (defun replace-buffer-with-shell-command (command)
-    "Pipe the buffer's contents to a shell a command and replace them with its output."
-    (let ((temp-point (point)))
-      (mark-whole-buffer)
-      (shell-command-on-region
-       (region-beginning) (region-end) command :replace t)
-      (goto-char temp-point)))
+(defun replace-buffer-with-shell-command (command)
+  "Pipe the buffer's contents to a shell a command and replace them with its output."
+  (let ((temp-point (point)))
+    (mark-whole-buffer)
+    (shell-command-on-region
+     (region-beginning) (region-end) command :replace t)
+    (goto-char temp-point)))
 
-  (defun wrap-with-direnv-disabled (orig-fun &rest args)
-    "Disable direnv for the current folder before calling the function, then re-enable it"
-    (direnv-update-directory-environment "~/" nil)
-    (apply orig-fun args)
-    (direnv-update-environment))
+(defun wrap-with-direnv-disabled (orig-fun &rest args)
+  "Disable direnv for the current folder before calling the function, then re-enable it"
+  (direnv-update-directory-environment "~/" nil)
+  (apply orig-fun args)
+  (direnv-update-environment))
+
+(defun advice-unadvice (sym)
+  "Remove all advices from symbol SYM. https://emacs.stackexchange.com/a/24658"
+  (interactive "aFunction symbol: ")
+  (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
+
+(defun recenter-advice (&rest args) "Recenter the window" (recenter))
 #+end_src
 
 *** Keybindings
 #+begin_src emacs-lisp
-  :general
-  ("C-<down-mouse-1>" ;; Ctrl click to open a link
-   (lambda (event)
-     (interactive (list last-command-event))
-     (posn-set-point (event-end event))
-     (browse-url (thing-at-point 'url t))))
+:general
+("C-<down-mouse-1>" ;; Ctrl click to open a link
+ (lambda (event)
+   (interactive (list last-command-event))
+   (posn-set-point (event-end event))
+   (browse-url (thing-at-point 'url t))))
 
-  ("<XF86Paste>" (general-key "<paste>"))
-  ("<XF86Copy>" (general-key "<copy>"))
-  ("<XF86Cut>" (general-key "<cut>"))
-  ("C-<backspace>" 'backward-delete-word)
-  ("M-d" 'delete-word)
-  ("C-S-p" 'execute-extended-command)
-  ("C-s" 'save-buffer)
-  ("<f7>" 'calum/edit-config)
-  ("C-M-c" nil)
-  ("C-M-c" 'meow-comment)
-  ;; Ensure this isn't mapped to a command already
-  ("C-c w" nil)
-  (calum/leader-def "t" 'calum/open-terminal-here)
-  (calum/leader-def :infix "w"
-    ;; prefix-command is needed for meow to show a description for the "w" key
-    :prefix-command 'windows-map
-    ;; Use built-in window moving for cases where evil isn't available
-    "h" 'windmove-left
-    "l" 'windmove-right
-    "k" 'windmove-up
-    "j" 'windmove-down
-    "w" 'kill-this-buffer
-    "c" 'delete-window
-    "u" 'winner-undo
-    "y" 'winner-redo
-    "o" 'delete-other-windows)
+("<XF86Paste>" (general-key "<paste>"))
+("<XF86Copy>" (general-key "<copy>"))
+("<XF86Cut>" (general-key "<cut>"))
+("C-<backspace>" 'backward-delete-word)
+("M-d" 'delete-word)
+("C-S-p" 'execute-extended-command)
+("C-s" 'save-buffer)
+("<f7>" 'calum/edit-config)
+("C-M-c" nil)
+("C-M-c" 'meow-comment)
+(calum/leader-def "t" 'calum/open-terminal-here)
+(calum/leader-def :infix "w"
+  ;; prefix-command is needed for meow to show a description for the "w" key
+  :prefix-command 'windows-map
+  "" nil
+  ;; Use built-in window moving for cases where evil isn't available
+  "h" 'windmove-left
+  "l" 'windmove-right
+  "k" 'windmove-up
+  "j" 'windmove-down
+  "w" 'kill-this-buffer
+  "c" 'delete-window
+  "u" 'winner-undo
+  "y" 'winner-redo
+  "o" 'delete-other-windows
+  "s" 'split-window-horizontally
+  "v" 'split-window-vertically)
+(calum/leader-def :infix "M"
+  :prefix-command 'misc-map
+  "" nil
+  "w" 'writeroom-mode
+  "c" 'calum/copy-current-kill-to-clipboard
+  "g" 'calum/git-permalink
+  "l" 'calum/git-link
+  "i" 'calum/copy-and-insert-binding-for-key
+  "c" 'calum/copy-binding-for-key
+  )
   #+end_src
 
 *** Variables
@@ -202,8 +244,14 @@ https://emacs.stackexchange.com/a/35907"
 
 ;; Split windows horizontally
 ;; https://stackoverflow.com/a/2081978/14703577
-(split-width-threshold 100)
+(split-width-threshold 0)
 (split-height-threshold nil)
+;; Windows at the time of writing are 192 columns, so this ensures
+;; that windows can be split horizontally only once, and (with the
+;; above settings) when another window is opened for whatever reason,
+;; it either splits the frame in two horizontally, or takes the other
+;; half of the frame.
+(window-min-width 80)
 
 ;; Increased because desktop mode was running into the limit after
 ;; adding dirvish
@@ -215,48 +263,59 @@ https://emacs.stackexchange.com/a/35907"
 
 ;; Recommended here: https://github.com/integral-dw/org-superstar-mode#this-mode-causes-significant-slowdown
 (inhibit-compacting-font-caches t)
+
+(compilation-scroll-output t)
+
+;; Don't keep =kill-this-buffer= in =repeat= blacklist
+(repeat-too-dangerous nil)
 #+end_src
 
 *** Config
-  #+begin_src emacs-lisp
-  :config
-  (advice-add 'browse-url :around #'wrap-with-direnv-disabled)
+#+begin_src emacs-lisp
+:config
+(put 'number 'bounds-of-thing-at-point 'calum/bounds-of-number-at-point)
 
-  (setq-default
-   word-wrap t
-   ;; Always use spaces for indentation
-   indent-tabs-mode nil
-   tab-width calum/indent-width)
+(advice-add 'browse-url :around #'wrap-with-direnv-disabled)
 
-  (if (member "--magit" command-line-args)
-      (progn
-        (setq command-line-args (delete "--magit" command-line-args))
-        (setq calum/magit-mode t)
-        ;; Shows "magit <git repo>" as the frame title when Magit is open
-        (setq frame-title-format "%b")))
+(advice-add 'compile-goto-error :after #'recenter-advice)
+(advice-add 'next-error :after #'recenter-advice)
+(advice-add 'previous-error :after #'recenter-advice)
 
-  ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
-  (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
-  ;; Make sure emacsclient frames are made transparent as well
-  (add-hook 'after-make-frame-functions
-            '(lambda (frame)
-               (set-frame-parameter frame 'alpha '(95 . 95))
-               (set-scroll-bar-mode nil)))
-  (add-to-list 'default-frame-alist '(alpha . (95 . 95)))
+(setq-default
+ word-wrap t
+ ;; Always use spaces for indentation
+ indent-tabs-mode nil
+ tab-width calum/indent-width)
 
-  ;; Clean unused buffer every day at midnight
-  (midnight-mode 1)
+(if (member "--magit" command-line-args)
+    (progn
+      (setq command-line-args (delete "--magit" command-line-args))
+      (setq calum/magit-mode t)
+      ;; Shows "magit <git repo>" as the frame title when Magit is open
+      (setq frame-title-format "%b")))
 
-  ;; Save command history between sessions
-  (savehist-mode 1)
-  ;; Restore buffer point position when reopening buffers
-  (save-place-mode 1)
+;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
+(set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+;; Make sure emacsclient frames are made transparent as well
+(add-hook 'after-make-frame-functions
+          #'(lambda (frame)
+              (set-frame-parameter frame 'alpha '(95 . 95))
+              (set-scroll-bar-mode nil)))
+(add-to-list 'default-frame-alist '(alpha . (95 . 95)))
 
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
-  ;; Allow opening recent files
-  ;; https://www.emacswiki.org/emacs/RecentFiles
-  (recentf-mode 1)
+;; Clean unused buffer every day at midnight
+(midnight-mode 1)
+
+;; Save command history between sessions
+(savehist-mode 1)
+;; Restore buffer point position when reopening buffers
+(save-place-mode 1)
+
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+;; Allow opening recent files
+;; https://www.emacswiki.org/emacs/RecentFiles
+(recentf-mode 1)
 #+END_SRC
 
 * Configuration for built-in packages
@@ -494,6 +553,10 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
   ;; Update commit views when scrolling through commits in status
   (add-hook 'magit-section-movement-hook 'magit-status-maybe-update-revision-buffer)
 
+  ;; https://github.com/dgutov/diff-hl#magit
+  (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+
   ;; https://magit.vc/manual/magit/Wip-Modes.html
   (magit-wip-mode 1)
 
@@ -547,11 +610,12 @@ documentation).
   (setq code-review-auth-login-marker 'forge))
 #+end_src
 
-*** Git Gutter
+*** Git Gutter (via diff-hl)
 #+begin_src emacs-lisp
-(use-package git-gutter
+(use-package diff-hl
   :config
-  (global-git-gutter-mode +1))
+  (global-diff-hl-mode)
+  (diff-hl-flydiff-mode))
 #+end_src
 
 ** Text editing
@@ -563,7 +627,7 @@ documentation).
   "C-M-n" 'next-line
   "C-M-p" 'previous-line)
 (use-package meow
-  :demand t                             ; Necessary because :hook defers loading
+  :demand t                   ; Necessary because :hook defers loading
   :preface
   (defun calum/meow-escape ()
     "Quit INSERT or quit minibuffer or do nothing. From https://github.com/meow-edit/meow/discussions/186#discussioncomment-1999930"
@@ -574,6 +638,17 @@ documentation).
      ((minibufferp)
       (keyboard-escape-quit))
      (t)))
+
+  (defun calum/meow-undo-in-selection ()
+    "Like =meow-undo-in-selection= but allow for a fallback."
+    (interactive)
+    (meow--with-selection-fallback
+     (meow--execute-kbd-macro meow--kbd-undo)))
+  (defun calum/meow-pop-to-mark ()
+    "Go back through the mark ring."
+    (interactive)
+    (set-mark-command 4)
+    (recenter))
   (defun calum/meow-setup ()
     (interactive)
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty
@@ -581,6 +656,7 @@ documentation).
           meow--kbd-backward-line "C-M-p"
           meow-use-dynamic-face-color t
           meow-expand-exclude-mode-list nil)
+
     (meow-motion-overwrite-define-key
      '("j" . meow-next)
      '("k" . meow-prev)
@@ -614,26 +690,28 @@ documentation).
      '("3" . meow-expand-3)
      '("2" . meow-expand-2)
      '("1" . meow-expand-1)
-     '("/" . isearch-forward)
-     '("?" . isearch-backward)
+     '("/" . meow-visit)
+     '("?" . nil)
      '("-" . negative-argument)
      '(";" . meow-reverse)
      '("," . meow-inner-of-thing)
      '("." . meow-bounds-of-thing)
-     '(">" . meow-indent)
-     '("<" . meow-pop-to-mark)
+     '(">" . repeat)
+     '("<" . calum/meow-pop-to-mark)
      '("[" . meow-beginning-of-thing)
      '("]" . meow-end-of-thing)
+     '("$" . calum/query-replace-map)
      '("a" . meow-append)
      '("A" . meow-open-below)
      '("b" . meow-back-word)
      '("B" . meow-back-symbol)
      '("c" . meow-change)
+     '("C" . comment-line)
      '("d" . meow-delete)
-     '("D" . meow-backward-delete)
+     '("D" . meow-kill-whole-line)
      '("e" . meow-next-word)
      '("E" . meow-next-symbol)
-     '("f" . meow-find)
+     '("f" . meow-find-expand)
      '("g" . meow-cancel-selection)
      '("G" . meow-grab)
      '("h" . meow-left)
@@ -648,6 +726,7 @@ documentation).
      '("L" . meow-right-expand)
      '("m" . meow-join)
      '("n" . meow-search)
+     '("N" . meow-nav-mode)
      '("o" . meow-block)
      '("O" . meow-to-block)
      '("p" . meow-yank)
@@ -656,19 +735,23 @@ documentation).
      '("r" . meow-replace)
      '("R" . meow-swap-grab)
      '("s" . meow-kill)
-     '("t" . meow-till)
-     '("u" . meow-undo)
+     '("t" . meow-till-expand)
+     '("u" . calum/meow-undo-in-selection)
      '("U" . undo-tree-redo)
-     '("v" . meow-visit)
+     '("v" . meow-find-ref)
+     '("V" . meow-pop-marker)
      '("w" . meow-mark-word)
      '("W" . meow-mark-symbol)
      '("x" . meow-line)
-     '("X" . meow-goto-line)
+     '("X" . join-line)
      '("y" . meow-save)
      '("Y" . meow-sync-grab)
      '("z" . meow-pop-selection)
      '("'" . calum/avy-map)
-     '("<escape>" . calum/meow-escape)))
+     '("\"" . calum/mc-map)
+     '("<escape>" . calum/meow-escape)
+     '("<f4>" . meow-kmacro-lines)
+     '("<f5>" . meow-kmacro-matches)))
 
   (defun calum/meow--minibuffer-setup ()
     "meow--minibuffer-setup but without the code to disable meow text editing"
@@ -678,8 +761,40 @@ documentation).
         (insert s)))
     (meow-insert-mode))
 
+  (defvar meow-nav--direction 'forward "Which direction the movement commands should move")
+
+  (defun meow-nav--update-modeline ()
+    "Update the modeline to show the current direction."
+    (delight 'meow-nav-mode (if (equal 'forward meow-nav--direction) " [NAV]+" " [NAV]-") t)
+    (force-mode-line-update))
+
+  (defun meow-nav-swap-direction ()
+    "Swap the movement direction"
+    (interactive)
+    (setq meow-nav--direction (if (equal 'forward meow-nav--direction) 'backward 'forward))
+    (meow-nav--update-modeline))
+
+  (defmacro meow-nav--mk-movement (fwd bkwd name doc)
+    `(defun ,name (arg)
+       ,doc
+       (interactive "P")
+       (if (equal 'forward meow-nav--direction)
+           (funcall-interactively ,fwd arg)
+         (funcall-interactively ,bkwd arg))))
+
+  (meow-nav--mk-movement 'end-of-defun 'beginning-of-defun meow-nav-move-defun "Move by function definition")
+  (meow-nav--mk-movement 'View-scroll-half-page-forward 'View-scroll-half-page-backward meow-nav-move-half-page "Move by half pages")
+  (meow-nav--mk-movement 'next-error 'previous-error meow-nav-move-error "Move by compilation-mode errors")
+  (meow-nav--mk-movement 'flymake-goto-next-error 'flymake-goto-prev-error meow-nav-move-flymake-error "Move by flymake errors")
+  (meow-nav--mk-movement 'View-scroll-line-forward 'View-scroll-line-backward meow-nav-move-line "Scroll single lines")
+  (meow-nav--mk-movement 'diff-hl-next-hunk 'diff-hl-previous-hunk meow-nav-move-hunk "Move by version control hunk")
+  (meow-nav--mk-movement 'scroll-left 'scroll-right meow-nav-move-scroll-horizontal "Scroll left/right")
+  (meow-nav--mk-movement 'scroll-other-window 'scroll-other-window-down meow-nav-move-scroll-other "Scroll other window")
+
   (defun calum/meow-setup-extra ()
-    "From https://github.com/meow-edit/meow/discussions/186#discussioncomment-1999930"
+    ;; From
+    ;; https://github.com/meow-edit/meow/discussions/186#discussioncomment-1999930,
+    ;; to allow using normal mode in minibuffer
     ;; Don't ignore cursor shape changes in minibuffer
     (delete (cons 'minibufferp 'meow--update-cursor-default)
             meow-update-cursor-functions-alist)
@@ -687,11 +802,74 @@ documentation).
     (remove-hook 'minibuffer-setup-hook 'meow--minibuffer-setup)
     ;; Use INSERT state in minibuffer by default, then later we can
     ;; switch to NORMAL with ESC
-    (add-hook 'minibuffer-setup-hook 'calum/meow--minibuffer-setup))
+    (add-hook 'minibuffer-setup-hook 'calum/meow--minibuffer-setup)
+
+    ;; Add more built-in "thing"s for meow to use. For example, select
+    ;; a url with ". u". Note: "number" didn't have a
+    ;; 'bounds-of-thing-at-point definition, so I added one further up
+    ;; this file
+    (cl-loop for charthing in '((?\s . whitespace) (?n . number) (?@ . email) (?f . filename) (?u . url)) do
+             (let ((thing (cdr charthing)))
+               (meow-thing-register thing thing thing)
+               (add-to-list 'meow-char-thing-table charthing)))
+    ;; Use ; to reverse search, or reverse point and mark when selection is active
+    (add-to-list 'meow-selection-command-fallback '(meow-reverse . negative-argument))
+    ;; Use <f4> to execute the current macro on each line in the
+    ;; selection, or if no selection just call the macro
+    (add-to-list 'meow-selection-command-fallback '(meow-kmacro-lines . meow-end-or-call-kmacro))
+    ;; Use u to undo only the changes in the selection, or just do
+    ;; regular undo if there is no selection
+    (add-to-list 'meow-selection-command-fallback '(calum/meow-undo-in-selection . meow-undo))
+
+    ;; Custom state for navigation only. Uses view-mode to disallow
+    ;; editing and enable special navigation functions. Keymap is
+    ;; based on normal state, but overrides keys that change text to
+    ;; use them for navigation. Tries to keep all other normal state
+    ;; keys the same. The mode keeps track of a current "direction",
+    ;; and one key swaps the direction. Keys make movements
+    ;; "backwards" or "forwards" depending on the current direction;
+    ;; what backwards and forwards mean depends on the movement. This
+    ;; model saves on keybinding space and eases binding memorization,
+    ;; as I only have to remember one key per movement type, and when
+    ;; I want to switch direction I use the same key every time.
+    (setq meow-nav-keymap (make-composed-keymap (copy-keymap meow-normal-state-keymap) 'view-mode-map))
+    (meow-define-state nav
+      "meow state for navigating"
+      :lighter " [NAV]"
+      :keymap meow-nav-keymap
+      (cond
+       ((meow-nav-mode-p)
+        (view-mode 1)
+        (meow-nav--update-modeline))
+       (t (view-mode -1))))
+
+    ;; meow-define-state creates the variable
+    (setq meow-cursor-type-nav 'hollow)
+
+    (meow-define-keys 'nav
+      '("<escape>" . meow-normal-mode)
+      ;; Bind upper and lower so I can swap direction without lifting
+      ;; shift key if needed
+      '("a" . meow-nav-swap-direction)
+      '("A" . meow-nav-swap-direction)
+      '("d" . meow-nav-move-defun)
+      '("p" . meow-nav-move-half-page)
+      '("c" . meow-nav-move-hunk)
+      '("q" . meow-nav-move-flymake-error)
+      '("u" . meow-nav-move-error)
+      '("i" . meow-nav-move-line)
+      '("P" . meow-nav-move-scroll-horizontal)
+      '("R" . meow-nav-move-scroll-other)
+      ;; '("r" . ?)
+      ;; '("m" . ?)
+      '("Z" . recenter-top-bottom))
+    (add-to-list 'minor-mode-overriding-map-alist (cons 'meow-nav-mode meow-nav-keymap)))
+  :hook
+  (meow-global-mode . calum/meow-setup-extra)
+  (meow-mode . calum/meow-setup-extra)
   :config
   (setq meow-keypad-leader-dispatch calum/leader)
   (calum/meow-setup)
-  (add-hook 'meow-global-mode-hook #'calum/meow-setup-extra)
   (meow-global-mode 1))
 #+end_src
 
@@ -706,6 +884,81 @@ documentation).
   (add-to-list 'emacs-surround-alist '("`" . ("`" . "`")))
   )
 #+END_SRC
+
+*** Structural editing
+#+begin_src emacs-lisp
+(use-package tree-sitter
+  :config
+  (add-to-list 'tree-sitter-major-mode-language-alist '(purescript-mode . haskell)))
+(use-package tree-sitter-langs)
+#+end_src
+
+**** Combobulate
+https://github.com/mickeynp/combobulate uses tree sitter for
+navigation and editing, still early stages project. Will require setup
+for whatever languages I want.
+#+begin_src emacs-lisp
+(use-package combobulate
+  :quelpa (combobulate :fetcher github :repo "mickeynp/combobulate")
+  ;; Ensure `combobulate-mode` is activated when you launch a mode it supports
+  ;; :hook
+  ;; (purescript-mode . combobulate-mode)
+  :preface
+  (defun combobulate-setup-purescript ()
+    (setq combobulate-manipulation-node-cluster-queries
+          '((function_definition . (haskell (signature (_)) @match (function (_))))))
+    (setq combobulate-navigation-node-types '(module
+                                              function
+                                              )))
+  :config
+  ;; (add-to-list 'combobulate-setup-functions-alist '(purescript-mode . combobulate-setup-purescript))
+  )
+#+end_src
+
+*** Repeated edits
+
+**** Multiple Cursors
+https://github.com/magnars/multiple-cursors.el
+#+begin_src emacs-lisp
+(use-package multiple-cursors
+  :general
+  (:prefix-command 'calum/mc-map
+                   "e" 'mc/edit-lines
+                   "n" 'mc/cycle-forward
+                   "p" 'mc/cycle-backward
+                   "h" 'mc/edit-beginnings-of-lines
+                   "l" 'mc/edit-ends-of-lines
+                   "j" 'mc/mark-next-like-this
+                   "k" 'mc/mark-previous-like-this
+                   "m" 'mc/mark-more-like-this-extended
+                   "a" 'mc/mark-all-dwim
+                   "d" 'mc/mark-all-like-this-in-defun
+                   )
+  (:keymaps 'mc/keymap "<return>" nil)
+  :custom
+  (mc/edit-lines-empty-lines 'ignore))
+#+end_src
+
+**** Visual Regexp
+https://github.com/benma/visual-regexp.el/
+#+begin_src emacs-lisp
+(use-package visual-regexp
+  :general
+  (:prefix-command 'calum/query-replace-map
+                   "$" 'vr/replace
+                   "m" 'vr/mc-mark
+                   "q" 'vr/query-replace)
+  :preface
+  ;; Workaround to replace in the whole buffer
+  ;; https://github.com/benma/visual-regexp.el/issues/16#issuecomment-877800085
+  (defun vr--use-whole-buffer ()
+    (unless (region-active-p) (setq vr--target-buffer-start (point-min))))
+  :config
+  (advice-add 'vr--set-target-buffer-start-end :after 'vr--use-whole-buffer)
+  (calum/advise-push-mark-before 'vr/replace)
+  (calum/advise-push-mark-before 'vr/mc-mark)
+  (calum/advise-push-mark-before 'vr/query-replace))
+#+end_src
 
 ** Org Mode
 :PROPERTIES:
@@ -747,7 +1000,7 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
 
 **** ~<<org-config>>~
 :PROPERTIES:
-:header-args: :noweb-ref org-config :tangle no
+:header-args: :noweb-ref org-config :tangle no :results silent
 :END:
 
 ***** Hooks
@@ -764,7 +1017,7 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
   #+end_src
 
 ***** Definitions
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
   :preface
   (defun calum/set-keyword-faces-org ()
     "https://hugocisneros.com/org-config/#hide-face-characters"
@@ -785,11 +1038,11 @@ Based off this https://github.com/howardabrams/dot-files/blob/master/emacs-org.o
       (kill-new text)
       (yank)))
   (defun calum/org-at-item-p ()
-    (or (org-at-item-p)
+    (or (org-in-item-p)
         (and (org-region-active-p)
              (save-excursion
                (goto-char (region-beginning))
-               (org-at-item-p)))))
+               (org-in-item-p)))))
 
   (defun calum/org-metaleft-hook ()
     (if (calum/org-at-item-p)
@@ -883,13 +1136,23 @@ Use numeric prefix arg to insert number."
     "f" 'calum/org-mobile-pull
     "s" 'calum/org-mobile-sync
     "o" 'calum/open-heading-links
-    "i" 'org-download-clipboard)
+    "i" 'org-download-clipboard
+    "h" 'calum/paste-html-to-org
+    "r" '(nil :prefix-command org-restart-actions-map)
+    "r r" 'org-mode-restart
+    "r s" 'org-superstar-restart)
+  (:keymaps 'org-mode-map
+            ;; Use return to insert a new item when at an item, behave
+            ;; normally otherwise. When at an item and a newline is
+            ;; needed, use C-j
+            "RET" (general-predicate-dispatch 'org-return
+                    (and (eolp) (calum/org-at-item-p)) 'org-meta-return))
   (:keymaps 'org-mode-map
             :predicate '(meow-insert-mode-p)
             "C-d" 'cdlatex-tab
             "C-s" 'calum/insert-superscript
             "C-M-s" 'calum/insert-subscript)
-  #+end_src
+#+end_src
 
 ***** Faces
 See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
@@ -969,6 +1232,8 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
   (org-agenda-start-on-weekday nil)
   ;; Don't show inline images with their actual width
   (org-image-actual-width nil)
+
+  (org-catch-invisible-edits 'error)
   #+end_src
 
 ****** Capture Templates
@@ -1022,26 +1287,29 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 #+end_src
 
 ***** Config
-  #+begin_src emacs-lisp
-  :config
-  (make-directory org-directory t)
+#+begin_src emacs-lisp
+:config
+(make-directory org-directory t)
 
-  (org-link-set-parameters "editpdf"
-                           :follow (lambda (path)
-                                     (start-process "" nil
-                                                    "xournalpp" (expand-file-name path)))
-                           :complete 'org-link-complete-file)
+(org-link-set-parameters "editpdf"
+                         :follow (lambda (path)
+                                   (start-process "" nil
+                                                  "xournalpp" (expand-file-name path)))
+                         :complete 'org-link-complete-file)
 
 
-  (org-clock-persistence-insinuate)
+(org-clock-persistence-insinuate)
 
-  ;; After refiling something, save all the buffers automatically
-  (advice-add 'org-refile :after #'(lambda (&rest _)
-                                    (org-save-all-org-buffers)))
+;; After refiling something, save all the buffers automatically
+(advice-add 'org-refile :after #'(lambda (&rest _)
+                                   (org-save-all-org-buffers)))
 
-  (org-babel-do-load-languages
-   'org-babel-load-languages '((emacs-lisp . t)
-                               (python . t)))
+(org-babel-do-load-languages
+ 'org-babel-load-languages '((emacs-lisp . t)
+                             (python . t)
+                             (R . t)))
+;; Allow for jumping back after jupming to src block head
+(calum/advise-push-mark-before 'org-babel-goto-src-block-head))
 #+end_src
 
 *** Org Mobile
@@ -1086,13 +1354,13 @@ Show nicer bullet points for headers: https://github.com/integral-dw/org-superst
   (org-superstar-first-inlinetask-bullet ?🞸)
   ;; Stop cycling bullets to emphasize hierarchy of headlines.
   (org-superstar-cycle-headline-bullets nil)
-  (org-superstar-leading-fallback ?.)
+  (org-superstar-leading-bullet ?\s)
   (org-superstar-item-bullet-alist
    '((?* . ?•)
-     (?+ . ?➤)
-     (?- . ?–)))
+     (?+ . ?–)
+     (?- . ?➤)))
   (org-superstar-special-todo-items t)
-  (org-superstar-remove-leading-stars t)
+  (org-superstar-remove-leading-stars nil)
   (org-indent-mode-turns-on-hiding-stars nil)
   )
 #+end_src
@@ -1121,10 +1389,10 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 *** Exporters
 #+begin_src emacs-lisp
 (require 'ox-md)
-#+end_src
-
-#+begin_src emacs-lisp
 (use-package ox-gfm)
+(use-package ox-json)
+(use-package ox-ravel
+  :load-path "/home/calum/.config/emacs/manual-plugins/ox-ravel")
 #+end_src
 
 **** Org Latex Export
@@ -1342,6 +1610,8 @@ https://github.com/atheriel/evil-ledger
     "From https://github.com/minad/tempel/issues/74"
     (interactive)
     (setq tempel--path-templates nil))
+  :general
+  (calum/leader-def "M t" 'tempel-insert)
   :hook
   (prog-mode . tempel-setup-capf)
   (text-mode . tempel-setup-capf)
@@ -1359,7 +1629,7 @@ https://github.com/atheriel/evil-ledger
     "b" 'consult-buffer)
   ;; C-c bindings (mode-specific-map)
   ("C-c h" 'consult-history)
-  ("C-c m" 'consult-mode-command)
+  ;; ("C-c m" 'consult-mode-command)
   ("C-c k" 'consult-kmacro)
   ;; C-x bindings (ctl-x-map)
   ("C-x M-:" 'consult-complex-command) ;; orig. repeat-complex-command
@@ -1480,12 +1750,16 @@ https://github.com/atheriel/evil-ledger
 #+begin_src emacs-lisp
 (use-package consult-eglot)
 #+end_src
-*** Completion UI
+*** Completion UI with vertico
 [[https://github.com/minad/vertico][Vertical completion UI]]; [[https://github.com/minad/vertico/wiki][Wiki]]
 #+begin_src emacs-lisp
 (use-package vertico
   :hook
   (minibuffer-setup . vertico-repeat-save)
+  :general
+  (:prefix "C->"
+           "C->" 'vertico-repeat
+           "C-S-s" 'vertico-repeat-select)
   :init
   (vertico-mode)
 
@@ -1531,23 +1805,63 @@ https://github.com/atheriel/evil-ledger
             )
   )
 #+end_src
-
+**** Marginalia
 Enable richer annotations using the [[https://github.com/minad/marginalia][Marginalia]] package
 #+begin_src emacs-lisp
 (use-package marginalia
-  ;; Either bind `marginalia-cycle` globally or only in the minibuffer
-  :bind (("M-A" . marginalia-cycle)
-         :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
-
+  :general
+  (:keymaps 'minibuffer-local-map
+            "M-A" 'marginalia-cycle)
+  :custom
+  (marginalia-command-categories
+   '((projectile-find-file . project-file)
+     (projectile-find-dir . project-file)
+     (projectile-switch-project . file)
+     (calum/select-project-magit . file)
+     (magit-branch-and-checkout . git-branch)
+     (magit-branch-or-checkout . git-branch)
+     (magit-branch-checkout . git-branch)
+     ))
   ;; The :init configuration is always executed (Not lazy!)
   :init
-
   ;; Must be in the :init section of use-package such that the mode gets
   ;; enabled right away. Note that this forces loading the package.
-  (marginalia-mode))
-#+end_src
+  (marginalia-mode)
+  :preface
+  (defun calum/git-num-unmerged-to-upstream (branch)
+    (length (magit-git-lines "log" "--oneline" branch "--not"
+                             (magit-get-upstream-branch branch))))
 
+  (defun calum/git-branch-annotator (cand)
+    ""
+    (marginalia--fields
+     ;; ((magit-get-upstream-branch cand) :width -15 :truncate 0.2)
+     ;; ((magit-get-push-branch cand) :width -15 :truncate 0.5)
+     ((if (magit-branch-merged-p cand)
+          ""
+        (concat (number-to-string (calum/git-num-unmerged-to-upstream cand))
+                " "))
+      :width -7)
+     ((magit-rev-format " %h %s" cand) :width -35 :truncate 0.8 :face 'magit-dimmed)
+     )
+    )
+
+  :config
+  ;; Hack to make projectile use marginalia after switch-project: https://github.com/bbatsov/projectile/issues/1664#issuecomment-934630504
+  (add-to-list 'marginalia-prompt-categories '("Find file:" . project-file))
+  (add-to-list 'marginalia-prompt-categories '("\\<branch\\>" . git-branch))
+  ;; magit-get-upstream-branch
+  ;; magit-get-push-branch
+  ;; magit-insert-upstream-branch-header
+  ;; magit-insert-push-branch-header
+  ;; magit-insert-head-branch-header
+  ;; magit-insert-branch-description
+  ;; (propertize (magit-rev-format "%h" target) 'font-lock-face 'magit-hash)
+  (add-to-list 'marginalia-annotator-registry
+               '(git-branch calum/git-branch-annotator none))
+  )
+#+end_src
+**** Embark
 https://github.com/oantolin/embark
 #+begin_src emacs-lisp
 (use-package embark
@@ -1786,26 +2100,26 @@ https://github.com/minad/corfu/wiki
 #+begin_src emacs-lisp
 (use-package cape
   :general
-  (calum/leader-def
-    :infix "c"
-    "p"  'completion-at-point ;; capf
-    "t"  'complete-tag        ;; etags
-    "d"  'cape-dabbrev        ;; or dabbrev-completion
-    "h"  'cape-history
-    "f"  'cape-file
-    "k"  'cape-keyword
-    "s"  'cape-symbol
-    "a"  'cape-abbrev
-    "i"  'cape-ispell
-    "l"  'cape-line
-    "w"  'cape-dict
-    "n"  'tempel-complete
-    "\\" 'cape-tex
-    "_"  'cape-tex
-    "^"  'cape-tex
-    "&"  'cape-sgml
-    "r"  'cape-rfc1345 ;; Complete unicode char using RFC 1345 mnemonics.
-    )
+  (:prefix "C-S-n"
+           :prefix-command 'completions-map
+           "p" 'completion-at-point ;; capf
+           "t" 'complete-tag        ;; etags
+           "d" 'cape-dabbrev        ;; or dabbrev-completion
+           "h" 'cape-history
+           "f" 'cape-file
+           "k" 'cape-keyword
+           "s" 'cape-symbol
+           "a" 'cape-abbrev
+           "i" 'cape-ispell
+           "l" 'cape-line
+           "w" 'cape-dict
+           "n" 'tempel-complete
+           "\\" 'cape-tex
+           "_" 'cape-tex
+           "^" 'cape-tex
+           "&" 'cape-sgml
+           "r" 'cape-rfc1345 ;; Complete unicode char using RFC 1345 mnemonics.
+           )
   :config
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -1815,8 +2129,7 @@ https://github.com/minad/corfu/wiki
   ;; undesired side effects on Emacs 28 and earlier. From
   ;; https://github.com/minad/cape#other-capf-transformers
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
-  )
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 #+end_src
 
 **** Kind icons for autocomplete icons
@@ -1921,6 +2234,15 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 (use-package emacs-lisp
   :ensure nil
   :preface
+  (defun calum/format-top-level-sexp ()
+    "Format the current top level sexp"
+    (interactive)
+    (let ((open-paren-in-column-0-is-defun-start t)
+          (old-point (point)))
+      (beginning-of-defun)
+      (lispy-tab)
+      (goto-char old-point)
+      (recenter)))
   (defun calum/setup-elisp ()
     (setq-local completion-at-point-functions
                 `(tempel-expand
@@ -1929,7 +2251,10 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
                     #'cape-dabbrev)
                   cape-file)
                 cape-dabbrev-min-length 4))
-  :hook (emacs-lisp-mode . calum/setup-elisp))
+  :hook (emacs-lisp-mode . calum/setup-elisp)
+  :general
+  (calum/leader-def :keymaps 'emacs-lisp-mode-map
+    "f" 'calum/format-top-level-sexp))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1956,7 +2281,7 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
   (require 'haskell-process)
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
   (add-hook 'haskell-mode-hook 'haskell-collapse-mode)
-  (add-hook 'haskell-mode-hook '(lambda ()
+  (add-hook 'haskell-mode-hook #'(lambda ()
                                   (setq-local tab-width 2)))
   (setq haskell-process-use-presentation-mode t
         haskell-interactive-mode-eval-mode 'haskell-mode))
@@ -2065,6 +2390,11 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 #+begin_src emacs-lisp
 (use-package graphql-mode)
 #+end_src
+*** R
+#+begin_src emacs-lisp
+(use-package ess
+  :hook (ess-r-mode . eglot-ensure))
+#+end_src
 
 ** Miscellaneous
 
@@ -2083,7 +2413,9 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
     "i" 'chezmoi-write-files
     "o" 'chezmoi-open-other
     "t" 'chezmoi-template-buffer-display
-    "c" 'chezmoi-mode)
+    ;; Always enable the mode, I rarely want to disable it
+    "c" #'(lambda () (interactive) (chezmoi-mode 1))
+    "m" 'chezmoi-mode)
   :config
   ;; Turn off ligatures because they show up poorly.
   (add-hook 'chezmoi-mode-hook #'(lambda () (when (require 'ligature)
@@ -2138,7 +2470,8 @@ Provides us with hints on available keystroke combinations.
   (setq iflipb-ignore-buffers (lambda (buffer-name)
                                 (and (and
                                       (not (string-match-p "\*Org Agenda\*" buffer-name))
-                                      (not (string-match-p "\*Code Review\*" buffer-name)))
+                                      (not (string-match-p "\*Code Review\*" buffer-name))
+                                      (not (string-match-p "\*Org Src" buffer-name)))
                                      (string-match-p "^[*]" buffer-name))))
   ;; This should work everywhere, including magit buffers for example
   (general-def
@@ -2147,7 +2480,172 @@ Provides us with hints on available keystroke combinations.
     (if (featurep 'xemacs) (kbd "<C-iso-left-tab>") (kbd "<C-S-iso-lefttab>")) 'iflipb-previous-buffer))
 #+end_src
 
-*** Jumping
+*** Hydras
+#+begin_src emacs-lisp
+(use-package hydra
+  :custom
+  (lv-use-separator t)
+  (hydra-look-for-remap t)
+  :general
+  ("<f2>" 'hydra-zoom/body)
+  ("<f6>" 'hydra-multiple-cursors/body)
+  ("<f8>" 'hydra-window/body)
+  ("C-x SPC" 'hydra-rectangle/body)
+  :preface
+  (defun hydra-ex-point-mark ()
+    "Exchange point and mark."
+    (interactive)
+    (if rectangle-mark-mode
+        (rectangle-exchange-point-and-mark)
+      (let ((mk (mark)))
+        (rectangle-mark-mode 1)
+        (goto-char mk))))
+
+  (defun hydra-move-splitter-left (arg)
+    "Move window splitter left."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (shrink-window-horizontally arg)
+      (enlarge-window-horizontally arg)))
+
+  (defun hydra-move-splitter-right (arg)
+    "Move window splitter right."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (enlarge-window-horizontally arg)
+      (shrink-window-horizontally arg)))
+
+  (defun hydra-move-splitter-up (arg)
+    "Move window splitter up."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (enlarge-window arg)
+      (shrink-window arg)))
+
+  (defun hydra-move-splitter-down (arg)
+    "Move window splitter down."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (shrink-window arg)
+      (enlarge-window arg)))
+  :config
+  (defhydra hydra-zoom ()
+    "zoom"
+    ("g" text-scale-increase "in")
+    ("l" text-scale-decrease "out"))
+  ;; Note: use "r" to start selection
+  (defhydra hydra-rectangle (:body-pre (rectangle-mark-mode 1)
+                                        :color pink
+                                        :post (deactivate-mark))
+    "
+  ^_k_^     _d_elete    _s_tring
+_h_   _l_   _o_k        _y_ank
+  ^_j_^     _n_ew-copy  _r_eset
+^^^^        _e_xchange  _u_ndo
+^^^^        ^ ^         _x_kill
+"
+    ("h" rectangle-backward-char nil)
+    ("l" rectangle-forward-char nil)
+    ("k" rectangle-previous-line nil)
+    ("j" rectangle-next-line nil)
+    ("e" hydra-ex-point-mark nil)
+    ("n" copy-rectangle-as-kill nil)
+    ("d" delete-rectangle nil)
+    ("r" (if (region-active-p)
+             (deactivate-mark)
+           (rectangle-mark-mode 1)) nil)
+    ("y" yank-rectangle nil)
+    ("u" undo nil)
+    ("s" string-rectangle nil)
+    ("x" kill-rectangle nil)
+    ("o" nil nil))
+  ;; https://github.com/abo-abo/hydra/wiki/Window-Management#deluxe-window-moving
+  (defhydra hydra-window ()
+    "
+Movement^^        ^Split^         ^Switch^		^Resize^
+----------------------------------------------------------------
+_h_ ←           _v_ertical      _b_uffer		_q_ X←
+_j_ ↓           _x_ horizontal	_f_ind files	_w_ X↓
+_k_ ↑           _z_ undo        _a_ce 1		_e_ X↑
+_l_ →           _Z_ reset       _s_wap		_r_ X→
+_F_ollow		_D_lt Other     _S_ave
+_SPC_ cancel	_o_nly this     _d_elete
+"
+    ("h" windmove-left)
+    ("j" windmove-down)
+    ("k" windmove-up)
+    ("l" windmove-right)
+    ("q" hydra-move-splitter-left)
+    ("w" hydra-move-splitter-down)
+    ("e" hydra-move-splitter-up)
+    ("r" hydra-move-splitter-right)
+    ("b" consult-buffer)
+    ("f" consult-file)
+    ("F" follow-mode)
+    ("a" (lambda ()
+           (interactive)
+           (ace-window 1)
+           (add-hook 'ace-window-end-once-hook
+                     'hydra-window/body)))
+    ("v" (lambda ()
+           (interactive)
+           (split-window-right)
+           (windmove-right)))
+    ("x" (lambda ()
+           (interactive)
+           (split-window-below)
+           (windmove-down)))
+    ("s" (lambda ()
+           (interactive)
+           (ace-window 4)
+           (add-hook 'ace-window-end-once-hook
+                     'hydra-window/body)))
+    ("S" save-buffer)
+    ("d" delete-window)
+    ("D" (lambda ()
+           (interactive)
+           (ace-window 16)
+           (add-hook 'ace-window-end-once-hook
+                     'hydra-window/body)))
+    ("o" delete-other-windows)
+    ("z" (progn
+           (winner-undo)
+           (setq this-command 'winner-undo)))
+    ("Z" winner-redo)
+    ("SPC" nil))
+  ;; https://github.com/abo-abo/hydra/wiki/multiple-cursors
+  (defhydra hydra-multiple-cursors (:hint nil)
+    "
+ Up^^             Down^^           Miscellaneous           % 2(mc/num-cursors) cursor%s(if (> (mc/num-cursors) 1) \"s\" \"\")
+------------------------------------------------------------------
+ [_p_]   Next     [_n_]   Next     [_l_] Edit lines  [_0_] Insert numbers
+ [_P_]   Skip     [_N_]   Skip     [_a_] Mark all    [_A_] Insert letters
+ [_M-p_] Unmark   [_M-n_] Unmark   [_s_] Search      [_q_] Quit
+ [_|_] Align with input CHAR       [Click] Cursor at point"
+    ("l" mc/edit-lines :exit t)
+    ("a" mc/mark-all-like-this :exit t)
+    ("n" mc/mark-next-like-this)
+    ("N" mc/skip-to-next-like-this)
+    ("M-n" mc/unmark-next-like-this)
+    ("p" mc/mark-previous-like-this)
+    ("P" mc/skip-to-previous-like-this)
+    ("M-p" mc/unmark-previous-like-this)
+    ("|" mc/vertical-align)
+    ("s" mc/mark-all-in-region-regexp :exit t)
+    ("0" mc/insert-numbers :exit t)
+    ("A" mc/insert-letters :exit t)
+    ("<mouse-1>" mc/add-cursor-on-click)
+    ;; Help with click recognition in this hydra
+    ("<down-mouse-1>" ignore)
+    ("<drag-mouse-1>" ignore)
+    ("q" nil)))
+#+end_src
+
+*** Jumping with avy
 
 #+begin_src emacs-lisp
 (use-package avy
@@ -2157,7 +2655,6 @@ Provides us with hints on available keystroke combinations.
   (:keymaps 'calum/avy-map
             "C" 'avy-goto-char
             "c" 'avy-goto-char-timer
-            "/" 'avy-isearch
             "l" 'avy-goto-line
             "L" 'avy-goto-end-of-line
             "j" 'avy-goto-line-below
@@ -2166,41 +2663,49 @@ Provides us with hints on available keystroke combinations.
             "[" 'avy-pop-mark
             "r" 'avy-resume
             "n" 'avy-next
-            "p" 'avy-prev)
+            "p" 'avy-prev
+            "f" 'calum/avy-goto-char-in-line)
   (:keymaps 'calum/avy-map
             :prefix "o"
             :prefix-command 'avy-org-command-map
             "h" 'avy-org-goto-heading-timer
-            "r" 'avy-org-refile-as-child
-            )
+            "r" 'avy-org-refile-as-child)
   (:keymaps 'calum/avy-map
             :prefix "y"
             :prefix-command 'avy-copy-command-map
             "l" 'avy-copy-line
-            "r" 'avy-copy-region
-            )
+            "r" 'avy-copy-region)
   (:keymaps 'calum/avy-map
             :prefix "<backspace>"
             :prefix-command 'avy-kill-command-map
             "r" 'avy-kill-region
-            "l" 'avy-kill-whole-line
-            )
+            "l" 'avy-kill-whole-line)
   (:keymaps 'calum/avy-map
             :prefix "s"
             :prefix-command 'avy-save-command-map
             "r" 'avy-kill-ring-save-region
-            "l" 'avy-kill-ring-save-whole-line
-            )
+            "l" 'avy-kill-ring-save-whole-line)
   (:keymaps 'calum/avy-map
             :prefix "m"
             :prefix-command 'avy-move-command-map
             "r" 'avy-move-region
             "l" 'avy-move-line
-            "t" 'avy-transpose-lines-in-region
-            )
+            "t" 'avy-transpose-lines-in-region)
+  :preface
+
+  (defun calum/avy-goto-char-in-line (char)
+    "Like the existing function, but fixes this issue: https://github.com/abo-abo/avy/issues/340"
+    (interactive (list (read-char "char: " t)))
+    (avy-with calum/avy-goto-char-in-line
+      (avy-jump
+       (regexp-quote (string char))
+       :beg (line-beginning-position)
+       :end (line-end-position))))
+
   :custom
   (avy-all-windows nil)
   (avy-style 'words)
+  (avy-styles-alist '((calum/avy-goto-char-in-line . at)))
   (avy-indent-line-overlay t))
 #+end_src
 
