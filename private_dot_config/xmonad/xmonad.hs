@@ -403,11 +403,11 @@ myKeymap =
     -- Adjust monitor brightness
     ( "M-<F11>",
       addName "Decrease monitor brightness" $
-        spawn "light -s sysfs/backlight/ddcci14 -U 1 && light -s sysfs/backlight/ddcci14 -O"
+        spawn "light -s sysfs/backlight/ddcci5 -U 1 && light -s sysfs/backlight/ddcci5 -O"
     ),
     ( "M-<F12>",
       addName "Increase monitor brightness" $
-        spawn "light -s sysfs/backlight/ddcci14 -A 1 && light -s sysfs/backlight/ddcci14 -O"
+        spawn "light -s sysfs/backlight/ddcci5 -A 1 && light -s sysfs/backlight/ddcci5 -O"
     )
   ]
 
@@ -456,6 +456,7 @@ myManageHook =
   composeAll
     [ className =? "copyq" --> doRectFloat (W.RationalRect 0.7 0.25 0.25 0.5), -- Right/middle of screen, quarter width, half height
       className =? "Zenity" --> doFloat,
+      className =? "hidamari" --> doFloat,
       title =? "Org Capture" --> doRectFloat (W.RationalRect 0.25 0.25 0.5 0.5),
       title =? "Emacs Quick Calc" --> doRectFloat (W.RationalRect 0.25 0.45 0.5 0.05),
       -- isDialog --> doFloat

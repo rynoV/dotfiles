@@ -3,6 +3,5 @@ sorting:
   column: extension
   # Possible values: first, last, none
   dir-grouping: first
-icons:
-  # Separator between icon and the name
-  separator: "  "
+
+hyperlink: auto

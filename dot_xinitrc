@@ -35,6 +35,9 @@ xset s off # Disable screen saver
 xsetroot -cursor_name left_ptr # Set cursor style
 setxkbmap -option caps:ctrl_modifier -option compose:ralt
 
+modprobe ddcci
+modprobe i2c_dev
+
 export XDG_CURRENT_DESKTOP=xmonad
 export XDG_SESSION_DESKTOP=xmonad
 autorandr --change # Configure monitors before xmonad starts

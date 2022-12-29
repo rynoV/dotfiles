@@ -25,9 +25,17 @@ settings:
     global: false
   content.blocking.method:
     global: both
+  content.geolocation:
+    https://apps1.ams-sga.cra-arc.gc.ca: true
+    https://apps6.ams-sga.cra-arc.gc.ca: true
+    https://calgarylibrary.ca: false
+    https://owl.purdue.edu: false
+    https://www.footlocker.ca: false
+    https://www.google.ca: false
   content.javascript.can_access_clipboard:
     aur.archlinux.org: true
     github.com: true
+    global: true
     https://superuser.com: true
     mlabs.slab.com: true
   content.media.audio_capture:
@@ -37,6 +45,7 @@ settings:
   content.media.video_capture:
     https://meet.google.com: true
   content.notifications.enabled:
+    https://calendar.google.com: false
     https://meet.google.com: true
     https://www.netflix.com: false
     https://www.reddit.com: false

@@ -325,7 +325,6 @@
     "git.autofetch": true,
     "terminal.integrated.showLinkHover": false,
     "editor.scrollbar.vertical": "hidden",
-    "window.zoomLevel": 1,
     "githubPullRequests.fileListLayout": "tree",
     "sqltools.useNodeRuntime": true,
     "window.menuBarVisibility": "toggle",
@@ -343,5 +342,7 @@
     "cmake.cmakePath": "",
     "C_Cpp.clang_format_fallbackStyle": "Google",
     "workbench.activityBar.visible": false,
-    "xml.server.workDir": "~/.cache/.lemminx"
+    "xml.server.workDir": "~/.cache/.lemminx",
+    "window.zoomLevel": 1,
+    "npm.keybindingsChangedWarningShown": true
 }

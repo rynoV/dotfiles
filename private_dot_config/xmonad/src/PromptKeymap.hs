@@ -53,7 +53,7 @@ myVimLikeXPKeymap' fromColor promptF pasteFilter notWord =
             >> resetPrompter
         )
       ]
-      ++ map (first (controlMask,)) [(xK_w, killWord' notWord Prev)]
+      ++ map (first (controlMask,)) [(xK_w, killWord' notWord Prev), (xK_g, quit)]
   where
     normalVimXPKeymap =
       M.fromList $
@@ -89,7 +89,7 @@ myVimLikeXPKeymap' fromColor promptF pasteFilter notWord =
               promptSubmap (setModeDone True) changeVimXPKeymap
                 >> setModeDone True
             )
-          ]
+          ] ++ [((controlMask,xK_g), quit)]
           ++ map
             (first (shiftMask,))
             [ -- For some reason the dollar key doesn't work

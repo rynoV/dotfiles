@@ -4,11 +4,17 @@
 (setq mc/cmds-to-run-for-all
       '(
         calum/meow-escape
+        calum/meow-undo-in-selection
         completion-at-point
+        hydra-multiple-cursors/ignore
+        hydra-multiple-cursors/mc/add-cursor-on-click
+        hydra-multiple-cursors/nil
+        indent-for-tab-command
         lispy-braces
         lispy-brackets
         lispy-delete
         lispy-kill
+        lispy-newline-and-indent-plain
         lispy-parens
         lispy-quotes
         meow-bounds-of-thing
@@ -100,8 +106,11 @@
 (setq mc/cmds-to-run-once
       '(
         combobulate-menu/combobulate-edit-cluster-dwim-and-exit
+        hydra-lispy-x/lispy-cursor-ace-and-exit
+        hydra-multiple-cursors/mc/mark-next-like-this
         lispy-cursor-down
-        meow-keypad-self-insert
+        meow-describe-key
         meow-keypad
+        meow-keypad-self-insert
         meow-undo
         ))

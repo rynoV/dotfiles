@@ -1,5 +1,7 @@
 !code
 !code/**
+# Ensure fd operates consistent with the default behaviour of ignoring hidden files/folders
+code/**/.*
 
 .venv/
 env/
@@ -15,7 +17,10 @@ dist-newstyle/
 !.local/aur/
 !.local/aur/**
 .local/aur/**/src
+.local/aur/**/.*
 !.local/share/applications/
 !.local/share/applications/**
+.local/share/applications/**/.*
 !.local/share/chezmoi/
 !.local/share/chezmoi/**
+.local/share/chezmoi/**/.*

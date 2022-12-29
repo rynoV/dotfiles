@@ -19,7 +19,9 @@ cheat
 chromium
 cmatrix
 copyq
+cronie
 ddcci-driver-linux-dkms
+ddcutil
 direnv
 discord
 docker
@@ -47,7 +49,9 @@ gtk2
 gzip
 handlr
 helix
+hidamari
 htop
+hunspell-en_ca
 jq
 kitty
 lazydocker
@@ -62,6 +66,7 @@ lightdm-gtk-greeter
 linux
 linux-firmware
 linux-lts
+lolcat
 lsd
 m4
 make
@@ -72,6 +77,8 @@ networkmanager
 nix
 notification-daemon
 noto-fonts-emoji
+npm
+nushell
 openssh
 pacman
 pacman-contrib
@@ -86,11 +93,15 @@ pkgconf
 polkit
 python-adblock
 python-pillow
+python-pip
+python-vlc
 qmk
 qutebrowser
+r
 ranger
 rclone
 redshift
+reflector
 ripgrep-all
 rofi
 rofimoji
@@ -107,12 +118,14 @@ texlive-core
 texlive-fontsextra
 texlive-formatsextra
 texlive-latexextra
+texlive-latexindent-meta
 texlive-pictures
 texlive-science
 tldr
 ttf-ms-fonts
 udisks2
 unzip
+usbutils
 variety
 vim
 visual-studio-code-bin
@@ -122,6 +135,7 @@ which
 wireplumber
 xbindkeys
 xclip
+xdg-user-dirs
 xdg-utils-handlr
 xdotool
 xf86-input-wacom
@@ -137,6 +151,7 @@ xorg-xprop
 xorg-xset
 xorg-xsetroot
 xournalpp
+yarn
 youtube-dl
 zathura
 zathura-pdf-poppler
