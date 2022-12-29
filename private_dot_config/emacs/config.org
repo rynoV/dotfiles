@@ -2807,14 +2807,78 @@ https://github.com/bmag/imenu-list, show imenu in a sidebar
 #+end_src
 
 * Keybinds
-- [[https://github.com/syl20bnr/spacemacs/wiki/Keymaps-guide][Keymap hierarchy]], also [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Searching-Keymaps.html][see]] for a more thorough list, but the former
-  covers the main ones
-- Evil's maps are in emulation mode maps, in order of precedence:
-  - Intercept keymaps - evil-make-intercept-map
-  - Local state keymap - evil-local-set-key
-  - Minor-mode keymaps - evil-define-minor-mode-key
-  - Auxiliary keymaps - evil-define-key
-  - Overriding keymaps - evil-make-overriding-map
-  - Global state keymap - evil-global-set-key
-- Keys bound in "motion" state are inherited in the normal, visual, and
-  operator state keymaps if they are not shadowed
+- https://github.com/noctuid/general.el
+- https://www.masteringemacs.org/article/mastering-key-bindings-emacs
+
+
+- After the "/" is shifted version, e.g. for "backspace", "bksp-func/bksp-func-shifted"
+- "fb" is "fallback", for meow fallback when there is no selection
+- I reserve ctl+shift+alt for the OS level
+- I need to add a way to type ctrl+escape to my keyboard
+
+
+|            | normal                                    | Control                                | Alt                                         | Control+Alt                         | C-c/SPC                  | C-x             | Nav mode    |
+|------------+-------------------------------------------+----------------------------------------+---------------------------------------------+-------------------------------------+--------------------------+-----------------+-------------|
+|            | <6>                                       | <7>                                    | <3>                                         | <11>                                | <7>                      | <3>             | <8>         |
+| q/Q        | meow-quit/meow-goto-line                  | emacs-surround/nil                     | fill-paragraph/nil                          | nil                                 |                          |                 | nil/-       |
+| w/W        | meow-mark-word/meow-mark-symbol           | kill-region/nil                        | kill-ring-save/nil                          | append-next-kill                    | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Keybindings][windows-map]]              |                 | -/-         |
+| e/E        | meow-next-word/meow-next-symbol           | move-end-of-line/nil                   | forward-sentence/nil                        | end-of-defun                        |                          |                 | -/-         |
+| r/R        | meow-replace/meow-swap-grab               | isearch-backward/nil                   | move-to-window-line-top-bottom/nil          | restart-emacs                       |                          |                 | nil/nil     |
+| t/T        | meow-till-expand/nil                      | transpose-chars/nil                    | transpose-words/nil                         | transpose-sexps                     | open-terminal            |                 | -/nil       |
+| y/Y        | meow-save/meow-sync-grab                  | yank/nil                               | consult-yank-pop/nil                        | nil                                 |                          |                 | -/nil       |
+| u/U        | meow-undo/undo-tree-redo                  | universal-argument/nil                 | upcase-word/nil                             | backward-up-list                    |                          |                 | nil/nil     |
+| i/I        | meow-insert/meow-open-above               | TAB: indent-for-tab-command/nil        | tab-to-tab-stop/nil                         | complete-symbol                     | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Language Server Protocol (LSP)][lsp funcs]]                |                 | nil/nil     |
+| o/O        | meow-block/meow-to-block                  | open-line/nil                          | nil/nil                                     | split-line                          | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Keybinds][org-actions-map]]          |                 | -/-         |
+| p/P        | meow-yank/nil                             | previous-line/execute-extended-command | nil/nil                                     | previous-line                       | project funcs            |                 | nil/nil     |
+| a/A        | meow-append/meow-open-below               | move-beginning-of-line/nil             | backward-sentence/nil                       | beginning-of-defun                  |                          |                 | nil/nil     |
+| s/S        | meow-kill/nil                             | save-buffer/nil                        | consult searching/nil                       | isearch-forward-regexp              | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Spell Check][spell-check-map]]          |                 | -/nil       |
+| d/D        | meow-delete/meow-kill-whole-line          | delete-char/nil                        | delete-word/nil                             | down-list                           | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Chezmoi][chezmoi funcs]]            |                 | nil/-       |
+| f/F        | meow-find-expand/nil                      | forward-char/nil                       | forward-word/nil                            | forward-sexp                        | format buffer            |                 | -/nil       |
+| g/G        | meow-cancel-selection/meow-grab           | keyboard-quit/nil                      | consult goto/nil                            | nil                                 |                          |                 | -/-         |
+| h/H        | meow-left/meow-left-expand                | help-map/nil                           | mark-paragraph/nil                          | mark-defun                          | consult-history          |                 | -/-         |
+| j/J        | meow-next/meow-next-expand                | electric-newline-and-maybe-indent/nil  | default-indent-new-line/nil                 | default-indent-new-line             |                          |                 | -/-         |
+| k/K        | meow-prev/meow-prev-expand                | kill-line/nil                          | kill-sentence/nil                           | kill-sexp                           | consult-kmacro           |                 | -/-         |
+| l/L        | meow-right/meow-right-expand              | recenter-top-bottom/nil                | downcase-word/nil                           | reposition-window                   |                          |                 | -/-         |
+| z/Z        | meow-pop-selection/nil                    | suspend-frame/nil                      | zap-to-char/nil                             | nil                                 |                          |                 | -/nil       |
+| x/X        | meow-line/join-line                       | ctl-x-map/nil                          | execute-extended-command/-for-buffer        | nil                                 |                          |                 | -/nil       |
+| c/C        | meow-change/comment-line                  | ctl-c-map/nil                          | capitalize-word/nil                         | meow-comment                        | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Cape for autocomplete extensions][completion funcs]]         |                 | nil/nil     |
+| v/V        | meow-find-ref/meow-pop-marker             | scroll-up-command/nil                  | scroll-down-command/nil                     | scroll-other-window                 | calc-dispatch            |                 | -/-         |
+| b/B        | meow-back-word/meow-back-symbol           | backward-char/nil                      | backward-word/nil                           | backward-sexp                       | consult-buffer           |                 | -/-         |
+| n/N        | meow-search/meow-nav-mode                 | completion-at-point/completions-map    | nil/nil                                     | next-line                           |                          |                 | -/nil       |
+| m/M        | meow-join/nil                             | RET: newline/nil                       | back-to-indentation/nil                     | nil                                 | meow meta key/misc funcs |                 | nil/nil     |
+| tab        | indent-for-tab-command                    | iflipb-next/previous-buffer            | OS level                                    | nil                                 |                          |                 | nil         |
+| space      | meow-keypad                               | set-mark-command/nil                   | just-one-space                              | mark-sexp                           |                          | rectangle hydra | -           |
+| escape     | calum/meow-escape                         | nil/nil                                | prefix/nil                                  | nil                                 |                          |                 | normal-mode |
+| return     |                                           | nil/nil                                | nil/nil                                     | nil                                 |                          |                 | nil         |
+| backspace  |                                           | backward-delete-word/kill-whole-line   | nil/nil                                     | nil                                 |                          |                 | nil         |
+| delete     |                                           | kill-word/nil                          | nil/nil                                     | nil                                 |                          |                 | nil         |
+| ,/<        | meow-inner-of-thing/meow-pop-to-mark      | embark-act-noquit/nil                  | xref-pop-marker-stack/beginning-of-buffer   | nil/nil                             |                          |                 | -/-         |
+| ./>        | meow-bounds-of-thing/repeat               | nil/"repeater" bindings                | xref-find-definitions/end-of-buffer         | xref-find-apropos/nil               |                          |                 | -/-         |
+| //?        | meow-visit/nil                            | undo-tree-undo/undo-tree-redo          | dabbrev-expand/xref-find-references         | dabbrev-completion/nil              |                          |                 | -/nil       |
+| ;/:        | meow-reverse/nil                          | embark-dwim/nil                        | comment-dwim/eval-expression                | iedit-execute-last-modification/nil |                          |                 | -/nil       |
+| '/"        | avy-map/multiple-cursor-map               | nil/imenu-list-smart-toggle            | consult-register-store/nil                  | nil/nil                             |                          |                 | -/nil       |
+| left/right |                                           | left/right-word/nil                    | nil/nil/nil/nil                             | forward-sexp/backward-sexp          |                          |                 | nil/nil     |
+| up/down    |                                           | forward/backward-paragraph/nil         | nil/nil/nil/nil                             | backward-up-list/down-list          |                          |                 | nil/nil     |
+| !/1        | nil/meow-expand-1                         | nil/digit-argument                     | shell-command/digit-argument                | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| @/2        | nil/meow-expand-2                         | set-mark-command/digit-argument        | mark-word/digit-argument                    | mark-sexp/digit-argument            | /meow-digit-argument     |                 | nil/-       |
+| #/3        | nil/meow-expand-3                         | nil/digit-argument                     | consult-register-load/digit-argument        | consult-register/digit-argument     | /meow-digit-argument     |                 | nil/-       |
+| $/4        | nil/meow-expand-4                         | nil/digit-argument                     | ispell-word/digit-argument                  | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| %/5        | query-replace-map/meow-expand-5           | nil/digit-argument                     | query-replace/digit-argument                | query-replace-regexp/digit-argument | /meow-digit-argument     |                 | nil/-       |
+| ^/6        | nil/meow-expand-6                         | nil/digit-argument                     | delete-indentation/digit-argument           | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| &/7        | nil/meow-expand-7                         | nil/digit-argument                     | async-shell-command/digit-argument          | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| */8        | nil/meow-expand-8                         | nil/digit-argument                     | nil/digit-argument                          | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| (/9        | nil/meow-expand-9                         | nil/digit-argument                     | insert-parentheses/digit-argument           | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| )/0        | nil/meow-expand-0                         | nil/digit-argument                     | move-past-close-and-reindent/digit-argument | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| \[/\]      | meow-beginning-of-thing/meow-end-of-thing | ESC/abort-recursive-edit               | nil/nil                                     | M-ESC/nil                           |                          |                 | -/-         |
+| {/}        | nil/nil                                   | nil/nil                                | backward-/forward-paragraph                 | nil/nil                             |                          |                 | nil/nil     |
+| <f2>       | text-scale hydra                          |                                        |                                             |                                     |                          |                 |             |
+| <f3>       | macro-start                               |                                        |                                             |                                     |                          |                 |             |
+| <f4>       | meow-kmacro-lines fb meow call kmacro     |                                        |                                             |                                     |                          |                 |             |
+| <f5>       | meow-kmacro-matches                       |                                        |                                             |                                     |                          |                 |             |
+| <f6>       | multiple cursors hydra                    |                                        |                                             |                                     |                          |                 |             |
+| <f7>       | calum/edit-config                         |                                        |                                             |                                     |                          |                 |             |
+| <f8>       | window hydra                              |                                        |                                             |                                     |                          |                 |             |
+| <f9>       | nil                                       |                                        |                                             |                                     |                          |                 |             |
+| <f10>      | nil                                       |                                        |                                             |                                     |                          |                 |             |
+| <f11>      | nil                                       |                                        |                                             |                                     |                          |                 |             |
+| <f12>      | nil                                       |                                        |                                             |                                     |                          |                 |             |
