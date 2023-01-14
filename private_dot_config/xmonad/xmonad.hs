@@ -70,6 +70,7 @@ import XMonad.Hooks.StatusBar.PP
         ppOrder,
         ppSep,
         ppSort,
+        ppTitle,
         ppTitleSanitize,
         ppUrgent
       ),
@@ -197,12 +198,14 @@ myScratchpads =
       "timetracking"
       "qutebrowser --target window https://mlabs.harvestapp.com/time"
       (("Timesheet" `isInfixOf`) <$> title)
-      $ customFloating $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
+      $ customFloating
+      $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
     NS
       "calc"
       "emacsclient --create-frame --frame-parameters \"'(name . \\\"Emacs Calc\\\")\" --eval \"(full-calc)\""
       (title =? "Emacs Calc")
-      $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
+      $ customFloating
+      $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
   ]
 
 addMyKeymap c = (subtitle "Custom Keys" :) $ mkNamedKeymap c myKeymap
@@ -222,6 +225,14 @@ moveToPrevWS = moveToWS Prev
 shiftToNextWS = shiftToWS Next
 shiftToPrevWS = shiftToWS Prev
 
+-- | Amount to move windows by with a single keypress.
+winMoveAmount :: Int
+winMoveAmount = 40
+
+-- | Amount to resize windows by with a single keypress.
+winResizeAmount :: Int
+winResizeAmount = 30
+
 -- Note: M1 is left alt, C-S-M1-M is the "hyper" key and C-S-M1 is the
 -- "meh" key (special keys on my keyboard that emulate these
 -- modifiers)
@@ -237,9 +248,13 @@ myKeymap =
     ("M-S-a", addName "Move window to previous screen" $ onPrevNeighbour def W.shift),
     ("M-S-o", addName "Move window to next screen" $ onNextNeighbour def W.shift),
     -- Click a window or drag a rectangle to screenshot it
-    ( "M-s s",
+    ( "M-s r",
       addName "Screenshot window or rectangle" $
         unGrab *> spawn "scrot --freeze --line width=2,color=\"red\",mode=\"edge\" --select"
+    ),
+    ( "M-s s",
+      addName "Screenshot window or rectangle to clipboard" $
+        unGrab *> spawn "scrot --freeze --line width=2,color=\"red\",mode=\"edge\" --select -e 'xclip -selection clipboard -t image/png -i $f && rm $f'"
     ),
     -- Take a screenshot of all monitors
     ("M-s d", addName "Screenshot all monitors" $ unGrab *> spawn "scrot"),
@@ -331,6 +346,7 @@ myKeymap =
     ("C-S-M1-M-b c", addName "Open clipboard link in chromium" $ spawn "xclip -selection clipboard -out | xargs chromium"),
     ("C-S-M1-t", addName "Launch terminal" $ spawn $ terminal myConfig),
     ("C-S-M1-s", addName "Launch slack" $ spawn "slack"),
+    ("C-S-M1-d", addName "Launch discord" $ spawn "discord"),
     -- Emacs launchers (mnemonic "E-macs")
     ("C-S-M1-M-e n", addName "Capture a note" $ spawn "~/scripts/org-capture n"),
     ("C-S-M1-M-e t", addName "Capture a todo item" $ spawn "~/scripts/org-capture t"),
@@ -378,6 +394,12 @@ myKeymap =
       addName "Move all windows to the next screen" $
         withAll (\w -> focus w >> onNextNeighbour def W.shift)
     ),
+    ("M-w M-j", addName "Move window down" $ withFocused $ keysMoveWindow (0, winMoveAmount)),
+    ("M-w M-k", addName "Move window up" $ withFocused $ keysMoveWindow (0, -winMoveAmount)),
+    ("M-w M-l", addName "Move window right" $ withFocused $ keysMoveWindow (winMoveAmount, 0)),
+    ("M-w M-h", addName "Move window left" $ withFocused $ keysMoveWindow (-winMoveAmount, 0)),
+    ("M-w M-s", addName "Shrink window" $ withFocused $ keysResizeWindow (-winResizeAmount, -winResizeAmount) (1 % 2, 1 % 2)),
+    ("M-w M-g", addName "Grow window" $ withFocused $ keysResizeWindow (winResizeAmount, winResizeAmount) (1 % 2, 1 % 2)),
     -- Searching for things, either through the prompt or using the
     -- current selection (mnemonic "G-oogle")
     ( "M-g g",
@@ -430,9 +452,10 @@ myXmobarPP =
       ppHidden = white . wrap " " "",
       ppHiddenNoWindows = lowWhite . wrap " " "",
       ppUrgent = red . wrap (yellow "!") (yellow "!"),
-      ppOrder = \[ws, l, _, wins] -> [ws, l, wins],
+      ppOrder = \[ws, _, title, wins] -> [ws, title, wins],
       ppExtras = [myLogTitles formatFocused formatUnfocused],
-      ppSort = return $ filterOutWs [scratchpadWorkspaceTag] -- Don't show scratchpads workspace
+      ppSort = return $ filterOutWs [scratchpadWorkspaceTag], -- Don't show scratchpads workspace
+      ppTitle = shorten 20
     }
   where
     formatFocused = wrap (white "[") (white "]") . magenta . ppWindow
@@ -457,6 +480,8 @@ myManageHook =
     [ className =? "copyq" --> doRectFloat (W.RationalRect 0.7 0.25 0.25 0.5), -- Right/middle of screen, quarter width, half height
       className =? "Zenity" --> doFloat,
       className =? "hidamari" --> doFloat,
+      ("Android Emulator" `isInfixOf`) <$> title --> doFloat,
+      ("Emulator" `isInfixOf`) <$> title --> doFloat,
       title =? "Org Capture" --> doRectFloat (W.RationalRect 0.25 0.25 0.5 0.5),
       title =? "Emacs Quick Calc" --> doRectFloat (W.RationalRect 0.25 0.45 0.5 0.05),
       -- isDialog --> doFloat
