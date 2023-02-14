@@ -371,13 +371,6 @@ Don’t bother confirming killing processes and don’t let backup~ files scatte
   :ensure nil
   :hook (before-save . whitespace-cleanup))
 #+END_SRC
-** Auto-pairing quotes and parentheses etc.
-This also takes care of the new-line-and-push-brace feature.
-#+BEGIN_SRC emacs-lisp
-(use-package elec-pair
-  :ensure nil
-  :hook (prog-mode . electric-pair-mode))
-#+END_SRC
 ** Font
 
 See [[*Load theme][Load theme]] for additional font selection with the poet theme.
@@ -389,14 +382,6 @@ See [[*Load theme][Load theme]] for additional font selection with the poet them
                       :family calum/code-font
                       :height calum/code-font-height
                       :weight 'normal))
-#+END_SRC
-** Show matching parentheses
-Reduce the highlight delay to instantly.
-#+BEGIN_SRC emacs-lisp
-(use-package paren
-  :ensure nil
-  :init (setq show-paren-delay 0)
-  :config (show-paren-mode +1))
 #+END_SRC
 ** Mouse wheel (track-pad) scroll speed
 By default, the scrolling is way too fast to be precise and helpful,
@@ -622,10 +607,10 @@ documentation).
 *** Meow
 #+begin_src emacs-lisp
 (general-define-key
-  "C-M-n" nil
-  "C-M-p" nil
-  "C-M-n" 'next-line
-  "C-M-p" 'previous-line)
+ "C-M-n" nil
+ "C-M-p" nil
+ "C-M-n" 'next-line
+ "C-M-p" 'previous-line)
 (use-package meow
   :demand t                   ; Necessary because :hook defers loading
   :preface
@@ -639,11 +624,6 @@ documentation).
       (keyboard-escape-quit))
      (t)))
 
-  (defun calum/meow-undo-in-selection ()
-    "Like =meow-undo-in-selection= but allow for a fallback."
-    (interactive)
-    (meow--with-selection-fallback
-     (meow--execute-kbd-macro meow--kbd-undo)))
   (defun calum/meow-pop-to-mark ()
     "Go back through the mark ring."
     (interactive)
@@ -705,13 +685,14 @@ documentation).
      '("A" . meow-open-below)
      '("b" . meow-back-word)
      '("B" . meow-back-symbol)
-     '("c" . meow-change)
+     '("c" . meow-change-save)
      '("C" . comment-line)
      '("d" . meow-delete)
      '("D" . meow-kill-whole-line)
      '("e" . meow-next-word)
      '("E" . meow-next-symbol)
      '("f" . meow-find-expand)
+     '("F" . display-local-help)
      '("g" . meow-cancel-selection)
      '("G" . meow-grab)
      '("h" . meow-left)
@@ -730,13 +711,14 @@ documentation).
      '("o" . meow-block)
      '("O" . meow-to-block)
      '("p" . meow-yank)
+     '("P" . meow-paren-mode)
      '("q" . meow-quit)
      '("Q" . meow-goto-line)
      '("r" . meow-replace)
      '("R" . meow-swap-grab)
      '("s" . meow-kill)
      '("t" . meow-till-expand)
-     '("u" . calum/meow-undo-in-selection)
+     '("u" . meow-undo)
      '("U" . undo-tree-redo)
      '("v" . meow-find-ref)
      '("V" . meow-pop-marker)
@@ -746,7 +728,8 @@ documentation).
      '("X" . join-line)
      '("y" . meow-save)
      '("Y" . meow-sync-grab)
-     '("z" . meow-pop-selection)
+     '("z" . calum/paren-map)
+     '("Z" . meow-pop-selection)
      '("'" . calum/avy-map)
      '("\"" . calum/mc-map)
      '("<escape>" . calum/meow-escape)
@@ -774,20 +757,33 @@ documentation).
     (setq meow-nav--direction (if (equal 'forward meow-nav--direction) 'backward 'forward))
     (meow-nav--update-modeline))
 
+  (defun calum/diff-hl-previous-hunk (arg)
+    "Like its namesake, but takes a prefix argument to determine how many hunks to move."
+    (interactive "p")
+    (dotimes (i (abs arg))
+      (diff-hl-previous-hunk)))
+
+  (defun calum/diff-hl-next-hunk (arg)
+    "Like its namesake, but takes a prefix argument to determine how many hunks to move."
+    (interactive "p")
+    (message (number-to-string arg))
+    (dotimes (i (abs arg))
+      (diff-hl-next-hunk)))
+
   (defmacro meow-nav--mk-movement (fwd bkwd name doc)
     `(defun ,name (arg)
        ,doc
        (interactive "P")
-       (if (equal 'forward meow-nav--direction)
-           (funcall-interactively ,fwd arg)
-         (funcall-interactively ,bkwd arg))))
+       (let ((current-prefix-arg arg))
+         (call-interactively
+          (if (equal 'forward meow-nav--direction) ,fwd ,bkwd)))))
 
   (meow-nav--mk-movement 'end-of-defun 'beginning-of-defun meow-nav-move-defun "Move by function definition")
   (meow-nav--mk-movement 'View-scroll-half-page-forward 'View-scroll-half-page-backward meow-nav-move-half-page "Move by half pages")
   (meow-nav--mk-movement 'next-error 'previous-error meow-nav-move-error "Move by compilation-mode errors")
   (meow-nav--mk-movement 'flymake-goto-next-error 'flymake-goto-prev-error meow-nav-move-flymake-error "Move by flymake errors")
   (meow-nav--mk-movement 'View-scroll-line-forward 'View-scroll-line-backward meow-nav-move-line "Scroll single lines")
-  (meow-nav--mk-movement 'diff-hl-next-hunk 'diff-hl-previous-hunk meow-nav-move-hunk "Move by version control hunk")
+  (meow-nav--mk-movement 'calum/diff-hl-next-hunk 'calum/diff-hl-previous-hunk meow-nav-move-hunk "Move by version control hunk")
   (meow-nav--mk-movement 'scroll-left 'scroll-right meow-nav-move-scroll-horizontal "Scroll left/right")
   (meow-nav--mk-movement 'scroll-other-window 'scroll-other-window-down meow-nav-move-scroll-other "Scroll other window")
 
@@ -817,9 +813,6 @@ documentation).
     ;; Use <f4> to execute the current macro on each line in the
     ;; selection, or if no selection just call the macro
     (add-to-list 'meow-selection-command-fallback '(meow-kmacro-lines . meow-end-or-call-kmacro))
-    ;; Use u to undo only the changes in the selection, or just do
-    ;; regular undo if there is no selection
-    (add-to-list 'meow-selection-command-fallback '(calum/meow-undo-in-selection . meow-undo))
 
     ;; Custom state for navigation only. Uses view-mode to disallow
     ;; editing and enable special navigation functions. Keymap is
@@ -834,20 +827,20 @@ documentation).
     ;; I want to switch direction I use the same key every time.
     (setq meow-nav-keymap (make-composed-keymap (copy-keymap meow-normal-state-keymap) 'view-mode-map))
     (meow-define-state nav
-      "meow state for navigating"
+      "Meow state for navigating files and selecting text."
       :lighter " [NAV]"
       :keymap meow-nav-keymap
       (cond
-       ((meow-nav-mode-p)
+       (meow-nav-mode
         (view-mode 1)
         (meow-nav--update-modeline))
        (t (view-mode -1))))
 
-    ;; meow-define-state creates the variable
     (setq meow-cursor-type-nav 'hollow)
 
     (meow-define-keys 'nav
       '("<escape>" . meow-normal-mode)
+      '("N" . meow-normal-mode)
       ;; Bind upper and lower so I can swap direction without lifting
       ;; shift key if needed
       '("a" . meow-nav-swap-direction)
@@ -863,6 +856,20 @@ documentation).
       ;; '("r" . ?)
       ;; '("m" . ?)
       '("Z" . recenter-top-bottom))
+    (add-to-list 'minor-mode-overriding-map-alist (cons 'meow-nav-mode meow-nav-keymap))
+
+    (setq meow-paren-keymap 'calum/paren-map)
+    (meow-define-state paren
+      "meow state for interacting with smartparens"
+      :lighter " [P]"
+      :keymap meow-paren-keymap)
+
+    (setq meow-cursor-type-paren 'bar)
+
+    (meow-define-keys 'paren
+      '("<escape>" . meow-normal-mode)
+      '("u" . meow-undo)
+      '("-" . negative-argument))
     (add-to-list 'minor-mode-overriding-map-alist (cons 'meow-nav-mode meow-nav-keymap)))
   :hook
   (meow-global-mode . calum/meow-setup-extra)
@@ -873,18 +880,88 @@ documentation).
   (meow-global-mode 1))
 #+end_src
 
-*** Edit surrounding pairs
-#+BEGIN_SRC emacs-lisp
-(use-package emacs-surround
-  :quelpa (emacs-surround :fetcher github :repo "ganmacs/emacs-surround")
-  :general
-  ("C-q" 'emacs-surround)
-  :config
-  (add-to-list 'emacs-surround-alist '("*" . ("*" . "*")))
-  (add-to-list 'emacs-surround-alist '("`" . ("`" . "`")))
-  )
-#+END_SRC
+*** Edit surrounding pairs (smartparens)
+#+begin_src emacs-lisp
+(use-package smartparens
+  :delight
+  :init
+  (define-prefix-command 'calum/paren-map)
+  :preface
+  (defmacro def-pairs (pairs)
+    "Define functions for pairing. PAIRS is an alist of (NAME . STRING)
+conses, where NAME is the function name that will be created and
+STRING is a single-character string that marks the opening character.
 
+  (def-pairs ((paren . \"(\")
+              (bracket . \"[\"))
+
+defines the functions WRAP-WITH-PAREN and WRAP-WITH-BRACKET,
+respectively.
+
+From https://ebzzry.com/en/emacs-pairs/"
+    `(progn
+       ,@(loop for (key . val) in pairs
+               collect
+               `(defun ,(read (concat "wrap-with-" (prin1-to-string key) "s"))
+                    (&optional arg)
+                  (interactive "p")
+                  (sp-wrap-with-pair ,val)))))
+
+  (def-pairs ((single-quote . "'")
+              (double-quote . "\"")
+              (back-quote . "`")))
+  :general
+  (:keymaps 'calum/paren-map
+            "s" 'sp-wrap-square
+            "c" 'sp-wrap-curly
+            "r" 'sp-wrap-round
+            "'" 'wrap-with-single-quotes
+            "\"" 'wrap-with-double-quotes
+            "`" 'wrap-with-back-quotes
+            "d" 'sp-splice-sexp
+            "w" 'sp-rewrap-sexp
+            "l" 'sp-forward-sexp
+            "L" 'sp-slurp-hybrid-sexp
+            "h" 'sp-backward-sexp
+            "H" 'sp-highlight-current-sexp
+            "j" 'sp-down-sexp
+            "k" 'sp-up-sexp
+            "K" 'sp-kill-hybrid-sexp
+            "n" 'sp-next-sexp
+            "p" 'sp-previous-sexp
+            "P" 'sp-push-hybrid-sexp
+            "b" 'sp-beginning-of-sexp
+            "e" 'sp-end-of-sexp
+            ">" 'sp-beginning-of-next-sexp
+            "<" 'sp-end-of-previous-sexp
+            "D" 'sp-kill-sexp
+            "y" 'sp-copy-sexp
+            "," 'sp-transpose-sexp
+            "o" 'sp-select-next-thing
+            "O" 'sp-select-next-thing-exchange
+            "S" 'sp-split-sexp
+            "J" 'sp-join-sexp
+            "t" 'sp-transpose-sexp
+            "T" 'sp-transpose-hybrid-sexp
+            "a" 'sp-add-to-next-sexp
+            "A" 'sp-add-to-previous-sexp
+            "v" 'sp-forward-slurp-sexp
+            "V" 'sp-forward-barf-sexp
+            "." 'sp-convolute-sexp
+            ";" 'sp-comment
+            "c" '(lambda () (interactive) (sp-change-enclosing) (meow-insert-mode))
+            "C" '(lambda () (interactive) (sp-change-inner) (meow-insert-mode))
+            "x" 'sp-extract-after-sexp
+            "X" 'sp-extract-before-sexp
+            "!" 'sp-prefix-pair-object
+            "@" 'sp-prefix-save-excursion
+            "#" 'sp-prefix-symbol-object
+            "$" 'sp-prefix-tag-object)
+  :config
+  (require 'smartparens-config)
+  (smartparens-global-mode)
+  (show-smartparens-global-mode))
+#+end_src
 *** Structural editing
 #+begin_src emacs-lisp
 (use-package tree-sitter
@@ -2806,6 +2883,99 @@ https://github.com/bmag/imenu-list, show imenu in a sidebar
         imenu-list-auto-resize nil))
 #+end_src
 
+*** Dashboard
+#+begin_src emacs-lisp
+(use-package dashboard
+  :demand t
+  :custom
+  (dashboard-projects-backend 'projectile)
+  (dashboard-center-content t)
+  (dashboard-items '((recents . 5)
+                     (bookmarks . 5)
+                     (projects . 5)
+                     (agenda . 5)))
+  (dashboard-set-heading-icons t)
+  (dashboard-set-file-icons t)
+  (dashboard-set-navigator t)
+  (dashboard-set-init-info t)
+  (dashboard-week-agenda t)
+  (dashboard-agenda-sort-strategy '(time-up))
+  (dashboard-banner-logo-title nil)
+  (dashboard-startup-banner 'logo)
+  :config
+  (dashboard-setup-startup-hook)
+  (setq initial-buffer-choice (lambda ()
+                                (get-buffer-create "*dashboard*")
+                                (dashboard-refresh-buffer))))
+#+end_src
+
+*** Hungry delete
+http://endlessparentheses.com/hungry-delete-mode.html
+#+begin_src emacs-lisp
+(use-package hungry-delete
+  :delight
+  :config
+  (global-hungry-delete-mode))
+#+end_src
+
+*** Mosey
+https://github.com/alphapapa/mosey.el
+#+begin_src emacs-lisp
+(use-package mosey
+  :general
+  ("C-a" 'mosey-backward-bounce)
+  ("C-e" 'mosey-forward-bounce))
+#+end_src
+
+*** Aggresive indent
+https://github.com/Malabarba/aggressive-indent-mode
+#+begin_src emacs-lisp
+(use-package aggressive-indent
+  :config
+  (global-aggressive-indent-mode))
+#+end_src
+
+*** Scroll on jump
+#+begin_src emacs-lisp
+(use-package scroll-on-jump
+  :custom
+  (scroll-on-jump-duration 0.4)
+  (scroll-on-jump-smooth t)
+  (scroll-on-jump-curve 'linear)
+  :config
+  (scroll-on-jump-advice-add meow-undo)
+  (scroll-on-jump-advice-add undo-tree-redo)
+  (scroll-on-jump-advice-add calum/meow-pop-to-mark)
+  (scroll-on-jump-advice-add meow-beginning-of-thing)
+  (scroll-on-jump-advice-add meow-end-of-thing)
+  (scroll-on-jump-advice-add meow-cancel-selection)
+  (scroll-on-jump-advice-add meow-search)
+  (scroll-on-jump-advice-add meow-block)
+  (scroll-on-jump-advice-add meow-to-block)
+  (scroll-on-jump-advice-add meow-pop-selection)
+  (scroll-on-jump-advice-add meow-find-ref)
+  (scroll-on-jump-advice-add meow-pop-marker)
+  (scroll-on-jump-with-scroll-advice-add scroll-down-command)
+  (scroll-on-jump-with-scroll-advice-add scroll-up-command)
+  (scroll-on-jump-with-scroll-advice-add recenter-top-bottom)
+  )
+#+end_src
+
+*** Topsy
+#+begin_src emacs-lisp
+(use-package topsy
+  :quelpa (topsy :fetcher github :repo "alphapapa/topsy.el")
+  :hook (prog-mode . topsy-mode))
+#+end_src
+
+*** Expand region
+https://github.com/magnars/expand-region.el
+#+begin_src emacs-lisp
+(use-package expand-region
+  :general
+  ("C-=" 'er/expand-region))
+#+end_src
+
 * Keybinds
 - https://github.com/noctuid/general.el
 - https://www.masteringemacs.org/article/mastering-key-bindings-emacs
@@ -2829,17 +2999,17 @@ https://github.com/bmag/imenu-list, show imenu in a sidebar
 | u/U        | meow-undo/undo-tree-redo                  | universal-argument/nil                 | upcase-word/nil                             | backward-up-list                    |                          |                 | nil/nil     |
 | i/I        | meow-insert/meow-open-above               | TAB: indent-for-tab-command/nil        | tab-to-tab-stop/nil                         | complete-symbol                     | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Language Server Protocol (LSP)][lsp funcs]]                |                 | nil/nil     |
 | o/O        | meow-block/meow-to-block                  | open-line/nil                          | nil/nil                                     | split-line                          | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Keybinds][org-actions-map]]          |                 | -/-         |
-| p/P        | meow-yank/nil                             | previous-line/execute-extended-command | nil/nil                                     | previous-line                       | project funcs            |                 | nil/nil     |
+| p/P        | meow-yank/meow-paren-mode                 | previous-line/execute-extended-command | nil/nil                                     | previous-line                       | project funcs            |                 | nil/nil     |
 | a/A        | meow-append/meow-open-below               | move-beginning-of-line/nil             | backward-sentence/nil                       | beginning-of-defun                  |                          |                 | nil/nil     |
 | s/S        | meow-kill/nil                             | save-buffer/nil                        | consult searching/nil                       | isearch-forward-regexp              | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Spell Check][spell-check-map]]          |                 | -/nil       |
 | d/D        | meow-delete/meow-kill-whole-line          | delete-char/nil                        | delete-word/nil                             | down-list                           | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Chezmoi][chezmoi funcs]]            |                 | nil/-       |
-| f/F        | meow-find-expand/nil                      | forward-char/nil                       | forward-word/nil                            | forward-sexp                        | format buffer            |                 | -/nil       |
-| g/G        | meow-cancel-selection/meow-grab           | keyboard-quit/nil                      | consult goto/nil                            | nil                                 |                          |                 | -/-         |
+| f/F        | meow-find-expand/display-local-help       | forward-char/nil                       | forward-word/nil                            | forward-sexp                        | format buffer            |                 | -/nil       |
+| g/G        | meow-cancel-selection/meow-grab           | keyboard-quit/nil                      | consult goto/nil                            | nil                                 | <meow C-M- prefix>       |                 | -/-         |
 | h/H        | meow-left/meow-left-expand                | help-map/nil                           | mark-paragraph/nil                          | mark-defun                          | consult-history          |                 | -/-         |
 | j/J        | meow-next/meow-next-expand                | electric-newline-and-maybe-indent/nil  | default-indent-new-line/nil                 | default-indent-new-line             |                          |                 | -/-         |
 | k/K        | meow-prev/meow-prev-expand                | kill-line/nil                          | kill-sentence/nil                           | kill-sexp                           | consult-kmacro           |                 | -/-         |
 | l/L        | meow-right/meow-right-expand              | recenter-top-bottom/nil                | downcase-word/nil                           | reposition-window                   |                          |                 | -/-         |
-| z/Z        | meow-pop-selection/nil                    | suspend-frame/nil                      | zap-to-char/nil                             | nil                                 |                          |                 | -/nil       |
+| z/Z        | calum/paren-map/meow-pop-selection        | suspend-frame/nil                      | zap-to-char/nil                             | nil                                 | folding actions          |                 | -/nil       |
 | x/X        | meow-line/join-line                       | ctl-x-map/nil                          | execute-extended-command/-for-buffer        | nil                                 |                          |                 | -/nil       |
 | c/C        | meow-change/comment-line                  | ctl-c-map/nil                          | capitalize-word/nil                         | meow-comment                        | [[file:~/.local/share/chezmoi/private_dot_config/emacs/config.org::*Cape for autocomplete extensions][completion funcs]]         |                 | nil/nil     |
 | v/V        | meow-find-ref/meow-pop-marker             | scroll-up-command/nil                  | scroll-down-command/nil                     | scroll-other-window                 | calc-dispatch            |                 | -/-         |
@@ -2862,8 +3032,8 @@ https://github.com/bmag/imenu-list, show imenu in a sidebar
 | !/1        | nil/meow-expand-1                         | nil/digit-argument                     | shell-command/digit-argument                | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
 | @/2        | nil/meow-expand-2                         | set-mark-command/digit-argument        | mark-word/digit-argument                    | mark-sexp/digit-argument            | /meow-digit-argument     |                 | nil/-       |
 | #/3        | nil/meow-expand-3                         | nil/digit-argument                     | consult-register-load/digit-argument        | consult-register/digit-argument     | /meow-digit-argument     |                 | nil/-       |
-| $/4        | nil/meow-expand-4                         | nil/digit-argument                     | ispell-word/digit-argument                  | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
-| %/5        | query-replace-map/meow-expand-5           | nil/digit-argument                     | query-replace/digit-argument                | query-replace-regexp/digit-argument | /meow-digit-argument     |                 | nil/-       |
+| $/4        | query-replace-map/meow-expand-4           | nil/digit-argument                     | ispell-word/digit-argument                  | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
+| %/5        | nil/meow-expand-5                         | nil/digit-argument                     | query-replace/digit-argument                | query-replace-regexp/digit-argument | /meow-digit-argument     |                 | nil/-       |
 | ^/6        | nil/meow-expand-6                         | nil/digit-argument                     | delete-indentation/digit-argument           | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
 | &/7        | nil/meow-expand-7                         | nil/digit-argument                     | async-shell-command/digit-argument          | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |
 | */8        | nil/meow-expand-8                         | nil/digit-argument                     | nil/digit-argument                          | nil/digit-argument                  | /meow-digit-argument     |                 | nil/-       |

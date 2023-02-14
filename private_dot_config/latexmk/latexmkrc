@@ -1,0 +1,2 @@
+# Use something like this for continuous building latexmk -pvc -pdf -xelatex -interaction=nonstopmode -output-directory=./.output $(FILE)
+$pdf_previewer = "zathura"
