@@ -16,6 +16,7 @@ text-mode
 purescript-mode haskell-mode
 
 (f (p "name" name) " :: " p n name " " p " = " q)
+(udf "undefined" q)
 
 org-mode latex-mode
 
@@ -23,10 +24,29 @@ org-mode latex-mode
 ;; On a line with text in it already, expanding this will insert an
 ;; extra newline
 (d & n "\\[" n> q n "\\]")
+(c "~" q "~")
+
+org-mode
+
+(ttl "#+title: " p n "#+author: " p n "#+language: " p n n)
+(qt "#+begin_quote" n> r> n> "#+end_quote")
+(exmpl "#+begin_example" n> r> n> "#+end_example")
+(cntr "#+begin_center" n> r> n> "#+end_center")
+(comm "#+begin_comment" n> r> n> "#+end_comment")
+(vrs "#+begin_verse" n> r> n> "#+end_verse")
+(src "#+begin_src " p n> r> n> "#+end_src" :post (org-edit-src-code))
+(elsp "#+begin_src emacs-lisp" n> r> n "#+end_src")
+(rimg "#+begin_src R :results file graphics :file images/" p ".png" n> q n "#+end_src")
 
 emacs-lisp-mode org-mode
 
 (pkg "(use-package " q ")")
+
+(py "#+begin_src python" n q n "#+end_src" n)
+
+graphql-mode
+
+(doc "\"\"\"" n q n "\"\"\"")
 
 ;; Local Variables:
 ;; mode: lisp-data
