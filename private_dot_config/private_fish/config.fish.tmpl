@@ -40,7 +40,7 @@ ctrl-alt-y:execute-silent(echo {+} | xargs readlink -f | xclip -selection clipbo
 set fzf_dir_opts $MY_FZF_FILE_OPTS
 set fzf_fd_opts --hidden --exclude=.git --follow
 
-set --export JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+set --export JAVA_HOME /usr/lib/jvm/java-11-openjdk
 fish_add_path --path $JAVA_HOME/bin
 
 fish_add_path --path /usr/local/go/bin
@@ -68,6 +68,16 @@ alias lla "ls -lA"
 
 alias cm chezmoi
 
+# Useful abbreviations from https://github.com/fish-shell/fish-shell/releases/tag/3.6.0
+function multicd
+    echo cd (string repeat -n (math (string length -- $argv[1]) - 1) ../)
+end
+
+abbr --add dotdot --regex '^\.\.+$' --function multicd
+
+function last_history_item; echo $history[1]; end
+abbr -a !! --position anywhere --function last_history_item
+
 if type -q pacman
     alias pm pacman
     # Browse remote packages
@@ -86,6 +96,10 @@ set --export GHCUP_USE_XDG_DIRS
 fish_add_path --path $XDG_DATA_HOME/cabal/bin $XDG_DATA_HOME/ghcup/bin # ghcup-env
 
 fish_add_path --path $HOME/.nix-profile/bin /nix/var/nix/profiles/default/bin
+
+fish_add_path --path /opt/flutter/bin
+fish_add_path --path $HOME/Android/Sdk/cmdline-tools/latest/bin
+
 set MANPATH $HOME/.nix-profile/share/man /nix/var/nix/profiles/default/share/man $MANPATH
 
 if type -q any-nix-shell

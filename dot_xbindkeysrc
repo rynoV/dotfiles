@@ -66,10 +66,10 @@
 #"rxvt"
 #  Control + b:2 + Release
 
-"light -A 10 && light -O"
+"light -s sysfs/backlight/acpi_video0 -A 10 && light -O"
   XF86MonBrightnessUp
 
-"light -U 10 && light -O"
+"light -s sysfs/backlight/acpi_video0 -U 10 && light -O"
   XF86MonBrightnessDown
 
 "amixer set Master 5%+"

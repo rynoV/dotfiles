@@ -2717,7 +2717,8 @@ Provides us with hints on available keystroke combinations.
                                 (and (and
                                       (not (string-match-p "\*Org Agenda\*" buffer-name))
                                       (not (string-match-p "\*Code Review\*" buffer-name))
-                                      (not (string-match-p "\*Org Src" buffer-name)))
+                                      (not (string-match-p "\*Org Src" buffer-name))
+                                      (not (string-match-p "\*dashboard\*" buffer-name)))
                                      (string-match-p "^[*]" buffer-name))))
   ;; This should work everywhere, including magit buffers for example
   (general-def

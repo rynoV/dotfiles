@@ -1,5 +1,7 @@
 # Should be ordered from most restrictive to least
 # See docs here: https://rclone.org/filtering/#filter-from-read-filtering-patterns-from-a-file
++ /year3/winter/STAT_217/
++ /year3/winter/STAT_217/**
 + /year4/
 + /year4/**
 # exclude everything else
