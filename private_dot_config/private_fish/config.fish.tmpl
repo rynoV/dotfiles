@@ -88,6 +88,8 @@ if type -q pacman
     alias pmg "pacman -Sgq | fzf --preview 'pacman -Sgq {}' --layout=reverse"
     # Browse packages in a group passed as the argument
     alias pmgl "pacman_browse_group"
+    # Update system with interesting packages highlighted
+    alias pmi "pacman_install"
 end
 
 test "$TERM" = "xterm-kitty" && alias ssh "kitty +kitten ssh"
