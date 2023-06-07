@@ -42,5 +42,6 @@ export XDG_CURRENT_DESKTOP=xmonad
 export XDG_SESSION_DESKTOP=xmonad
 autorandr --change # Configure monitors before xmonad starts
 variety &
+# hidamari --background &
 picom --no-vsync &
 exec xmonad 2> $HOME/.xsession-errors
