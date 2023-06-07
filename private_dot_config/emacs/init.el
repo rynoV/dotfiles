@@ -1,6 +1,8 @@
 ;;; Based off https://github.com/ianpan870102/yay-evil-emacs/blob/master/init.el
 (require 'package)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+;; For latest version of eglot
+(add-to-list 'package-archives '("gnu-devel" . "https://elpa.gnu.org/devel/"))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 ;; This is needed for org-plus-contrib which provides ox-extra
 ;; https://emacs.stackexchange.com/questions/8182/how-to-use-org-plus-contrib
@@ -32,6 +34,12 @@
      :url "https://github.com/quelpa/quelpa-use-package.git")))
 (require 'quelpa-use-package)
 
+;; Need this as it is not loaded early enough with the daemon for some
+;; reason, gave error "Eager macro-expansion failure: (void-function
+;; loop)", see
+;; http://makble.com/emacs-error-eager-macroexpansion-failure-voidfunction-loop
+(require 'cl)
+
 ;; Load main config file "./config.org"
 (require 'org)
 (org-babel-load-file (expand-file-name (concat user-emacs-directory "config.org")))
@@ -46,21 +54,25 @@
  '(auth-source-save-behavior nil)
  '(browse-url-browser-function 'browse-url-default-browser)
  '(custom-safe-themes
-   '("1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" default))
+   '("6096c0ff80d528b38ee77ab01bdbd5cdb7c513e09254dd8630c68240e2da8293" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" default))
  '(lsp-ui-sideline-delay 0.5)
  '(lsp-ui-sideline-show-hover t)
  '(lsp-ui-sideline-update-mode nil)
  '(org-agenda-files
-   '("~/org/mlabs.org" "/home/calum/org/school.org" "/home/calum/org/calum.org" "/home/calum/org/notes.org"))
+   '("/home/calum/org/mlabs.org" "/home/calum/org/school.org" "/home/calum/org/calum.org" "/home/calum/org/notes.org"))
  '(org-journal-enable-encryption t)
  '(org-journal-mode-hook
    '(turn-on-visual-line-mode org-journal-default-enable-encryption
                               (lambda nil
                                 (setq-local buffer-auto-save-file-name nil))))
  '(package-selected-packages
-   '(ox-ravel ess diff-hl elisp-format visual-regexp multiple-cursors combobulate tree-sitter-langs tree-sitter delight ox-gfm general consult-flymake consult-eglot eglot adaptive-wrap org-superstar org-inlinetask tempel-collection tempel emacs-lisp kind-icon cape corfu all-the-icons-completion code-review graphql-mode ox-json imenu-list markdown hercules quelpa emacs-surround meow magit-delta git-link emacs-open-github-from-here ledger-mode git-gutter dhall-mode all-the-icons slack dirvish typescript-mode typescript ranger affe consult-dir consult-projectile embark-consult embark marginalia orderless vertico consult docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-ido prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md magit-todos forge auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers which-key diminish use-package))
+   '(persp-mode-projectile-bridge bufler centaur-tabs web-mode eglot eldoc-box persp-mode eyebrowse spaceline spaceline-config autothemer os1-theme org-fragtog rust-mode elfeed goto-last-change smart-region topsy scroll-on-jump scrollkeeper aggressive-indent mosey hungry-delete dashboard smartparens goggles org-appear origami org-modern ox-ipynb pdf-tools json-navigator json-mode dart-mode dart ox-ravel ess diff-hl elisp-format visual-regexp multiple-cursors combobulate tree-sitter-langs tree-sitter delight ox-gfm general consult-flymake consult-eglot adaptive-wrap org-superstar org-inlinetask tempel-collection tempel emacs-lisp kind-icon cape corfu all-the-icons-completion code-review graphql-mode ox-json imenu-list markdown hercules quelpa emacs-surround meow magit-delta git-link emacs-open-github-from-here ledger-mode git-gutter dhall-mode all-the-icons slack dirvish typescript-mode typescript ranger affe consult-dir consult-projectile embark-consult embark marginalia orderless vertico consult docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-ido prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md magit-todos forge auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers which-key diminish use-package))
  '(safe-local-variable-values
-   '((visual-fill-column-mode)
+   '((auto-fill-mode . t)
+     (visual-line-mode)
+     (org-deadline-warning-days . 21)
+     (org-deadline-warning-days . 14)
+     (visual-fill-column-mode)
      (minor-mode . outline)
      (lsp-haskell-server-path . "haskell-language-server-wrapper")
      (lsp-haskell-server-path . "haskell-language-server-8.8.4")
@@ -77,16 +89,7 @@
  '(hi-blue ((t (:background "#81A1C1" :foreground "black"))))
  '(hi-green ((t (:background "#A3BE8C" :foreground "black"))))
  '(hi-pink ((t (:background "#B48EAD" :foreground "black"))))
- '(hi-yellow ((t (:background "#EBCB8B" :foreground "black"))))
- '(lsp-face-highlight-read ((t (:background "#363c4a" :foreground "#F0F4FC" :weight bold))))
- '(lsp-ui-sideline-symbol-info ((t (:extend t :background "#2E3440" :foreground "#656c7c"))))
- '(meow-region-cursor-1 ((t (:background "#6eee88c8a463" :foreground "#ECEFF4"))))
- '(meow-region-cursor-2 ((t (:background "#5c5c6fef8706" :foreground "#ECEFF4"))))
- '(meow-region-cursor-3 ((t (:background "#49c9571669a9" :foreground "#ECEFF4"))))
- '(org-block ((t (:extend t :background "#00000000"))))
- '(org-block-begin-line ((t (:inherit org-block :extend t :background "#373E4C" :foreground "#6f7787"))))
- '(org-hide ((t nil)))
- '(region ((t (:extend t :background "#373e4c"))))
- '(secondary-selection ((t (:extend t :background "#373e4c"))))
- '(show-paren-match ((t (:background "dim gray" :foreground "white")))))
+ '(hi-yellow ((t (:background "#EBCB8B" :foreground "black")))))
 (put 'scroll-left 'disabled nil)
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)

@@ -171,7 +171,6 @@ https://emacs.stackexchange.com/a/35907"
 ("<f7>" 'calum/edit-config)
 ("C-M-c" nil)
 ("C-M-c" 'meow-comment)
-(calum/leader-def "t" 'calum/open-terminal-here)
 (calum/leader-def :infix "w"
   ;; prefix-command is needed for meow to show a description for the "w" key
   :prefix-command 'windows-map
@@ -197,6 +196,7 @@ https://emacs.stackexchange.com/a/35907"
   "l" 'calum/git-link
   "i" 'calum/copy-and-insert-binding-for-key
   "c" 'calum/copy-binding-for-key
+  "t" 'calum/open-terminal-here
   )
   #+end_src
 
@@ -323,14 +323,7 @@ https://emacs.stackexchange.com/a/35907"
 ** Project.el
 #+begin_src emacs-lisp
 (use-package project
-  :ensure nil
-  :preface
-  ;; https://zerokspot.com/weblog/2019/11/27/eglot-projects-not-in-vcs-root/
-  (defun my-projectile-project-find-function (dir)
-    (let ((root (projectile-project-root dir)))
-      (and root (cons 'transient root))))
-  :config
-  (add-to-list 'project-find-functions 'my-projectile-project-find-function))
+  :ensure nil)
 #+end_src
 
 ** Syntax checking with flymake
@@ -498,6 +491,19 @@ nicely with xmonad.
 Doom Nord theme
 #+begin_src emacs-lisp
 (use-package doom-themes
+  ;; :disabled
+  :custom-face
+  (lsp-face-highlight-read ((t (:background "#363c4a" :foreground "#F0F4FC" :weight bold))))
+  (lsp-ui-sideline-symbol-info ((t (:extend t :background "#2E3440" :foreground "#656c7c"))))
+  (meow-region-cursor-1 ((t (:background "#6eee88c8a463" :foreground "#ECEFF4"))))
+  (meow-region-cursor-2 ((t (:background "#5c5c6fef8706" :foreground "#ECEFF4"))))
+  (meow-region-cursor-3 ((t (:background "#49c9571669a9" :foreground "#ECEFF4"))))
+  (org-block ((t (:extend t :background "#00000000"))))
+  (org-block-begin-line ((t (:inherit org-block :extend t :background "#373E4C" :foreground "#6f7787"))))
+  (org-hide ((t nil)))
+  (region ((t (:extend t :background "#373e4c"))))
+  (secondary-selection ((t (:extend t :background "#373e4c"))))
+  (show-paren-match ((t (:background "dim gray" :foreground "white"))))
   :custom
   (doom-nord-brighter-modeline nil)
   (doom-nord-brighter-comments t)
@@ -505,6 +511,25 @@ Doom Nord theme
   (doom-nord-region-highlight t)
   :config
   (load-theme 'doom-nord t))
+#+end_src
+
+[[https://github.com/sashimacs/os1-theme][Os1 theme]]
+
+#+begin_src emacs-lisp
+(use-package os1-theme
+  :disabled
+  :quelpa (os1-theme :fetcher github :repo "sashimacs/os1-theme"))
+#+end_src
+*** Modeline
+[[https://github.com/TheBB/spaceline][Spaceline]]
+#+begin_src emacs-lisp
+(use-package spaceline
+  :custom
+  (powerline-default-separator 'wave)
+  (spaceline-workspace-numbers-unicode t)
+  (spaceline-window-numbers-unicode t)
+  :config
+  (spaceline-emacs-theme))
 #+end_src
 
 *** Syntax highlighting
@@ -526,6 +551,114 @@ https://github.com/rolandwalker/unicode-fonts
 (use-package unicode-fonts
   :config
   (unicode-fonts-setup))
+#+end_src
+
+*** Tabs (via centaur)
+https://github.com/ema2159/centaur-tabs
+
+#+begin_src emacs-lisp
+(use-package centaur-tabs
+  :demand t
+  :custom
+  (centaur-tabs-style "bar")
+  (centaur-tabs-height 32)
+  (centaur-tabs-set-icons t)
+  (centaur-tabs-show-new-tab-button t)
+  (centaur-tabs-set-modified-marker t)
+  (centaur-tabs-show-navigation-buttons nil)
+  (centaur-tabs-set-bar 'over)
+  (centaur-tabs-show-count nil)
+  ;; (centaur-tabs-label-fixed-length 15)
+  ;; (centaur-tabs-gray-out-icons 'buffer)
+  ;; (centaur-tabs-plain-icons t)
+  (x-underline-at-descent-line t)
+  (centaur-tabs-left-edge-margin nil)
+  (centaur-tabs-set-close-button t)
+  (centaur-tabs--buffer-show-groups nil)
+  (centaur-tabs-cycle-scope 'default)
+  (centaur-tabs-adjust-buffer-order t)
+  (centaur-tabs-enable-ido-completion nil)
+  :hook
+  (term-mode . centaur-tabs-local-mode)
+  (calendar-mode . centaur-tabs-local-mode)
+  (org-agenda-mode . centaur-tabs-local-mode)
+  :general
+  (calum/leader-def :infix "t" :prefix-command 'tab-actions-map
+    "l" '("forward tab" . centaur-tabs-forward-tab)
+    "L" '("forward tab other window" . centaur-tabs-forward-tab-other-window)
+    "h" '("back tab" . centaur-tabs-backward-tab)
+    "H" '("backward tab other window" . centaur-tabs-backward-tab-other-window)
+    "j" '("forward tab group" . centaur-tabs-forward-group)
+    "k" '("back tab group" . centaur-tabs-backward-group)
+    "t" '("switch tab group" . centaur-tabs-switch-group)
+    "w" '("kill others in group" . centaur-tabs-kill-other-buffers-in-current-group)
+    "g" '("show group tabs" . centaur-tabs-toggle-groups)
+    "m" '("toggle tabs mode" . centaur-tabs-mode)
+    "<backspace>" '("kill group" . centaur-tabs-kill-all-buffers-in-current-group)
+    "<delete>" '("kill unmodified in group" . centaur-tabs-kill-unmodified-buffers-in-current-group)
+    "*" '("keep only tabs matching pattern" . centaur-tabs-keep-match-buffers-in-current-group)
+    "?" '("kill tabs matching pattern" . centaur-tabs-kill-buffer-match-rule)
+    "[" '("first tab" . centaur-tabs-select-beg-tab)
+    "]" '("last tab" . centaur-tabs-select-end-tab)
+    "<" '("move tab left" . centaur-tabs-move-current-tab-to-left)
+    ">" '("move tab right" . centaur-tabs-move-current-tab-to-right)
+    )
+  :config
+  (centaur-tabs-enable-buffer-reordering)
+  (centaur-tabs-change-fonts (face-attribute 'default :font) 110)
+  (centaur-tabs-headline-match)
+  (setq uniquify-separator "/")
+  (setq uniquify-buffer-name-style 'forward)
+  ;; Integrate with persp-mode, based on
+  ;; https://github.com/ema2159/centaur-tabs/issues/163#issuecomment-896530659
+  (defun calum/get-buffer-persp-group (buffer)
+    (let* ((name))
+      (dolist (persp (persp-persps))
+        (if persp
+            (if (persp-contain-buffer-p buffer persp)
+                (setq name (safe-persp-name persp)))))
+      name))
+  (defun centaur-tabs-buffer-groups ()
+    "`centaur-tabs-buffer-groups' control buffers' group rules.
+
+Group centaur-tabs with mode if buffer is derived from `eshell-mode' `emacs-lisp-mode' `dired-mode' `org-mode' `magit-mode'.
+All buffer name start with * will group to \"Emacs\".
+Other buffer group by `centaur-tabs-get-group-name' with project name."
+    (list
+     (let ((buf-persp-name (calum/get-buffer-persp-group (current-buffer))))
+       (cond
+        ((and buf-persp-name (not (string= buf-persp-name persp-nil-name))) buf-persp-name)
+        ((or (string-equal "*" (substring (buffer-name) 0 1))
+             (memq major-mode '(magit-process-mode
+                                magit-status-mode
+                                magit-diff-mode
+                                magit-log-mode
+                                magit-file-mode
+                                magit-blob-mode
+                                magit-blame-mode
+                                )))
+         "Emacs")
+        ((derived-mode-p 'prog-mode)
+         "Editing")
+        ((derived-mode-p 'dired-mode)
+         "Dired")
+        ((memq major-mode '(helpful-mode
+                            help-mode))
+         "Help")
+        ((memq major-mode '(org-mode
+                            org-agenda-clockreport-mode
+                            org-src-mode
+                            org-agenda-mode
+                            org-beamer-mode
+                            org-indent-mode
+                            org-bullets-mode
+                            org-cdlatex-mode
+                            org-agenda-log-mode
+                            diary-mode))
+         "OrgMode")
+        (t
+         (centaur-tabs-get-group-name (current-buffer)))))))
+  (centaur-tabs-mode t))
 #+end_src
 
 ** Git Integration
@@ -718,7 +851,7 @@ documentation).
      '("e" . meow-next-word)
      '("E" . meow-next-symbol)
      '("f" . meow-find-expand)
-     '("F" . display-local-help)
+     '("F" . eldoc-box-help-at-point)
      '("g" . meow-cancel-selection)
      '("G" . meow-grab)
      '("h" . meow-left)
@@ -910,8 +1043,10 @@ documentation).
 #+begin_src emacs-lisp
 (use-package smartparens
   :delight
+  :after hungry-delete
   :init
   (define-prefix-command 'calum/paren-map)
+  :defines (calum/paren-map)
   :preface
   (defmacro def-pairs (pairs)
     "Define functions for pairing. PAIRS is an alist of (NAME . STRING)
@@ -937,6 +1072,8 @@ From https://ebzzry.com/en/emacs-pairs/"
               (double-quote . "\"")
               (back-quote . "`")))
   :general
+  ("<backspace>" 'sp-backward-delete-char
+   "<delete>" 'sp-delete-char)
   (:keymaps 'calum/paren-map
             "s" 'sp-wrap-square
             "c" 'sp-wrap-curly
@@ -983,17 +1120,30 @@ From https://ebzzry.com/en/emacs-pairs/"
             "@" 'sp-prefix-save-excursion
             "#" 'sp-prefix-symbol-object
             "$" 'sp-prefix-tag-object)
+  :hook
+  (org-mode . (lambda () (require 'smartparens-latex)))
   :config
   (require 'smartparens-config)
   (smartparens-global-mode)
-  (show-smartparens-global-mode))
+  (show-smartparens-global-mode)
+  (sp-with-modes 'org-mode
+    (sp-local-pair "\\langle" "\\rangle"
+                   :post-handlers '(sp-latex-insert-spaces-inside-pair))))
 #+end_src
-*** Structural editing
+*** Structural editing (tree sitter)
 #+begin_src emacs-lisp
 (use-package tree-sitter
+  :ensure t
+  :hook
+  (tree-sitter-after-on . tree-sitter-hl-mode)
   :config
-  (add-to-list 'tree-sitter-major-mode-language-alist '(purescript-mode . haskell)))
-(use-package tree-sitter-langs)
+  (global-tree-sitter-mode)
+  (add-to-list 'tree-sitter-major-mode-language-alist '(purescript-mode . haskell))
+  (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
+  )
+(use-package tree-sitter-langs
+  :ensure t
+  :after tree-sitter)
 #+end_src
 
 **** Combobulate
@@ -1085,7 +1235,8 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
   :if (not calum/magit-mode)
   :custom
   (cdlatex-make-sub-superscript-roman-if-pressed-twice t)
-  (cdlatex-math-symbol-alist '((?\" ("\\cap"))))
+  (cdlatex-math-symbol-alist '((?\" ("\\cap"))
+                               (?@ ("\\text{?}"))))
   )
 #+end_src
 
@@ -1703,6 +1854,7 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
 (use-package org-super-agenda
   :if (not calum/magit-mode)
   :after org
+  :demand t
   :general
   (:keymaps 'org-super-agenda-header-map
             "<tab>" 'origami-toggle-node
@@ -1744,6 +1896,16 @@ Useful for editing org mode hidden entities, like emphasis markers.
   (org-appear-inside-latex t)
   (org-appear-autosubmarkers t))
 #+end_src
+
+For automatically (un)previewing latex fragments
+https://github.com/io12/org-fragtog
+
+#+begin_src emacs-lisp
+(use-package org-fragtog
+  :hook
+  (org-mode . org-fragtog-mode))
+#+end_src
+
 ** Snippets with tempel
 - https://github.com/minad/tempel
 - https://github.com/Crandel/tempel-collection
@@ -1790,7 +1952,7 @@ Useful for editing org mode hidden entities, like emphasis markers.
 (use-package consult
   :general
   (calum/leader-def
-    "b" 'consult-buffer)
+    "b" 'spacemacs/compleseus-switch-to-buffer)
   ;; C-c bindings (mode-specific-map)
   ;; ("C-c h" 'consult-history) ; Conflict with meow C-h- prefix
   ;; ("C-c m" 'consult-mode-command) ; Conflicts with meow M- prefix
@@ -1826,8 +1988,8 @@ Useful for editing org mode hidden entities, like emphasis markers.
   ("M-s g" 'consult-grep)
   ("M-s G" 'consult-git-grep)
   ("M-s r" 'consult-ripgrep)
-  ("M-s l" 'consult-line)
-  ("M-s L" 'consult-line-multi)
+  ("M-s l" 'spacemacs/consult-line)
+  ("M-s L" 'spacemacs/consult-line-multi)
   ("M-s m" 'consult-multi-occur)
   ("M-s k" 'consult-keep-lines)
   ("M-s u" 'consult-focus-lines)
@@ -1871,12 +2033,12 @@ Useful for editing org mode hidden entities, like emphasis markers.
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-bookmark consult--source-recent-file
-   consult--source-project-recent-file
-   :preview-key (kbd "M-."))
+   consult--source-project-recent-file consult-buffer
+   :preview-key "M-.")
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key (kbd "C-+"))
+  (setq consult-narrow-key "C-+")
 
   ;; By default `consult-project-function' uses `project-root' from project.el.
   ;; Optionally configure a different project root function.
@@ -2391,12 +2553,39 @@ https://github.com/iyefrat/all-the-icons-completion/
   (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
 #+end_src
 ** Programming Languages/Tools
+*** JavaScript+TypeScript
+#+begin_src emacs-lisp
+(use-package typescript-mode
+  :mode (("\\.tsx?\\'" . typescriptreact-mode))
+  :preface
+  (define-derived-mode typescriptreact-mode typescript-mode
+    "TypeScript TSX")
+  :hook
+  ((typescript-mode typescriptreact-mode) . eglot-ensure)
+  :config
+  )
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package js-mode
+  :ensure nil
+  :hook
+  (js-mode . eglot-ensure))
+#+end_src
+
 *** Python
 #+begin_src emacs-lisp
 (use-package python-mode
   :ensure nil
   :hook
   (python-mode . eglot-ensure))
+#+end_src
+*** Rust
+#+begin_src emacs-lisp
+(use-package rust-mode
+  :hook
+  (rust-mode . (lambda () (prettify-symbols-mode)))
+  (rust-mode . eglot-ensure))
 #+end_src
 *** Lisp
 Setup completion for elisp to include words from the buffer and file
@@ -2480,19 +2669,21 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 #+begin_src emacs-lisp
 (use-package nix-mode
   :hook
-  (nix-mode . eglot-ensure)
-  )
+  (nix-mode . eglot-ensure))
 #+end_src
 *** YAML
 #+begin_src emacs-lisp
 (use-package yaml-mode)
 #+end_src
 *** Language Server Protocol (LSP) with eglot
+Use ~eglot-upgrade-eglot~ to get newer eglot versions, see [[https://www.reddit.com/r/emacs/comments/139f8r9/comment/jj2nv6t/?utm_source=share&utm_medium=web2x&context=3][here]]
+
 #+begin_src emacs-lisp
 (use-package eglot
   :custom
   (eglot-autoshutdown t)
   (eglot-confirm-server-initiated-edits nil)
+  (eglot-extend-to-xref nil) ;; Maybe enable to get LSP in dependency code
   :general
   (:keymaps 'eglot-mode-map
             "C-." 'eglot-code-actions)
@@ -2516,19 +2707,70 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
     "z s" 'eglot-shutdown
     "z a" 'eglot-shutdown-all
     )
-  :hook (eglot-managed-mode . tempel-setup-capf)
+  :hook
+  (eglot-managed-mode . tempel-setup-capf)
+  (eglot-managed-mode . (lambda () (eglot-inlay-hints-mode -1)))
   :config
   (setq-default eglot-workspace-configuration
                 '(:purescript (
                                :formatter "purs-tidy"
                                :censorWarnings ["WildcardInferredType"])
-                  :haskell (:plugin (:stan (:globalOn :json-false)))))
+                              :haskell (:plugin (:stan (:globalOn :json-false)))))
   (add-to-list 'eglot-server-programs
                '(graphql-mode . ("graphql-lsp" "server" "--method=stream")))
   (add-to-list 'eglot-server-programs
-               '(haskell-mode . ("haskell-language-server-wrapper" "--lsp"))))
+               '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
+  (add-to-list
+   'eglot-server-programs
+   '((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode typescriptreact-mode)
+     "typescript-language-server" "--stdio"
+     :initializationOptions
+     (:preferences
+      (
+       :includeInlayEnumMemberValueHints:disableSuggestions                                    :json-false ;; boolean
+       :quotePreference                                       "double" ;; "auto" | "double" | "single"
+       :includeCompletionsForModuleExports                    t ;; boolean
+       :includeCompletionsForImportStatements                 t ;; boolean
+       :includeCompletionsWithSnippetText                     t ;; boolean
+       :includeCompletionsWithInsertText                      t ;; boolean
+       :includeAutomaticOptionalChainCompletions              t ;; boolean
+       :includeCompletionsWithClassMemberSnippets             t ;; boolean
+       :includeCompletionsWithObjectLiteralMethodSnippets     t ;; boolean
+       :useLabelDetailsInCompletionEntries                    t ;; boolean
+       :allowIncompleteCompletions                            t ;; boolean
+       :importModuleSpecifierPreference                       "shortest" ;; "shortest" | "project-relative" | "relative" | "non-relative"
+       :importModuleSpecifierEnding                           "minimal" ;; "auto" | "minimal" | "index" | "js"
+       :allowTextChangesInNewFiles                            t ;; boolean
+       ;; :lazyConfiguredProjectsFromExternalProject                          ;; boolean
+       :providePrefixAndSuffixTextForRename                   t ;; boolean
+       :provideRefactorNotApplicableReason                    :json-false ;; boolean
+       :allowRenameOfImportPath                               t ;; boolean
+       ;; :includePackageJsonAutoImports                                      ;; "auto" | "on" | "off"
+       :jsxAttributeCompletionStyle                           "auto" ;; "auto" | "braces" | "none"
+       :displayPartsForJSDoc                                  t ;; boolean
+       :generateReturnInDocTemplate                           t ;; boolean
+       :includeInlayParameterNameHints                        "all" ;; "none" | "literals" | "all"
+       :includeInlayParameterNameHintsWhenArgumentMatchesName t ;; boolean
+       :includeInlayFunctionParameterTypeHints                t ;; boolean,
+       :includeInlayVariableTypeHints                         t ;; boolean
+       :includeInlayVariableTypeHintsWhenTypeMatchesName      t ;; boolean
+       :includeInlayPropertyDeclarationTypeHints              t ;; boolean
+       :includeInlayFunctionLikeReturnTypeHints               t ;; boolean
+       :includeInlayEnumMemberValueHints                      t ;; boolean
+       ;; :autoImportFileExcludePatterns                                      ;; string[]
+       ;; :organizeImportsIgnoreCase                                          ;; "auto" | boolean
+       ;; :organizeImportsCollation                                           ;; "ordinal" | "unicode"
+       ;; :organizeImportsCollationLocale                                     ;; string
+       ;; :organizeImportsNumericCollation                                    ;; boolean
+       ;; :organizeImportsAccentCollation                                     ;; boolean
+       ;; :organizeImportsCaseFirst                                           ;; "upper" | "lower" | false
+       :disableLineTextInReferences                           :json-false)))))
 #+end_src
-
+**** UI
+https://github.com/casouri/eldoc-box
+#+begin_src emacs-lisp
+(use-package eldoc-box)
+#+end_src
 *** Flex & Bison
 #+begin_src emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.ll\\'" . c-mode))
@@ -2541,12 +2783,6 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 *** Docker
 #+begin_src emacs-lisp
 (use-package docker)
-#+end_src
-*** Typescript
-#+begin_src emacs-lisp
-(use-package typescript-mode
-  :config
-  (add-to-list 'auto-mode-alist '("\.tsx" . typescript-mode)))
 #+end_src
 *** Markdown
 #+begin_src emacs-lisp
@@ -2573,7 +2809,10 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 #+begin_src emacs-lisp
 (use-package dart-mode
   :hook
-  (dart-mode . eglot-ensure))
+  (dart-mode . eglot-ensure)
+  (dart-mode . (lambda ()
+                 (setq-local tab-width 2)
+                 (aggressive-indent-mode 0))))
 #+end_src
 *** JSON
 #+begin_src emacs-lisp
@@ -2583,17 +2822,273 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 
 ** Miscellaneous
 
+*** Spacemacs
+
+#+begin_src emacs-lisp
+(defun spacemacs/mplist-get-values (plist prop)
+  "Get the values associated to PROP in PLIST, a modified plist.
+
+A modified plist is one where keys are keywords and values are
+all non-keywords elements that follow it.
+
+If there are multiple properties with the same keyword, only the first property
+and its values is returned.
+
+Currently this function infloops when the list is circular."
+  (let ((tail plist)
+        result)
+    (while (and (consp tail) (not (eq prop (car tail))))
+      (pop tail))
+    ;; pop the found keyword
+    (pop tail)
+    (while (and (consp tail) (not (keywordp (car tail))))
+      (push (pop tail) result))
+    (nreverse result)))
+
+(defmacro spacemacs||with-persp-buffer-list (&rest body)
+  "This one is a brute force version of `with-persp-buffer-list'.
+It maitains the order of the original `buffer-list'"
+  `(cl-letf* ((org-buffer-list
+               (symbol-function 'buffer-list))
+              ((symbol-function 'buffer-list)
+               #'(lambda (&optional frame)
+                   (seq-filter
+                    #'persp-contain-buffer-p
+                    (funcall org-buffer-list frame)))))
+     ,@body))
+
+(defun spacemacs-layouts//advice-with-persp-buffer-list (orig-fun &rest args)
+  "Advice to provide persp buffer list."
+  (spacemacs||with-persp-buffer-list () (apply orig-fun args)))
+
+(defmacro spacemacs||switch-layout (name &rest props)
+  "Switch to the perspective called NAME.
+
+Available PROPS:
+
+`:init EXPRESSIONS'
+    One or more forms, which will be evaluated after switching to perspective
+    NAME if the perspective did not already exist."
+  (declare (indent 1))
+  (let ((init (spacemacs/mplist-get-values props :init)))
+    `(let ((persp-reset-windows-on-nil-window-conf t)
+           (persp-already-exists (persp-with-name-exists-p ,name)))
+       (persp-switch ,name)
+       (unless persp-already-exists
+         ,@init))))
+
+;; Note: shouldn't be necessary if using the projectile auto-perspective
+(defun spacemacs/create-persp-with-current-project-buffers (name)
+  "Create new perspective with project buffers.
+
+If perspective NAME does not already exist, create it and add any
+buffers that belong to the current buffer's project."
+  (interactive (list (read-string "Perspective name: " (projectile-project-name))))
+  (if (persp-with-name-exists-p name)
+      (message "There is already a perspective named %s" name)
+    (if-let ((project (projectile-project-p)))
+        (spacemacs||switch-layout name
+          :init
+          (persp-add-buffer (projectile-project-buffers project)
+                            (persp-get-by-name name) nil nil))
+      (message "Current buffer does not belong to a project"))))
+
+(defun spacemacs//create-persp-with-home-buffer (name)
+  "Switch to perspective and display the Spacemacs home buffer.
+
+If perspective NAME does not already exist, create it and display
+the Spacemacs home buffer.  If the perspective already exists,
+just switch to it."
+  (spacemacs||switch-layout name :init (dashboard-open)))
+
+(defun calum/switch-layout ()
+  "Based on spacemacs/compleseus-spacemacs-layout-layouts, but filters the current workspace name."
+  (interactive)
+  (spacemacs//create-persp-with-home-buffer
+   (completing-read
+    "Layout: "
+    (cl-remove-if
+     (lambda (e) (string= (safe-persp-name (get-current-persp)) e))
+     (persp-names)))))
+
+(defvar consult--source-modified-buffers
+  `(:name "Modified Buffers"
+          :narrow   (?M . "Modified Buffers")
+          :hidden   t
+          :category buffer
+          :face     consult-buffer
+          :history  buffer-name-history
+          :state    ,#'consult--buffer-state
+          :items
+          ,(lambda ()
+             (consult--buffer-query ;; :sort 'visibility
+              :predicate (lambda (buff)
+                           (and (persp-contain-buffer-p buff)
+                                (buffer-file-name buff)
+                                (buffer-modified-p buff)))
+              ;; :directory 'project
+              :as #'buffer-name)))
+  "Per perspective modified buffer source.")
+
+(defvar consult--source-persp-buffers
+  `(
+    :name     "Buffer"
+    :narrow   ?b
+    :category buffer
+    :face     consult-buffer
+    :history  buffer-name-history
+    :state    ,#'consult--buffer-state
+    :default  t
+    :items
+    ,(lambda ()
+       (consult--buffer-query
+        :sort 'visibility
+        :predicate #'persp-contain-buffer-p
+        :as #'buffer-name)))
+  "Per perspective buffer source.")
+
+;; Change the default project recent file narrow key ("f") so it
+;; doesn't conflict with regular file narrow key
+(setq calum/consult--source-project-recent-file
+      (plist-put consult--source-project-recent-file :narrow ?p))
+;; Change the default project buffer narrow key ("b") so it
+;; doesn't conflict with regular buffer narrow key
+(setq calum/consult--source-project-buffer
+      (plist-put consult--source-project-buffer :narrow ?v))
+
+(defun spacemacs/compleseus-switch-to-buffer ()
+  "`consult-buffer' with buffers provided by persp."
+  (interactive)
+  (consult-buffer
+   '(consult--source-hidden-buffer
+     consult--source-persp-buffers
+     consult--source-modified-buffers
+     consult--source-recent-file
+     consult--source-bookmark
+     calum/consult--source-project-buffer
+     calum/consult--source-project-recent-file)))
+
+(defun spacemacs/consult-line ()
+  (interactive)
+  (consult-line
+   (if (region-active-p)
+       (buffer-substring-no-properties
+        (region-beginning) (region-end))
+     (thing-at-point 'symbol t))))
+
+(defun spacemacs/consult-line-multi ()
+  (interactive)
+  (consult-line-multi
+   nil
+   (if (region-active-p)
+       (buffer-substring-no-properties
+        (region-beginning) (region-end))
+     (thing-at-point 'symbol t))))
+#+end_src
+
+*** Workspaces (via persp-mode)
+https://github.com/Bad-ptr/persp-mode.el
+
+#+begin_src emacs-lisp
+(use-package persp-mode
+  :demand t
+  :init
+  (setq persp-keymap-prefix nil)
+  :delight
+  :custom
+  (persp-add-buffer-on-after-change-major-mode 'free)
+  (persp-set-last-persp-for-new-frames nil)
+  ;; (persp-set-ido-hooks t)
+  :general
+  (calum/leader-def :infix "q" :prefix-command 'workspace-actions-map
+    "l" '("next workspace" . persp-next)
+    "h" '("previous workspace" . persp-prev)
+    "q" '("switch workspace" . calum/switch-layout)
+    "p" '("workspace with current project buffers" . spacemacs/create-persp-with-current-project-buffers)
+    "r" '("rename workspace" . persp-rename)
+    "c" '("copy workspace" . persp-copy)
+    "C" '("kill workspace" . persp-kill)
+    "a" '("add buffer to workspace" . persp-add-buffer)
+    "t" '("switch to buffer without adding it" . persp-temporarily-display-buffer)
+    "i" '("import buffers from other workspace" . persp-import-buffers)
+    "I" '("import window config from other workspace" . persp-import-win-conf)
+    "k" '("remove buffer from workspace" . persp-remove-buffer)
+    "K" '("remove and kill buffer from workspace" . persp-kill-buffer)
+    )
+  :config
+  (persp-mode t)
+  )
+
+(use-package persp-mode-projectile-bridge
+  :config
+  (add-hook 'persp-mode-projectile-bridge-mode-hook
+            #'(lambda ()
+                (if persp-mode-projectile-bridge-mode
+                    (persp-mode-projectile-bridge-find-perspectives-for-all-buffers)
+                  (persp-mode-projectile-bridge-kill-perspectives))))
+  (persp-mode-projectile-bridge-mode 1)
+  )
+#+end_src
+
+https://github.com/alphapapa/bufler.el
+#+begin_src emacs-lisp
+;; (use-package bufler
+;;   :config
+;;   (bufler-mode)
+;;   (bufler-tabs-mode))
+#+end_src
+
+https://depp.brause.cc/eyebrowse/
+
+#+begin_src emacs-lisp
+;; (use-package eyebrowse
+;;   :disabled
+;;   :config
+;;   (eyebrowse-mode t))
+#+end_src
+
+*** RSS feed
+#+begin_src emacs-lisp
+(use-package elfeed
+  ;; HACK: without this "after" a warning will sometimes occur "Error
+  ;; (use-package): elfeed/:catch: Wrong type argument: keymapp,
+  ;; calum/paren-map", don't know what causes this
+  :after smartparens
+  :custom (elfeed-feeds '(;; "Calum Sieppert"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/6509820831650285285"
+                           me google-alert) ;; "sieppertcalum@gmail.com"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/12490175482493423670"
+                           me google-alert) ;; "Elections"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/15491943474457505858"
+                           gov google-alert) ;; "Crime calgary"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/14297337391293499667"
+                           crime google-alert) ;; "Citizen"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/9134014823736871647"
+                           gov google-alert) ;; "law change"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/2619343814319869484"
+                           gov google-alert) ;; "tax"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/13264916688473436550"
+                           gov google-alert) ;; "post secondary student"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/911988414968213003"
+                           gov google-alert) ;; "home owner"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/3768905644902705351"
+                           gov google-alert) ;; "metis/indigenous"
+                          ("https://www.google.com/alerts/feeds/02264040871288465457/6890434555230114456"
+                           gov google-alert))))
+#+end_src
+
 *** Ledger
 https://github.com/ledger/ledger-mode
 https://github.com/atheriel/evil-ledger
 #+begin_src emacs-lisp
 (use-package ledger-mode
+  :demand t
   :mode ("\\.dat\\'"
          "\\.ledger\\'")
   :custom (ledger-clear-whole-transactions t)
   :preface
-  ; Clean up the ledger buffer before saving. `save-excursion' doesn't
-  ; work for some reason.
+  ;; Clean up the ledger buffer before saving. `save-excursion' doesn't
+  ;; work for some reason.
   (defun calum/ledger-before-save-hook ()
     (when (eq major-mode 'ledger-mode)
       (let ((temp-point (point)))
@@ -2603,7 +3098,11 @@ https://github.com/atheriel/evil-ledger
         (recenter))))
   :config
   (add-hook 'before-save-hook #'calum/ledger-before-save-hook)
-  (add-hook 'ledger-mode-hook #'ledger-flymake-enable))
+  (add-hook 'ledger-mode-hook #'ledger-flymake-enable)
+  ;; Added ledger-mode.info by downloading the texi file, using
+  ;; texi2any --info, then install-info --info-dir=dir/my-docs
+  ;; ledger-mode.info
+  (add-to-list 'Info-directory-list (concat user-emacs-directory "my-docs")))
 #+end_src
 
 *** Folding
@@ -2718,8 +3217,13 @@ Provides us with hints on available keystroke combinations.
                                       (not (string-match-p "\*Org Agenda\*" buffer-name))
                                       (not (string-match-p "\*Code Review\*" buffer-name))
                                       (not (string-match-p "\*Org Src" buffer-name))
-                                      (not (string-match-p "\*dashboard\*" buffer-name)))
+                                      (not (string-match-p "\*dashboard\*" buffer-name))
+                                      (not (string-match-p "\*elfeed*\*" buffer-name))
+                                      (not (string-match-p "\*Ledger Report\*" buffer-name))
+                                      )
                                      (string-match-p "^[*]" buffer-name))))
+  (advice-add 'iflipb-next-buffer :around 'spacemacs-layouts//advice-with-persp-buffer-list)
+  (advice-add 'iflipb-previous-buffer :around 'spacemacs-layouts//advice-with-persp-buffer-list)
   ;; This should work everywhere, including magit buffers for example
   (general-def
     :keymaps 'override
@@ -2900,6 +3404,7 @@ _SPC_ cancel	_o_nly this     _d_elete
 (use-package avy
   :init
   (define-prefix-command 'calum/avy-map)
+  :defines (calum/avy-map)
   :general
   (:keymaps 'calum/avy-map
             "C" 'avy-goto-char
@@ -2913,7 +3418,8 @@ _SPC_ cancel	_o_nly this     _d_elete
             "r" 'avy-resume
             "n" 'avy-next
             "p" 'avy-prev
-            "f" 'calum/avy-goto-char-in-line)
+            "f" 'calum/avy-goto-char-in-line
+            "t" 'centaur-tabs-ace-jump)
   (:keymaps 'calum/avy-map
             :prefix "o"
             :prefix-command 'avy-org-command-map

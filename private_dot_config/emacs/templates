@@ -37,12 +37,12 @@ org-mode
 (src "#+begin_src " p n> r> n> "#+end_src" :post (org-edit-src-code))
 (elsp "#+begin_src emacs-lisp" n> r> n "#+end_src")
 (rimg "#+begin_src R :results file graphics :file images/" p ".png" n> q n "#+end_src")
+(py "#+begin_src python" n q n "#+end_src")
+(R "#+begin_src R" n q n "#+end_src")
 
 emacs-lisp-mode org-mode
 
 (pkg "(use-package " q ")")
-
-(py "#+begin_src python" n q n "#+end_src" n)
 
 graphql-mode
 

@@ -6,6 +6,7 @@
         calum/meow-escape
         calum/meow-undo-in-selection
         completion-at-point
+        hungry-delete-backward
         hydra-multiple-cursors/ignore
         hydra-multiple-cursors/mc/add-cursor-on-click
         hydra-multiple-cursors/nil
@@ -17,8 +18,10 @@
         lispy-newline-and-indent-plain
         lispy-parens
         lispy-quotes
+        meow-append
         meow-bounds-of-thing
         meow-change
+        meow-change-save
         meow-expand-0
         meow-insert
         meow-insert-exit
@@ -109,6 +112,7 @@
         hydra-lispy-x/lispy-cursor-ace-and-exit
         hydra-multiple-cursors/mc/mark-next-like-this
         lispy-cursor-down
+        meow-cancel-selection
         meow-describe-key
         meow-keypad
         meow-keypad-self-insert
