@@ -39,6 +39,7 @@ ctrl-alt-y:execute-silent(echo {+} | xargs readlink -f | xclip -selection clipbo
 
 set fzf_dir_opts $MY_FZF_FILE_OPTS
 set fzf_fd_opts --hidden --exclude=.git --follow
+set fzf_preview_file_cmd fzf_preview_file
 
 set --export JAVA_HOME /usr/lib/jvm/java-11-openjdk
 fish_add_path --path $JAVA_HOME/bin

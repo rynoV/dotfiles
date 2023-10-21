@@ -1378,6 +1378,27 @@ Use numeric prefix arg to insert number."
   (interactive)
   (let ((current-prefix-arg '(4)))
     (call-interactively 'org-export-dispatch)))
+
+;; Functions to help insert org-id links, for use with
+;; org-link-set-parameters, based on
+;; https://emacs.stackexchange.com/a/12434 and ChatGPT
+(defun org-id-complete-link (&optional arg)
+  "Create an id: link using completion"
+  (concat "id:"
+          (org-id-get-with-outline-path-completion
+           '((org-agenda-files . (:maxlevel . 3)) (nil . (:maxlevel . 10))))))
+
+(defun get-org-entry-header-string-by-id (id)
+  "Get the header string of the Org entry with a specific ID."
+  (let ((marker (org-id-find id 'marker)))
+    (when marker
+      (with-current-buffer (marker-buffer marker)
+        (save-excursion
+          (goto-char marker)
+          (org-get-heading))))))
+
+(defun org-id-link-insert-description (loc desc)
+  (get-org-entry-header-string-by-id (replace-regexp-in-string "^id:" "" loc)))
 #+end_src
 
 ***** Keybinds
@@ -1567,6 +1588,10 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
                                                   "xournalpp" (expand-file-name path)))
                          :complete 'org-link-complete-file)
 
+(require 'org-id)
+(org-link-set-parameters "id"
+                         :complete 'org-id-complete-link
+                         :insert-description 'org-id-link-insert-description)
 
 (org-clock-persistence-insinuate)
 
