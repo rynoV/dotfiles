@@ -1395,7 +1395,7 @@ Use numeric prefix arg to insert number."
       (with-current-buffer (marker-buffer marker)
         (save-excursion
           (goto-char marker)
-          (org-get-heading))))))
+          (org-get-heading t t t t))))))
 
 (defun org-id-link-insert-description (loc desc)
   (get-org-entry-header-string-by-id (replace-regexp-in-string "^id:" "" loc)))
@@ -1463,6 +1463,9 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 ;; Add refiled items to the top of lists instead of the bottom
 (org-reverse-note-order t)
 (org-latex-compiler "xelatex")
+(org-latex-listings 'minted)
+(org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f"))
+(org-latex-prefer-user-labels t)
 (org-format-latex-options
  '(:foreground default
                :background default
@@ -1584,8 +1587,7 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 
 (org-link-set-parameters "editpdf"
                          :follow (lambda (path)
-                                   (start-process "" nil
-                                                  "xournalpp" (expand-file-name path)))
+                                   (start-process "" nil "xournalpp" (expand-file-name path)))
                          :complete 'org-link-complete-file)
 
 (require 'org-id)
@@ -1605,6 +1607,15 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
                              (R . t)))
 ;; Allow for jumping back after jupming to src block head
 (calum/advise-push-mark-before 'org-babel-goto-src-block-head)
+
+;; Allow bold math by default and in latex preview
+(setq org-latex-packages-alist
+      '(("" "mathtools" t) ; Note: mathtools should come before unicode-math
+        ("" "fontspec" nil)
+        ("" "unicode-math" t)
+        ("" "xcolor" t)
+        ("left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm" "geometry" t)
+        ("" "bm" t)))
 #+end_src
 
 *** Org Mobile
@@ -1731,6 +1742,37 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 **** Org Latex Export
 #+begin_src emacs-lisp
 (require 'ox-latex)
+(add-to-list 'org-latex-classes
+             '("apa7"
+               "\\documentclass[stu,12pt,a4paper,biblatex,floatsintext]{apa7}
+\\usepackage{moreverb} % For \\verbatiminput
+\\usepackage{unicode-math}
+               [NO-DEFAULT-PACKAGES]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+             '("cpsc501"
+               "\\documentclass[11pt, a4paper]{article}
+\\usepackage[studentname=Calum\\ Sieppert,ucid=30093813,coursesubject=CPSC,coursenumber=501,coursename=Advanced\\ Programming,courseterm=f23,courseinstructor=Dr\\ Leonard\\ Manzara]{/home/calum/OneDriveSchool/year5/fall/CPSC_525/assignments/assignment}
+               [NO-DEFAULT-PACKAGES]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+             '("cpsc525"
+               "\\documentclass[11pt, a4paper]{article}
+\\usepackage[studentname=Calum\\ Sieppert,ucid=30093813,coursesubject=CPSC,coursenumber=525/625,coursename=Principles\\ of\\ Computer\\ Security,courseterm=f23,courseinstructor=Ryan\~Henry\\ \\textless\\texttt{ryan.henry@ucalgary.ca}\\textgreater]{/home/calum/OneDriveSchool/year5/fall/CPSC_525/assignments/assignment}
+               [NO-DEFAULT-PACKAGES]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 (add-to-list 'org-latex-classes
              '("acmart"
                "\\documentclass[manuscript,screen]{acmart}
@@ -1929,6 +1971,32 @@ https://github.com/io12/org-fragtog
 (use-package org-fragtog
   :hook
   (org-mode . org-fragtog-mode))
+#+end_src
+
+*** Org Roam
+#+begin_src emacs-lisp
+(use-package org-roam
+  :custom (org-roam-directory (file-truename "~/org"))
+  (org-roam-mode-sections (list #'org-roam-backlinks-section #'org-roam-reflinks-section
+                                ;; #'org-roam-unlinked-references-section
+                                ))
+  (org-roam-graph-viewer "qutebrowser")
+  (org-roam-graph-executable "dot")
+  :config (org-roam-db-autosync-mode)
+  (add-to-list 'org-roam-capture-templates
+               '("e" "entry" entry "* ${title}%?  %^g
+:PROPERTIES:
+:ID: %(org-id-new)
+:END:"
+                 :target (node "Math-311-Notes")
+                 :prepend t
+                 )))
+#+end_src
+
+**** Org Roam UI
+
+#+begin_src emacs-lisp
+(use-package org-roam-ui)
 #+end_src
 
 ** Snippets with tempel

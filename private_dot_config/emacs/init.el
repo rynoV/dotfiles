@@ -65,10 +65,35 @@
    '(turn-on-visual-line-mode org-journal-default-enable-encryption
                               (lambda nil
                                 (setq-local buffer-auto-save-file-name nil))))
+ '(org-latex-default-packages-alist
+   '(("AUTO" "inputenc" t
+      ("pdflatex"))
+     ("T1" "fontenc" t
+      ("pdflatex"))
+     ("" "graphicx" t nil)
+     ("" "longtable" nil nil)
+     ("" "wrapfig" nil nil)
+     ("" "rotating" nil nil)
+     ("normalem" "ulem" t nil)
+     ("" "amsmath" t nil)
+     ("" "amssymb" t nil)
+     ("" "capt-of" nil nil)
+     ("colorlinks=true,linkcolor=darkgray,unicode=true,psdextra" "hyperref" nil nil)))
  '(package-selected-packages
-   '(persp-mode-projectile-bridge bufler centaur-tabs web-mode eglot eldoc-box persp-mode eyebrowse spaceline spaceline-config autothemer os1-theme org-fragtog rust-mode elfeed goto-last-change smart-region topsy scroll-on-jump scrollkeeper aggressive-indent mosey hungry-delete dashboard smartparens goggles org-appear origami org-modern ox-ipynb pdf-tools json-navigator json-mode dart-mode dart ox-ravel ess diff-hl elisp-format visual-regexp multiple-cursors combobulate tree-sitter-langs tree-sitter delight ox-gfm general consult-flymake consult-eglot adaptive-wrap org-superstar org-inlinetask tempel-collection tempel emacs-lisp kind-icon cape corfu all-the-icons-completion code-review graphql-mode ox-json imenu-list markdown hercules quelpa emacs-surround meow magit-delta git-link emacs-open-github-from-here ledger-mode git-gutter dhall-mode all-the-icons slack dirvish typescript-mode typescript ranger affe consult-dir consult-projectile embark-consult embark marginalia orderless vertico consult docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-ido prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md magit-todos forge auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers which-key diminish use-package))
+   '(org-roam-ui org-mind-map persp-mode-projectile-bridge bufler centaur-tabs web-mode eglot eldoc-box persp-mode eyebrowse spaceline spaceline-config autothemer os1-theme org-fragtog rust-mode elfeed goto-last-change smart-region topsy scroll-on-jump scrollkeeper aggressive-indent mosey hungry-delete dashboard smartparens goggles org-appear origami org-modern ox-ipynb pdf-tools json-navigator json-mode dart-mode dart ox-ravel ess diff-hl elisp-format visual-regexp multiple-cursors combobulate tree-sitter-langs tree-sitter delight ox-gfm general consult-flymake consult-eglot adaptive-wrap org-superstar org-inlinetask tempel-collection tempel emacs-lisp kind-icon cape corfu all-the-icons-completion code-review graphql-mode ox-json imenu-list markdown hercules quelpa emacs-surround meow magit-delta git-link emacs-open-github-from-here ledger-mode git-gutter dhall-mode all-the-icons slack dirvish typescript-mode typescript ranger affe consult-dir consult-projectile embark-consult embark marginalia orderless vertico consult docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-ido prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md magit-todos forge auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers which-key diminish use-package))
  '(safe-local-variable-values
-   '((auto-fill-mode . t)
+   '((org-export-initial-scope . subtree)
+     (org-fragtog-mode)
+     (projectile-project-src-dir . "lib/")
+     (projectile-project-test-cmd . "flutter test")
+     (projectile-project-compilation-cmd . "flutter build")
+     (projectile-project-run-cmd . "flutter run")
+     (projectile-project-src-dir . "src/")
+     (projectile-project-test-dir . "test/")
+     (projectile-project-test-cmd . "stack build --fast --test")
+     (projectile-project-compilation-cmd . "stack build --fast --test --no-run-tests")
+     (projectile-project-run-cmd . "stack build --fast --test --no-run-tests && stack exec organizer-server")
+     (auto-fill-mode . t)
      (visual-line-mode)
      (org-deadline-warning-days . 21)
      (org-deadline-warning-days . 14)

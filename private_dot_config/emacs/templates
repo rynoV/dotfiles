@@ -21,6 +21,7 @@ purescript-mode haskell-mode
 org-mode latex-mode
 
 (m "\\(" q "\\)")
+(vc "\\(\\vec{" p "}\\)")
 ;; On a line with text in it already, expanding this will insert an
 ;; extra newline
 (d & n "\\[" n> q n "\\]")
@@ -39,6 +40,7 @@ org-mode
 (rimg "#+begin_src R :results file graphics :file images/" p ".png" n> q n "#+end_src")
 (py "#+begin_src python" n q n "#+end_src")
 (R "#+begin_src R" n q n "#+end_src")
+(lk "[[*" q)
 
 emacs-lisp-mode org-mode
 
