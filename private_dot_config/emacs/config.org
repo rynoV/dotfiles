@@ -2234,21 +2234,6 @@ https://github.com/org-noter/org-noter/
                      (propertize "» " 'face 'vertico-current)
                    "  ")
                  cand)))
-
-
-  ;; Show input below candidates
-  (defun vertico-bottom--display-candidates (lines)
-    "Display LINES in bottom."
-    (move-overlay vertico--candidates-ov (point-min) (point-min))
-    (unless (eq vertico-resize t)
-      (setq lines (nconc (make-list (max 0 (- vertico-count (length lines))) "\n") lines)))
-    (let ((string (apply #'concat lines)))
-      (add-face-text-property 0 (length string) 'default 'append string)
-      (overlay-put vertico--candidates-ov 'before-string string)
-      (overlay-put vertico--candidates-ov 'after-string nil))
-    (vertico--resize-window (length lines)))
-
-  (advice-add #'vertico--display-candidates :override #'vertico-bottom--display-candidates)
   :general
   (:keymaps 'vertico-map
             "C-' '" 'vertico-quick-exit
@@ -2395,6 +2380,30 @@ targets. https://github.com/oantolin/embark/wiki/Additional-Configuration#use-wh
   ;; auto-updating embark collect buffer
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+**** Vertico Posframe
+[[https://github.com/tumashu/vertico-posframe]]
+
+#+begin_src emacs-lisp
+(use-package vertico-posframe
+  :after vertico
+  :custom
+  (vertico-posframe-parameters
+   '((left-fringe . 8)
+     (right-fringe . 8)))
+  :config
+  (setq vertico-multiform-commands
+        '((consult-line
+           posframe
+           (vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
+           (vertico-posframe-border-width . 10)
+           ;; NOTE: This is useful when emacs is used in both in X and
+           ;; terminal, for posframe do not work well in terminal, so
+           ;; vertico-buffer-mode will be used as fallback at the
+           ;; moment.
+           (vertico-posframe-fallback-mode . vertico-buffer-mode))
+          (t posframe)))
+  (vertico-multiform-mode 1))
 #+end_src
 *** Completion style
 https://github.com/oantolin/orderless
