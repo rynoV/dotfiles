@@ -21,6 +21,8 @@ works.
     :prefix calum/leader)
   (general-override-mode)
   )
+
+(use-package delight)
   #+end_src
 
 * General Emacs Configuration
@@ -323,13 +325,13 @@ https://emacs.stackexchange.com/a/35907"
 ** Project.el
 #+begin_src emacs-lisp
 (use-package project
-  :ensure nil)
+  :straight nil)
 #+end_src
 
 ** Syntax checking with flymake
 #+begin_src emacs-lisp
 (use-package flymake
-  :ensure nil
+  :straight nil
   :general
   (:keymaps 'flymake-mode-map
             "M-n" 'flymake-goto-next-error
@@ -351,7 +353,7 @@ https://emacs.stackexchange.com/a/35907"
 Undo/redo window configuration changes using ~C-c <left>~ / ~C-c <right>~.
 #+begin_src emacs-lisp
 (use-package winner
-  :ensure nil
+  :straight nil
   :config
   (winner-mode 1))
 #+end_src
@@ -367,7 +369,7 @@ Enable terminal colours in the compilation buffer. From https://stackoverflow.co
 
 #+BEGIN_SRC emacs-lisp
 (use-package scroll-bar
-  :ensure nil
+  :straight nil
   :config (set-scroll-bar-mode nil))
 #+END_SRC
 
@@ -377,7 +379,7 @@ Don’t bother confirming killing processes and don’t let backup~ files scatte
 
 #+begin_src emacs-lisp
 (use-package files
-  :ensure nil
+  :straight nil
   :config
   (setq confirm-kill-processes nil
         create-lockfiles nil ; don't create .# files
@@ -387,7 +389,7 @@ Don’t bother confirming killing processes and don’t let backup~ files scatte
 ** Clean up whitespace on save
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
-  :ensure nil
+  :straight nil
   :hook (before-save . whitespace-cleanup))
 #+END_SRC
 ** Font
@@ -395,7 +397,7 @@ Don’t bother confirming killing processes and don’t let backup~ files scatte
 See [[*Load theme][Load theme]] for additional font selection with the poet theme.
 #+BEGIN_SRC emacs-lisp
 (use-package frame
-  :ensure nil
+  :straight nil
   :config
   (set-face-attribute 'default nil
                       :family calum/code-font
@@ -407,7 +409,7 @@ By default, the scrolling is way too fast to be precise and helpful,
 let's tune it down a little bit.
 #+BEGIN_SRC emacs-lisp
 (use-package mwheel
-  :ensure nil
+  :straight nil
   :config (setq mouse-wheel-scroll-amount '(2 ((shift) . 1))
                 mouse-wheel-progressive-speed nil))
 #+END_SRC
@@ -416,7 +418,7 @@ Auto refreshes every 2 seconds. Don't forget to refresh the version
 control status as well.
 #+BEGIN_SRC emacs-lisp
 (use-package autorevert
-  :ensure nil
+  :straight nil
   :config
   (global-auto-revert-mode +1)
   (setq auto-revert-interval 2
@@ -430,7 +432,7 @@ Turn on spell checking for text modes and configure keybindings under
 ~C-c s~.
 #+begin_src emacs-lisp
 (use-package flyspell
-  :ensure nil
+  :straight nil
   :delight
   :preface
   (defun flyspell-check-next-highlighted-word ()
@@ -498,7 +500,7 @@ Doom Nord theme
   (meow-region-cursor-1 ((t (:background "#6eee88c8a463" :foreground "#ECEFF4"))))
   (meow-region-cursor-2 ((t (:background "#5c5c6fef8706" :foreground "#ECEFF4"))))
   (meow-region-cursor-3 ((t (:background "#49c9571669a9" :foreground "#ECEFF4"))))
-  (org-block ((t (:extend t :background "#00000000"))))
+  (org-block ((t (:extend t :background unspecified))))
   (org-block-begin-line ((t (:inherit org-block :extend t :background "#373E4C" :foreground "#6f7787"))))
   (org-hide ((t nil)))
   (region ((t (:extend t :background "#373e4c"))))
@@ -518,7 +520,7 @@ Doom Nord theme
 #+begin_src emacs-lisp
 (use-package os1-theme
   :disabled
-  :quelpa (os1-theme :fetcher github :repo "sashimacs/os1-theme"))
+  :straight (os1-theme :type git :host github :repo "sashimacs/os1-theme"))
 #+end_src
 *** Modeline
 [[https://github.com/TheBB/spaceline][Spaceline]]
@@ -558,7 +560,7 @@ https://github.com/ema2159/centaur-tabs
 
 #+begin_src emacs-lisp
 (use-package centaur-tabs
-  :demand t
+  :after persp-mode
   :custom
   (centaur-tabs-style "bar")
   (centaur-tabs-height 32)
@@ -771,7 +773,7 @@ documentation).
  "C-M-n" 'next-line
  "C-M-p" 'previous-line)
 (use-package meow
-  :demand t                   ; Necessary because :hook defers loading
+  :after smartparens
   :preface
   (defun calum/meow-escape ()
     "Quit INSERT or quit minibuffer or do nothing. From https://github.com/meow-edit/meow/discussions/186#discussioncomment-1999930"
@@ -1133,7 +1135,6 @@ From https://ebzzry.com/en/emacs-pairs/"
 *** Structural editing (tree sitter)
 #+begin_src emacs-lisp
 (use-package tree-sitter
-  :ensure t
   :hook
   (tree-sitter-after-on . tree-sitter-hl-mode)
   :config
@@ -1142,7 +1143,6 @@ From https://ebzzry.com/en/emacs-pairs/"
   (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
   )
 (use-package tree-sitter-langs
-  :ensure t
   :after tree-sitter)
 #+end_src
 
@@ -1152,7 +1152,7 @@ navigation and editing, still early stages project. Will require setup
 for whatever languages I want.
 #+begin_src emacs-lisp
 (use-package combobulate
-  :quelpa (combobulate :fetcher github :repo "mickeynp/combobulate")
+  :straight (combobulate :type git :host github :repo "mickeynp/combobulate")
   ;; Ensure `combobulate-mode` is activated when you launch a mode it supports
   ;; :hook
   ;; (purescript-mode . combobulate-mode)
@@ -1240,16 +1240,25 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
   )
 #+end_src
 
+#+begin_src emacs-lisp
+(use-package tex
+  :straight auctex)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package simple
+  :straight (:type built-in)
+  :delight
+  (visual-line-mode nil "simple")
+  (auto-fill-function nil "simple"))
+#+end_src
+
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 (use-package org
   :if (not calum/magit-mode)
-  :ensure auctex
-  :ensure cdlatex
-  :delight
-  (visual-line-mode)
-  (auto-fill-function)                  ; Hide auto fill mode
-<<org-config>>
-)
+  :delight org-cdlatex-mode
+  <<org-config>>
+  )
 #+END_SRC
 
 **** ~<<org-config>>~
@@ -1622,7 +1631,7 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 #+begin_src emacs-lisp
 (use-package org-mobile
   :after org
-  :ensure nil
+  :straight nil
   :custom
   (org-mobile-inbox-for-pull org-default-notes-file)
   :preface
@@ -1702,11 +1711,11 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 #+begin_src emacs-lisp
 (use-package org-inlinetask
   :after org
-  :ensure nil
+  :straight nil
   :custom
   (org-inlinetask-show-first-star t)
   :custom-face
-  (org-inlinetask ((nil :foreground nil :inherit 'bold))))
+  (org-inlinetask ((nil :foreground "unspecified" :inherit 'bold))))
 #+end_src
 
 *** Org Indent
@@ -1715,7 +1724,7 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 (use-package org-indent
   :disabled
   :if (not calum/magit-mode)
-  :ensure nil
+  :straight nil
   :delight org-indent-mode)
 #+end_src
 
@@ -1725,15 +1734,17 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 (use-package ox-gfm)
 (use-package ox-json)
 (use-package ox-ravel
+  :straight nil
   :load-path "/home/calum/.config/emacs/manual-plugins/ox-ravel")
 (use-package ox-ipynb
+  :straight nil
   :load-path "/home/calum/.config/emacs/manual-plugins/ox-ipynb")
 #+end_src
 
 **** Citations
 #+begin_src emacs-lisp
 (use-package oc-basic
-  :ensure nil
+  :straight nil
   :config
   (require 'oc-natbib)
   )
@@ -1921,7 +1932,6 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
 (use-package org-super-agenda
   :if (not calum/magit-mode)
   :after org
-  :demand t
   :general
   (:keymaps 'org-super-agenda-header-map
             "<tab>" 'origami-toggle-node
@@ -1997,6 +2007,30 @@ https://github.com/io12/org-fragtog
 
 #+begin_src emacs-lisp
 (use-package org-roam-ui)
+#+end_src
+
+*** Org Noter
+https://github.com/org-noter/org-noter/
+#+begin_src emacs-lisp
+(use-package org-noter
+  :after pdf-tools
+  :custom
+  (org-noter-default-notes-file-names org-agenda-files)
+  ;; The search path is only used as a prefix for the file names
+  ;; specified in org-noter-default-notes-file-names, the directories
+  ;; aren't actually searched for all org files within
+  (org-noter-notes-search-path (list org-directory))
+  :general
+  ;; The default C-M-n/p binding overlap with my Meow next/prev-line
+  ;; bindings, so j/k end up triggering org-note-sync calls if I don't
+  ;; unset the bindings.
+  (:keymaps 'org-noter-doc-mode-map
+            "C-M-n" nil
+            "C-M-p" nil)
+  (:keymaps 'org-noter-notes-mode-map
+            "C-M-n" nil
+            "C-M-p" nil)
+  )
 #+end_src
 
 ** Snippets with tempel
@@ -2153,7 +2187,6 @@ https://github.com/io12/org-fragtog
 
 #+begin_src emacs-lisp
 (use-package consult-dir
-  :ensure t
   :bind (("C-x C-d" . consult-dir)
          :map minibuffer-local-map
          ("C-x C-d" . consult-dir)
@@ -2357,9 +2390,7 @@ targets. https://github.com/oantolin/embark/wiki/Additional-Configuration#use-wh
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :ensure t
   :after (embark consult)
-  :demand t ; only necessary if you have the hook below
   ;; if you want to have consult previews as you move around an
   ;; auto-updating embark collect buffer
   :hook
@@ -2445,7 +2476,6 @@ https://github.com/minad/corfu/wiki
 
 #+begin_src emacs-lisp
 (use-package corfu
-  :demand t
   ;; Optional customizations
   :custom
   (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
@@ -2565,7 +2595,6 @@ https://github.com/minad/corfu/wiki
 (use-package rg)
 (use-package projectile
   :delight
-  :ensure t
   :init
   (projectile-mode +1)
   :preface
@@ -2633,7 +2662,6 @@ https://github.com/iyefrat/all-the-icons-completion/
 
 #+begin_src emacs-lisp
 (use-package all-the-icons
-  :demand t
   :config
   (add-to-list 'all-the-icons-extension-icon-alist
                '("purs" all-the-icons-fileicon "purescript" :v-adjust 0.0 :height 1.0))
@@ -2661,7 +2689,7 @@ https://github.com/iyefrat/all-the-icons-completion/
 
 #+begin_src emacs-lisp
 (use-package js-mode
-  :ensure nil
+  :straight (:type built-in)
   :hook
   (js-mode . eglot-ensure))
 #+end_src
@@ -2669,7 +2697,7 @@ https://github.com/iyefrat/all-the-icons-completion/
 *** Python
 #+begin_src emacs-lisp
 (use-package python-mode
-  :ensure nil
+  :straight (:type built-in)
   :hook
   (python-mode . eglot-ensure))
 #+end_src
@@ -2685,7 +2713,7 @@ Setup completion for elisp to include words from the buffer and file
 paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-combine-capfs.
 #+begin_src emacs-lisp
 (use-package emacs-lisp
-  :ensure nil
+  :straight (:type built-in)
   :preface
   (defun calum/format-top-level-sexp ()
     "Format the current top level sexp"
@@ -2755,7 +2783,6 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
 *** Dhall
 #+begin_src emacs-lisp
 (use-package dhall-mode
-  :ensure t
   :mode "\\.dhall\\'")
 #+end_src
 *** Nix
@@ -3084,7 +3111,6 @@ https://github.com/Bad-ptr/persp-mode.el
 
 #+begin_src emacs-lisp
 (use-package persp-mode
-  :demand t
   :init
   (setq persp-keymap-prefix nil)
   :delight
@@ -3175,7 +3201,6 @@ https://github.com/ledger/ledger-mode
 https://github.com/atheriel/evil-ledger
 #+begin_src emacs-lisp
 (use-package ledger-mode
-  :demand t
   :mode ("\\.dat\\'"
          "\\.ledger\\'")
   :custom (ledger-clear-whole-transactions t)
@@ -3219,11 +3244,44 @@ https://github.com/atheriel/evil-ledger
   (global-origami-mode))
 #+end_src
 
-*** PDFs
+*** PDF Tools
 #+begin_src emacs-lisp
 (use-package pdf-tools
+  :after image-roll
+  :straight
+  (pdf-tools
+   :type git
+   :host github
+   :repo "vedang/pdf-tools"
+   :fork
+   (:host github
+          :repo "dalanicolai/pdf-tools"
+          :branch "pdf-roll"
+          :files ("lisp/*.el"
+                  "README"
+                  ("build" "Makefile")
+                  ("build" "server")
+                  (:exclude "lisp/tablist.el" "lisp/tablist-filter.el"))
+          )
+   )
+  :init (pdf-tools-install)
+  :hook
+  ;; The "cursor" wraps the whole document in pdf-view-mode, so blinking is distracting
+  (pdf-view . (lambda () (blink-cursor-mode -1)))
   :config
-  (add-to-list 'pdf-tools-enabled-modes 'pdf-view-themed-minor-mode))
+  (add-to-list 'pdf-tools-enabled-modes 'pdf-view-themed-minor-mode)
+  (add-to-list 'pdf-tools-enabled-modes 'pdf-view-roll-minor-mode)
+  )
+#+end_src
+
+**** PDF Continuous Scrolling
+#+begin_src emacs-lisp
+(use-package image-roll
+  :straight
+  (image-roll
+   :type git
+   :host github
+   :repo "dalanicolai/image-roll.el"))
 #+end_src
 
 *** Change highlighting with goggles
@@ -3262,12 +3320,6 @@ Briefly highlight undo, delete, etc: https://github.com/minad/goggles
   (setq-default chezmoi-template-display-p t) ;; Display template values in all source buffers.
   )
 #+end_src
-
-*** Diminish minor modes
-#+BEGIN_SRC emacs-lisp
-  (use-package delight
-    :demand t)
-#+END_SRC
 
 *** Undoing
 
@@ -3575,6 +3627,7 @@ _SPC_ cancel	_o_nly this     _d_elete
 [[https://github.com/mickeynp/ligature.el]]
 #+begin_src emacs-lisp
 (use-package ligature
+  :straight nil
   :load-path "/home/calum/.config/emacs/manual-plugins/ligature.el"
   :config
   ;; Enable all JetBrains Mono ligatures in programming modes
@@ -3657,7 +3710,6 @@ https://github.com/bmag/imenu-list, show imenu in a sidebar
 *** Dashboard
 #+begin_src emacs-lisp
 (use-package dashboard
-  :demand t
   :custom
   (dashboard-projects-backend 'projectile)
   (dashboard-center-content t)
@@ -3735,7 +3787,7 @@ https://github.com/Malabarba/aggressive-indent-mode
 *** Topsy
 #+begin_src emacs-lisp
 (use-package topsy
-  :quelpa (topsy :fetcher github :repo "alphapapa/topsy.el")
+  :straight (topsy :type git :host github :repo "alphapapa/topsy.el")
   :hook (prog-mode . topsy-mode))
 #+end_src
 
