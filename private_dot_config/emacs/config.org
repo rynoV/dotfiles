@@ -46,6 +46,13 @@ works.
 (defvar calum/code-font-height 120)
 (defvar calum/magit-mode nil)
 
+(defun calum/reload-theme ()
+  (interactive)
+  (load-theme 'doom-nord)
+  (centaur-tabs-mode -1)
+  (centaur-tabs-mode 1)
+  )
+
 (defun calum/advise-push-mark-before (func)
   "Advise FUNC to push the current mark before executing."
   (advice-add func :before #'(lambda (&rest _) "push-mark" (push-mark))))
@@ -322,6 +329,13 @@ https://emacs.stackexchange.com/a/35907"
 
 * Configuration for built-in packages
 
+** Calc
+#+begin_src emacs-lisp
+(use-package calc
+  :straight nil
+  :custom
+  (calc-context-sensitive-enter t))
+#+end_src
 ** Project.el
 #+begin_src emacs-lisp
 (use-package project
@@ -796,7 +810,8 @@ documentation).
           meow--kbd-forward-line "C-M-n"
           meow--kbd-backward-line "C-M-p"
           meow-use-dynamic-face-color t
-          meow-expand-exclude-mode-list nil)
+          meow-expand-exclude-mode-list nil
+          meow-motion-remap-prefix "C-M-")
 
     (meow-motion-overwrite-define-key
      '("j" . meow-next)
@@ -1031,7 +1046,8 @@ documentation).
       '("<escape>" . meow-normal-mode)
       '("u" . meow-undo)
       '("-" . negative-argument))
-    (add-to-list 'minor-mode-overriding-map-alist (cons 'meow-nav-mode meow-nav-keymap)))
+    (add-to-list 'minor-mode-overriding-map-alist (cons 'meow-nav-mode meow-nav-keymap))
+    )
   :hook
   (meow-global-mode . calum/meow-setup-extra)
   (meow-mode . calum/meow-setup-extra)
@@ -1123,7 +1139,7 @@ From https://ebzzry.com/en/emacs-pairs/"
             "#" 'sp-prefix-symbol-object
             "$" 'sp-prefix-tag-object)
   :hook
-  (org-mode . (lambda () (require 'smartparens-latex)))
+  ((org-mode bibtex-mode) . (lambda () (require 'smartparens-latex)))
   :config
   (require 'smartparens-config)
   (smartparens-global-mode)
@@ -1622,16 +1638,19 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 (org-clock-persistence-insinuate)
 
 ;; After refiling something, save all the buffers automatically
-(advice-add 'org-refile :after #'(lambda (&rest _)
-                                   (org-save-all-org-buffers)))
+(advice-add 'org-refile
+            :after #'(lambda (&rest _)
+                       (org-save-all-org-buffers)))
 
-(org-babel-do-load-languages
- 'org-babel-load-languages '((emacs-lisp . t)
-                             (python . t)
-                             (R . t)))
+(org-babel-do-load-languages 'org-babel-load-languages
+                             '((emacs-lisp . t)
+                               (python . t)
+                               (ledger . t)
+                               (latex . t)
+                               (shell . t)
+                               (R . t)))
 ;; Allow for jumping back after jupming to src block head
 (calum/advise-push-mark-before 'org-babel-goto-src-block-head)
-
 #+end_src
 
 *** Org Mobile
@@ -3139,7 +3158,7 @@ just switch to it."
    (if (region-active-p)
        (buffer-substring-no-properties
         (region-beginning) (region-end))
-     (thing-at-point 'symbol t))))
+     nil)))
 
 (defun spacemacs/consult-line-multi ()
   (interactive)
@@ -3807,8 +3826,10 @@ https://github.com/Malabarba/aggressive-indent-mode
 #+end_src
 
 *** Scroll on jump
+Disabled as it was laggy
 #+begin_src emacs-lisp
 (use-package scroll-on-jump
+  :disabled t
   :custom
   (scroll-on-jump-duration 0.4)
   (scroll-on-jump-smooth t)
