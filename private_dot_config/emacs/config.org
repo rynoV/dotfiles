@@ -1232,11 +1232,14 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
 
 #+begin_src emacs-lisp
 (use-package cdlatex
+  :after tex ;; Needs to be after auctex, due to cdlatex--texmathp
   :if (not calum/magit-mode)
   :custom
   (cdlatex-make-sub-superscript-roman-if-pressed-twice t)
   (cdlatex-math-symbol-alist '((?\" ("\\cap"))
                                (?@ ("\\text{?}"))))
+  (cdlatex-use-dollar-to-ensure-math nil)
+  (cdlatex-math-symbol-direct-bindings '(nil nil nil)) ;; TODO: possibly set this up for faster math symbols
   )
 #+end_src
 
@@ -1282,105 +1285,110 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
 
 ***** Definitions
 #+begin_src emacs-lisp
-  :preface
-  (defvar calum/todo-super-agenda-groups '((:auto-outline-path t)))
+:preface
+(defvar calum/todo-super-agenda-groups '((:auto-outline-path t)))
 
-  (defun calum/set-keyword-faces-org ()
-    "https://hugocisneros.com/org-config/#hide-face-characters"
-    (mapc (lambda (pair) (push pair prettify-symbols-alist))
-          '(("TODO" .     "")
-            ("DONE" .     "")
-            ("#+begin_quote" . "“")
-            ("#+end_quote" . "”")))
-    (prettify-symbols-mode +1)
-    )
+(defun calum/insert-heading-with-id ()
+  (interactive)
+  (org-insert-heading-respect-content)
+  (org-id-get-create))
 
-  (defun calum/paste-html-to-org ()
-    "Take content from clipboard that can be converted to HTML and paste it as Org mode text using Pandoc
+(defun calum/set-keyword-faces-org ()
+  "https://hugocisneros.com/org-config/#hide-face-characters"
+  (mapc (lambda (pair) (push pair prettify-symbols-alist))
+        '(("TODO" .     "")
+          ("DONE" .     "")
+          ("#+begin_quote" . "“")
+          ("#+end_quote" . "”")))
+  (prettify-symbols-mode +1)
+  )
+
+(defun calum/paste-html-to-org ()
+  "Take content from clipboard that can be converted to HTML and paste it as Org mode text using Pandoc
 
 Based off this https://github.com/howardabrams/dot-files/blob/master/emacs-org.org#better-pasting"
-    (interactive)
-    (let ((text (shell-command-to-string "xclip -out -selection 'clipboard' -t text/html | pandoc -f html -t org")))
-      (kill-new text)
-      (yank)))
-  (defun calum/org-at-item-p ()
-    (or (org-in-item-p)
-        (and (org-region-active-p)
-             (save-excursion
-               (goto-char (region-beginning))
-               (org-in-item-p)))))
+  (interactive)
+  (let ((text (shell-command-to-string "xclip -out -selection 'clipboard' -t text/html | pandoc -f html -t org")))
+    (kill-new text)
+    (yank)))
+(defun calum/org-at-item-p ()
+  (or (org-in-item-p)
+      (and (org-region-active-p)
+           (save-excursion
+             (goto-char (region-beginning))
+             (org-in-item-p)))))
 
-  (defun calum/org-metaleft-hook ()
-    (if (calum/org-at-item-p)
-        (call-interactively 'org-outdent-item-tree)))
+(defun calum/org-metaleft-hook ()
+  (if (calum/org-at-item-p)
+      (call-interactively 'org-outdent-item-tree)))
 
-  (defun calum/org-metaright-hook ()
-    (if (calum/org-at-item-p)
-        (call-interactively 'org-indent-item-tree)))
+(defun calum/org-metaright-hook ()
+  (if (calum/org-at-item-p)
+      (call-interactively 'org-indent-item-tree)))
 
-  (defun calum/insert-subscript (arg)
-    "Insert org/latex subscript
+(defun calum/insert-subscript (arg)
+  "Insert org/latex subscript
 Intended for use with 'cdlatex-tab'.
 Use numeric prefix arg to insert number."
-    (interactive "P")
-    (insert (concat "_{" (if arg (format "%s" arg)) "}"))
-    (backward-char 1))
+  (interactive "P")
+  (insert (concat "_{" (if arg (format "%s" arg)) "}"))
+  (backward-char 1))
 
-  (defun calum/insert-superscript (arg)
-    "Insert org/latex superscript
+(defun calum/insert-superscript (arg)
+  "Insert org/latex superscript
 Intended for use with 'cdlatex-tab'
 Use numeric prefix arg to insert number."
-    (interactive "P")
-    (insert (concat "^{" (if arg (format "%s" arg)) "}"))
-    (backward-char 1))
+  (interactive "P")
+  (insert (concat "^{" (if arg (format "%s" arg)) "}"))
+  (backward-char 1))
 
-  (defun calum/org-mobile-pull ()
-    "Uses dropbox and rclone to pull changes from org mobile"
-    (interactive)
-    (message "Pulling changes from dropbox")
-    (call-process-shell-command "rclone sync --fast-list dropbox: ~/Dropbox")
-    (message "Done pulling")
-    (org-mobile-pull)
-    (org-save-all-org-buffers))
+(defun calum/org-mobile-pull ()
+  "Uses dropbox and rclone to pull changes from org mobile"
+  (interactive)
+  (message "Pulling changes from dropbox")
+  (call-process-shell-command "rclone sync --fast-list dropbox: ~/Dropbox")
+  (message "Done pulling")
+  (org-mobile-pull)
+  (org-save-all-org-buffers))
 
-  (defun calum/org-mobile-push ()
-    "Uses dropbox and rclone to push changes to org mobile"
-    (interactive)
-    (org-super-agenda-mode 0)
-    (org-mobile-push)
-    (message "Pushing changes to dropbox")
-    (call-process-shell-command "rclone sync --fast-list ~/Dropbox dropbox:")
-    (message "Done")
-    (org-super-agenda-mode 1))
+(defun calum/org-mobile-push ()
+  "Uses dropbox and rclone to push changes to org mobile"
+  (interactive)
+  (org-super-agenda-mode 0)
+  (org-mobile-push)
+  (message "Pushing changes to dropbox")
+  (call-process-shell-command "rclone sync --fast-list ~/Dropbox dropbox:")
+  (message "Done")
+  (org-super-agenda-mode 1))
 
-  (defun calum/org-mobile-sync ()
-    "Uses dropbox and rclone to pull then push changes to org mobile"
-    (interactive)
-    (calum/org-mobile-pull)
-    (calum/org-mobile-push))
+(defun calum/org-mobile-sync ()
+  "Uses dropbox and rclone to pull then push changes to org mobile"
+  (interactive)
+  (calum/org-mobile-pull)
+  (calum/org-mobile-push))
 
-  (defun calum/open-heading-links ()
-    (interactive)
-    (save-excursion
-      (while (org-up-heading-safe))
-      (org-open-at-point)))
+(defun calum/open-heading-links ()
+  (interactive)
+  (save-excursion
+    (while (org-up-heading-safe))
+    (org-open-at-point)))
 
-  (defun calum/capture-frame-finish (&rest args)
-    (interactive)
-    (if (equal "Org Capture" (frame-parameter nil 'name))
-        (delete-frame)))
+(defun calum/capture-frame-finish (&rest args)
+  (interactive)
+  (if (equal "Org Capture" (frame-parameter nil 'name))
+      (delete-frame)))
 
-  (defun calum/capture-frame-delete-other-windows (&rest args)
-    (interactive)
-    (if (equal "Org Capture" (frame-parameter nil 'name))
-        (delete-other-windows)))
+(defun calum/capture-frame-delete-other-windows (&rest args)
+  (interactive)
+  (if (equal "Org Capture" (frame-parameter nil 'name))
+      (delete-other-windows)))
 
-  (defun calum/capture-frame (keys)
-    (interactive)
-    (require 'org-capture)
-    (advice-add 'org-capture-finalize :after #'calum/capture-frame-finish)
-    (advice-add 'org-switch-to-buffer-other-window :after #'calum/capture-frame-delete-other-windows)
-    (org-capture nil keys))
+(defun calum/capture-frame (keys)
+  (interactive)
+  (require 'org-capture)
+  (advice-add 'org-capture-finalize :after #'calum/capture-frame-finish)
+  (advice-add 'org-switch-to-buffer-other-window :after #'calum/capture-frame-delete-other-windows)
+  (org-capture nil keys))
 
 (defun calum/rerun-org-export ()
   "Rerun the previous export command"
@@ -1475,6 +1483,13 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 (org-latex-listings 'minted)
 (org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f"))
 (org-latex-prefer-user-labels t)
+(org-latex-packages-alist
+      '(("" "mathtools" t) ; Note: mathtools should come before unicode-math
+        ("" "fontspec" nil)
+        ("" "unicode-math" t)
+        ("" "xcolor" t)
+        ("left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm" "geometry" t)
+        ("" "bm" t)))
 (org-format-latex-options
  '(:foreground default
                :background default
@@ -1617,14 +1632,6 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 ;; Allow for jumping back after jupming to src block head
 (calum/advise-push-mark-before 'org-babel-goto-src-block-head)
 
-;; Allow bold math by default and in latex preview
-(setq org-latex-packages-alist
-      '(("" "mathtools" t) ; Note: mathtools should come before unicode-math
-        ("" "fontspec" nil)
-        ("" "unicode-math" t)
-        ("" "xcolor" t)
-        ("left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm" "geometry" t)
-        ("" "bm" t)))
 #+end_src
 
 *** Org Mobile
@@ -1758,7 +1765,9 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
                "\\documentclass[stu,12pt,a4paper,biblatex,floatsintext]{apa7}
 \\usepackage{moreverb} % For \\verbatiminput
 \\usepackage{unicode-math}
-               [NO-DEFAULT-PACKAGES]"
+               [EXTRA]
+               [NO-DEFAULT-PACKAGES]
+               [NO-PACKAGES]"
                ("\\section{%s}" . "\\section*{%s}")
                ("\\subsection{%s}" . "\\subsection*{%s}")
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -1984,23 +1993,49 @@ https://github.com/io12/org-fragtog
 #+end_src
 
 *** Org Roam
+
+To keep many roam nodes in the same file and have unlinked references
+still work, I had to make some changes to the org-roam source:
+https://github.com/org-roam/org-roam/issues/2397
+
 #+begin_src emacs-lisp
 (use-package org-roam
   :custom (org-roam-directory (file-truename "~/org"))
   (org-roam-mode-sections (list #'org-roam-backlinks-section #'org-roam-reflinks-section
-                                ;; #'org-roam-unlinked-references-section
+                                #'org-roam-unlinked-references-section
                                 ))
   (org-roam-graph-viewer "qutebrowser")
   (org-roam-graph-executable "dot")
-  :config (org-roam-db-autosync-mode)
-  (add-to-list 'org-roam-capture-templates
-               '("e" "entry" entry "* ${title}%?  %^g
+  (org-roam-database-connector 'sqlite-builtin)
+  ;; Allows searching by tags as well as title
+  (org-roam-node-display-template
+   (concat "${title:50} "
+           (propertize "${tags:*}" 'face 'org-tag)))
+  (org-roam-capture-templates
+   '(
+     ("e" "entry" entry "* ${title}%?  %^g
 :PROPERTIES:
 :ID: %(org-id-new)
 :END:"
-                 :target (node "Math-311-Notes")
-                 :prepend t
-                 )))
+      :target (node "Math-311-Notes")
+      :prepend t
+      )
+     ("d" "default" plain "%?" :target
+      (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}
+")
+      :unnarrowed t
+      :no-save nil
+      :kill-buffer nil
+      :jump-to-captured t)))
+  (org-roam-capture-ref-templates
+   '(("r" "ref" plain "%?" :target
+      (file+head "${slug}.org" "#+title: ${title}")
+      :unnarrowed t
+      :kill-buffer nil)))
+  :config
+  (require 'org-roam-protocol)
+  (org-roam-db-autosync-enable)
+  )
 #+end_src
 
 **** Org Roam UI
@@ -2386,6 +2421,7 @@ targets. https://github.com/oantolin/embark/wiki/Additional-Configuration#use-wh
 
 #+begin_src emacs-lisp
 (use-package vertico-posframe
+  :disable t
   :after vertico
   :custom
   (vertico-posframe-parameters
@@ -3274,12 +3310,15 @@ https://github.com/atheriel/evil-ledger
           )
    )
   :init (pdf-tools-install)
+  :custom
+  (pdf-view-continuous nil)
   :hook
   ;; The "cursor" wraps the whole document in pdf-view-mode, so blinking is distracting
   (pdf-view . (lambda () (blink-cursor-mode -1)))
   :config
   (add-to-list 'pdf-tools-enabled-modes 'pdf-view-themed-minor-mode)
-  (add-to-list 'pdf-tools-enabled-modes 'pdf-view-roll-minor-mode)
+  ;; Doesn't work with org-noter :(
+  ;; (add-to-list 'pdf-tools-enabled-modes 'pdf-view-roll-minor-mode)
   )
 #+end_src
 
