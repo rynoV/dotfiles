@@ -205,7 +205,8 @@ https://emacs.stackexchange.com/a/35907"
   "l" 'calum/git-link
   "i" 'calum/copy-and-insert-binding-for-key
   "c" 'calum/copy-binding-for-key
-  "t" 'calum/open-terminal-here
+  "T" 'calum/open-terminal-here
+  "R" 'calum/reload-theme
   )
   #+end_src
 
@@ -461,6 +462,8 @@ Based off https://www.emacswiki.org/emacs/FlySpell#h5o-7"
   (calum/leader-def
     :infix "s"
     :prefix-command 'spell-check-map
+    "l" '(calum/enable-ltex
+          :which-key "Enable ltex")
     "t" '(flyspell-mode
           :which-key "toggle spell check")
     "p" '(flyspell-check-previous-highlighted-word
@@ -701,6 +704,8 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
     (interactive)
     (let ((current-prefix-arg t))
       (call-interactively 'magit-status)))
+  :custom
+  (git-commit-major-mode 'git-commit-elisp-text-mode) ;; Setting this as the major mode allows eglot to provide a special language server for git commit buffers
   :config
   (if calum/magit-mode
       (progn
@@ -756,6 +761,7 @@ documentation).
 *** Code Review
 #+begin_src emacs-lisp
 (use-package code-review
+  :disabled t
   :general
   (calum/leader-def :keymaps 'forge-topic-mode-map
             "r" 'code-review-forge-pr-at-point
@@ -1061,7 +1067,6 @@ documentation).
 #+begin_src emacs-lisp
 (use-package smartparens
   :delight
-  :after hungry-delete
   :init
   (define-prefix-command 'calum/paren-map)
   :defines (calum/paren-map)
@@ -1436,41 +1441,89 @@ Use numeric prefix arg to insert number."
 
 ***** Keybinds
 #+begin_src emacs-lisp
-  :general
-  (calum/leader-def
-    :keymaps 'override
-    "v" 'calc-dispatch)
-  (calum/leader-def
-    :infix "o"
-    :prefix-command 'org-actions-map
-    "a" 'org-agenda
-    "l" 'org-store-link
-    "c" 'org-capture
-    "j" '(org-journal-new-entry :which-key "new journal entry")
-    "d" 'org-decrypt-entry
-    "e" 'org-encrypt-entry
-    "p" 'calum/org-mobile-push
-    "f" 'calum/org-mobile-pull
-    "s" 'calum/org-mobile-sync
-    "o" 'calum/open-heading-links
-    "i" 'org-download-clipboard
-    "h" 'calum/paste-html-to-org
-    "t" 'org-toggle-inline-images
-    "r" '(nil :prefix-command org-restart-actions-map)
-    "r e" 'calum/rerun-org-export
-    "r r" 'org-mode-restart
-    "r s" 'org-superstar-restart)
-  (:keymaps 'org-mode-map
-            ;; Use return to insert a new item when at an item, behave
-            ;; normally otherwise. When at an item and a newline is
-            ;; needed, use C-j
-            "RET" (general-predicate-dispatch 'org-return
-                    (and (eolp) (calum/org-at-item-p)) 'org-meta-return))
-  (:keymaps 'org-mode-map
-            :predicate '(meow-insert-mode-p)
-            "C-d" 'cdlatex-tab
-            "C-s" 'calum/insert-superscript
-            "C-M-s" 'calum/insert-subscript)
+:general
+(calum/leader-def
+  :keymaps 'override
+  "v" 'calc-dispatch)
+(calum/leader-def
+  :infix "o"
+  :prefix-command 'org-actions-map
+  "a" 'org-agenda
+  "l" 'org-store-link
+  "c" 'org-capture
+  "RET" 'calum/insert-heading-with-id
+  "n" '(nil :prefix-command org-noter-actions-map)
+  "n S" '(org-noter :which-key "start note session")
+  "n TAB" '(org-noter-insert-note-toggle-no-questions :which-key "insert quick note")
+  "n i" '(org-noter-insert-note :which-key "insert note")
+  "n C-M-i" '(org-noter-insert-precise-note-toggle-no-questions :which-key "insert quick precise note")
+  "n M-i" '(org-noter-insert-precise-note :which-key "insert precise note")
+  "n q" 'org-noter-kill-session
+  "n C-M-." '(org-noter-sync-current-note :which-key "jump to page")
+  "n M-." '(org-noter-sync-current-page-or-chapter :which-key "jump to note")
+  "n n" 'org-noter-sync-next-page-or-chapter
+  "n p" 'org-noter-sync-prev-page-or-chapter
+  "n h" 'org-noter-set-hide-other
+  "n k" 'org-noter-create-skeleton
+  "n s" 'org-noter-set-auto-save-last-location
+  "n b" 'org-noter-set-notes-window-behavior
+  "n l" 'org-noter-set-notes-window-location
+  "k" '(nil :prefix-command org-remark-actions-map)
+  "k l" 'org-remark-mark-line
+  "k k" 'org-remark-mark
+  "k n" 'org-remark-view-next
+  "k N" 'org-remark-next
+  "k p" 'org-remark-view-prev
+  "k P" 'org-remark-prev
+  "k o" 'org-remark-open
+  "k s" 'org-remark-save
+  "k v" 'org-remark-view
+  "k c" 'org-remark-change
+  "k <backspace>" '(org-remark-delete :which-key "delete highlight + note")
+  "k <delete>" '(org-remark-remove :which-key "delete highlight")
+  "k t" 'org-remark-toggle
+  "r" '(nil :prefix-command org-roam-actions-map)
+  "r i" 'org-roam-node-insert
+  "r w" 'org-roam-refile
+  "r u" 'org-roam-ui-mode
+  "r c" 'org-roam-capture
+  "r b" 'org-roam-buffer-toggle
+  "r d" 'org-roam-buffer-display-dedicated
+  "r s" 'org-roam-db-sync
+  "r f" 'org-roam-node-find
+  "r r" 'org-roam-ref-add
+  "r t" 'org-roam-tag-add
+  "r a" 'org-roam-alias-add
+  "r p" 'org-roam-alias-add
+  "r R" 'org-roam-ref-remove
+  "r T" 'org-roam-tag-remove
+  "r A" 'org-roam-alias-remove
+  "r P" 'org-roam-alias-remove
+  "M" '(nil :prefix-command org-misc-actions-map)
+  "M j" '(org-journal-new-entry :which-key "new journal entry")
+  "M d" 'org-decrypt-entry
+  "M e" 'org-encrypt-entry
+  "M p" 'calum/org-mobile-push
+  "M f" 'calum/org-mobile-pull
+  "M s" 'calum/org-mobile-sync
+  "M o" 'calum/open-heading-links
+  "M i" 'org-download-clipboard
+  "M h" 'calum/paste-html-to-org
+  "M t" 'org-toggle-inline-images
+  "M x" 'calum/rerun-org-export
+  "M r" 'org-mode-restart
+  )
+(:keymaps 'org-mode-map
+          ;; Use return to insert a new item when at an item, behave
+          ;; normally otherwise. When at an item and a newline is
+          ;; needed, use C-j
+          "RET" (general-predicate-dispatch 'org-return
+                  (and (eolp) (calum/org-at-item-p)) 'org-meta-return))
+(:keymaps 'org-mode-map
+          :predicate '(meow-insert-mode-p)
+          "C-d" 'cdlatex-tab
+          "C-s" 'calum/insert-superscript
+          "C-M-s" 'calum/insert-subscript)
 #+end_src
 
 ***** Faces
@@ -1487,6 +1540,9 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 ***** Variables
 #+begin_src emacs-lisp
 :custom
+;; Set the link colors to blue by default for PDF export, instead of
+;; coloured boxes (which don't show up in some pdf viewers)
+(org-latex-hyperref-template "\\hypersetup{pdfauthor={%a}, pdftitle={%t}, pdfkeywords={%k}, pdfsubject={%d}, pdfcreator={%c}, pdflang={%L},colorlinks=true,linkcolor=blue,urlcolor=blue,filecolor=blue,citecolor=blue,anchorcolor=blue,linktocpage=true,unicode=true}")
 (org-ellipsis " ⤸ ")
 (org-hidden-keywords nil)
 (org-cycle-level-faces nil)
@@ -1500,12 +1556,13 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 (org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f"))
 (org-latex-prefer-user-labels t)
 (org-latex-packages-alist
-      '(("" "mathtools" t) ; Note: mathtools should come before unicode-math
-        ("" "fontspec" nil)
-        ("" "unicode-math" t)
-        ("" "xcolor" t)
-        ("left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm" "geometry" t)
-        ("" "bm" t)))
+ '(("" "mathtools" t) ; Note: mathtools should come before unicode-math
+   ("" "fontspec" nil)
+   ("" "unicode-math" t)
+   ("" "xcolor" t)
+   ("" "minted" t)
+   ("left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm" "geometry" t)
+   ("" "bm" t)))
 (org-format-latex-options
  '(:foreground default
                :background default
@@ -1514,50 +1571,50 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
                :html-background "Transparent"
                :html-scale 1.0
                :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
-  ;; Use org-agenda-file-to-front (C-c [) to add the current file to
-  ;; the list of agenda files
-  (org-directory "~/org")
-  (org-default-notes-file (concat org-directory "/notes.org"))
-  ;; Set to the name of the file where notes captured on mobile will
-  ;; be stored
-  ;; setsid required for xdg-open to work, from here
-  ;; https://askubuntu.com/a/883905
-  (org-file-apps '((auto-mode . emacs)
-                   (directory . "setsid -w xdg-open %s")
-                   ("\\.mm\\'" . default)
-                   ("\\.x?html?\\'" . default)
-                   ("\\.pdf\\'" . "setsid -w xdg-open %s")
-                   (t . "setsid -w xdg-open %s")))
-  ;; Don't keep indenting when adding whitespace
-  (org-src-preserve-indentation t)
-  ;; Tab indents using the src block's language's behaviour
-  (org-src-tab-acts-natively t)
-  ;; Don't ask for confirmation when evaluating src blocks
-  (org-confirm-babel-evaluate nil)
-  ;; Look across all agenda files for refiling
-  (org-refile-targets '((org-agenda-files . (:maxlevel . 3))))
-  ;; Allow specifying refile location using a full path including file name
-  (org-refile-use-outline-path 'file)
-  (org-outline-path-complete-in-steps nil)
-  (org-completion-use-ido nil)
+;; Use org-agenda-file-to-front (C-c [) to add the current file to
+;; the list of agenda files
+(org-directory "~/org")
+(org-default-notes-file (concat org-directory "/notes.org"))
+;; Set to the name of the file where notes captured on mobile will
+;; be stored
+;; setsid required for xdg-open to work, from here
+;; https://askubuntu.com/a/883905
+(org-file-apps '((auto-mode . emacs)
+                 (directory . "setsid -w xdg-open %s")
+                 ("\\.mm\\'" . default)
+                 ("\\.x?html?\\'" . default)
+                 ("\\.pdf\\'" . "setsid -w xdg-open %s")
+                 (t . "setsid -w xdg-open %s")))
+;; Don't keep indenting when adding whitespace
+(org-src-preserve-indentation t)
+;; Tab indents using the src block's language's behaviour
+(org-src-tab-acts-natively t)
+;; Don't ask for confirmation when evaluating src blocks
+(org-confirm-babel-evaluate nil)
+;; Look across all agenda files for refiling
+(org-refile-targets '((org-agenda-files . (:maxlevel . 3))))
+;; Allow specifying refile location using a full path including file name
+(org-refile-use-outline-path 'file)
+(org-outline-path-complete-in-steps nil)
+(org-completion-use-ido nil)
 
-  ;; Automatically create a header if it doesn't already exist in the refile target path
-  (org-refile-allow-creating-parent-nodes t)
+;; Automatically create a header if it doesn't already exist in the refile target path
+(org-refile-allow-creating-parent-nodes t)
 
-  ;; Don't start clock from the previous clock out
-  (org-clock-continuously nil)
-  ;; Save clock history and the current clock when emacs closes
-  (org-clock-persist t)
+;; Don't start clock from the previous clock out
+(org-clock-continuously nil)
+;; Save clock history and the current clock when emacs closes
+(org-clock-persist t)
 
-  (org-M-RET-may-split-line nil)
+(org-M-RET-may-split-line nil)
 
-  ;; Start agenda on current day
-  (org-agenda-start-on-weekday nil)
-  ;; Don't show inline images with their actual width
-  (org-image-actual-width nil)
+;; Start agenda on current day
+(org-agenda-start-on-weekday nil)
+;; Don't show inline images with their actual width
+(org-image-actual-width nil)
 
-  (org-catch-invisible-edits 'error)
-  (org-export-allow-bind-keywords t)
+(org-catch-invisible-edits 'error)
+(org-export-allow-bind-keywords t)
   #+end_src
 
 ****** Capture Templates
@@ -1643,12 +1700,16 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
                        (org-save-all-org-buffers)))
 
 (org-babel-do-load-languages 'org-babel-load-languages
-                             '((emacs-lisp . t)
-                               (python . t)
-                               (ledger . t)
-                               (latex . t)
-                               (shell . t)
-                               (R . t)))
+                             ;; seq-filter is a fix from https://github.com/purcell/emacs.d/issues/791 for "ob-ledger not found"
+                             (seq-filter
+                              (lambda (pair)
+                                (featurep (intern (concat "ob-" (symbol-name (car pair))))))
+                              '((emacs-lisp . t)
+                                (python . t)
+                                (ledger . t)
+                                (latex . t)
+                                (shell . t)
+                                (R . t))))
 ;; Allow for jumping back after jupming to src block head
 (calum/advise-push-mark-before 'org-babel-goto-src-block-head)
 #+end_src
@@ -1784,6 +1845,7 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
                "\\documentclass[stu,12pt,a4paper,biblatex,floatsintext]{apa7}
 \\usepackage{moreverb} % For \\verbatiminput
 \\usepackage{unicode-math}
+\\usepackage{float}
                [EXTRA]
                [NO-DEFAULT-PACKAGES]
                [NO-PACKAGES]"
@@ -2087,6 +2149,22 @@ https://github.com/org-noter/org-noter/
   )
 #+end_src
 
+*** Org Remark
+#+begin_src emacs-lisp
+(use-package org-remark
+  ;; Alternative way to enable `org-remark-global-tracking-mode' in
+  ;; `after-init-hook'.
+  ;; :hook (after-init . org-remark-global-tracking-mode)
+  :init
+  ;; It is recommended that `org-remark-global-tracking-mode' be
+  ;; enabled when Emacs initializes. Alternatively, you can put it to
+  ;; `after-init-hook' as in the comment above
+  (org-remark-global-tracking-mode +1)
+  :config
+  (use-package org-remark-info :straight nil :after info :config (org-remark-info-mode +1))
+  (use-package org-remark-eww :straight nil :after eww  :config (org-remark-eww-mode +1))
+  (use-package org-remark-nov :straight nil :after nov  :config (org-remark-nov-mode +1)))
+#+end_src
 ** Snippets with tempel
 - https://github.com/minad/tempel
 - https://github.com/Crandel/tempel-collection
@@ -2270,7 +2348,9 @@ https://github.com/org-noter/org-noter/
   (vertico-mode)
 
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  (setq vertico-cycle t)
+  (setq vertico-cycle t
+        ;; Try to reduce the prompt jumping around by increasing the minimum width
+        vertico-count-format '("%-12s " . "%s/%s"))
 
   (setq completion-in-region-function
         (lambda (&rest args)
@@ -2438,14 +2518,19 @@ targets. https://github.com/oantolin/embark/wiki/Additional-Configuration#use-wh
 **** Vertico Posframe
 [[https://github.com/tumashu/vertico-posframe]]
 
+Disabled as it is too buggy unfortunately. When opening an org-noter
+frame, the functionality that hides the minibuffer stops working, so
+the minibuffer is shown at the bottom of the frame and in the
+posframe. Also sometimes the posframe just doesn't show anything.
+
 #+begin_src emacs-lisp
 (use-package vertico-posframe
-  :disable t
+  :disabled t
   :after vertico
   :custom
-  (vertico-posframe-parameters
-   '((left-fringe . 8)
-     (right-fringe . 8)))
+  (vertico-posframe-parameters nil)
+  (vertico-posframe-width nil)
+  (vertico-posframe-min-width 150) ;; Reduce posframe resizing
   :config
   (setq vertico-multiform-commands
         '((consult-line
@@ -2751,20 +2836,6 @@ https://github.com/iyefrat/all-the-icons-completion/
   )
 #+end_src
 
-#+begin_src emacs-lisp
-(use-package js-mode
-  :straight (:type built-in)
-  :hook
-  (js-mode . eglot-ensure))
-#+end_src
-
-*** Python
-#+begin_src emacs-lisp
-(use-package python-mode
-  :straight (:type built-in)
-  :hook
-  (python-mode . eglot-ensure))
-#+end_src
 *** Rust
 #+begin_src emacs-lisp
 (use-package rust-mode
@@ -2776,7 +2847,7 @@ https://github.com/iyefrat/all-the-icons-completion/
 Setup completion for elisp to include words from the buffer and file
 paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-combine-capfs.
 #+begin_src emacs-lisp
-(use-package emacs-lisp
+(use-package elisp-mode
   :straight (:type built-in)
   :preface
   (defun calum/format-top-level-sexp ()
@@ -2868,6 +2939,7 @@ Use ~eglot-upgrade-eglot~ to get newer eglot versions, see [[https://www.reddit.
   (eglot-autoshutdown t)
   (eglot-confirm-server-initiated-edits nil)
   (eglot-extend-to-xref nil) ;; Maybe enable to get LSP in dependency code
+  (eglot-sync-connect nil) ;; Don't block to enable eglot
   :general
   (:keymaps 'eglot-mode-map
             "C-." 'eglot-code-actions)
@@ -2894,6 +2966,7 @@ Use ~eglot-upgrade-eglot~ to get newer eglot versions, see [[https://www.reddit.
   :hook
   (eglot-managed-mode . tempel-setup-capf)
   (eglot-managed-mode . (lambda () (eglot-inlay-hints-mode -1)))
+  ((js-mode python-mode) . eglot-ensure)
   :config
   (setq-default eglot-workspace-configuration
                 '(:purescript (
@@ -2955,6 +3028,23 @@ https://github.com/casouri/eldoc-box
 #+begin_src emacs-lisp
 (use-package eldoc-box)
 #+end_src
+*** Natural language with ltex
+- https://github.com/valentjn/ltex-ls
+- https://github.com/emacs-languagetool/eglot-ltex
+
+#+begin_src emacs-lisp
+(use-package eglot-ltex
+  :straight (eglot-ltex :type git :host github :repo "rynoV/eglot-ltex")
+  :preface
+  (defun calum/enable-ltex ()
+    "Enable ltex for natural language checking"
+    (interactive)
+    (require 'eglot-ltex)
+    (eglot-ensure))
+  :init
+  (setq eglot-languagetool-server-path "/home/calum/scripts/ltex-ls-15.2.0/"))
+#+end_src
+
 *** Flex & Bison
 #+begin_src emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.ll\\'" . c-mode))
@@ -3000,8 +3090,8 @@ https://github.com/casouri/eldoc-box
 #+end_src
 *** JSON
 #+begin_src emacs-lisp
-(use-package json-mode)
-(use-package json-navigator)
+(use-package json-mode :disabled t)
+(use-package json-navigator :disabled t)
 #+end_src
 
 ** Miscellaneous
@@ -3433,7 +3523,9 @@ Provides us with hints on available keystroke combinations.
                                       (not (string-match-p "\*elfeed*\*" buffer-name))
                                       (not (string-match-p "\*Ledger Report\*" buffer-name))
                                       )
-                                     (string-match-p "^[*]" buffer-name))))
+                                     (or
+                                      (string-match-p "^[*]" buffer-name)
+                                      (string-match-p "marginalia\.org" buffer-name)))))
   (advice-add 'iflipb-next-buffer :around 'spacemacs-layouts//advice-with-persp-buffer-list)
   (advice-add 'iflipb-previous-buffer :around 'spacemacs-layouts//advice-with-persp-buffer-list)
   ;; This should work everywhere, including magit buffers for example
@@ -3730,6 +3822,7 @@ _SPC_ cancel	_o_nly this     _d_elete
 See [[https://github.com/yuya373/emacs-slack#how-to-get-token-and-cookie][here]] for instructions on getting the slack token and cookie.
 #+begin_src emacs-lisp
 (use-package slack
+  :disabled t
   :commands (slack-start)
   :init
   (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
@@ -3803,6 +3896,7 @@ https://github.com/bmag/imenu-list, show imenu in a sidebar
 http://endlessparentheses.com/hungry-delete-mode.html
 #+begin_src emacs-lisp
 (use-package hungry-delete
+  :disabled t ;; Found this to be unintuitive for me in most cases, ended up with more keystrokes
   :delight
   :config
   (global-hungry-delete-mode))
