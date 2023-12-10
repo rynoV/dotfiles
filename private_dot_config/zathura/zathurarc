@@ -14,5 +14,7 @@ set index-bg "#2e3440"
 set index-active-bg "#88c0d0"
 set completion-highlight-bg "#88c0d0"
 set font "JetBrains Mono normal 9"
-map <C-i> recolor
+map <C-r> recolor
+map <Button8> jumplist backward
+map <Button9> jumplist forward
 set sandbox none # Allow web links to open
