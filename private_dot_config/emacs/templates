@@ -13,6 +13,11 @@ text-mode
           "| " (s str)                       " |" n
           "+-" (make-string (length str) ?-) "-+" n)
 
+rust-mode rust-ts-mode
+(test "#[test]" n> "fn " p "() {" n> q n "}" n)
+(aeq "assert_eq!(" q ")")
+(td "todo!()" q)
+
 purescript-mode haskell-mode
 
 (f (p "name" name) " :: " p n name " " p " = " q)
@@ -41,6 +46,7 @@ org-mode
 (py "#+begin_src python" n q n "#+end_src")
 (R "#+begin_src R" n q n "#+end_src")
 (lk "[[*" q)
+(lewis "#+name: " p n "#+begin_src latex" n "{\\fontsize{35}{40}\\selectfont" n q n "}" n "#+end_src")
 
 emacs-lisp-mode org-mode
 

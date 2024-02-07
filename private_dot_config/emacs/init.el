@@ -35,12 +35,23 @@
  '(auth-source-save-behavior nil)
  '(browse-url-browser-function 'browse-url-default-browser)
  '(custom-safe-themes
-   '("6096c0ff80d528b38ee77ab01bdbd5cdb7c513e09254dd8630c68240e2da8293" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" default))
+   '("3cdd0a96236a9db4e903c01cb45c0c111eb1492313a65790adb894f9f1a33b2d" "6096c0ff80d528b38ee77ab01bdbd5cdb7c513e09254dd8630c68240e2da8293" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" default))
+ '(ledger-reports
+   '(("Balance w/o budget" "ledger [[ledger-mode-flags]] -f /home/calum/org/ledger/ledger.dat bal Assets Liabilities --end tomorrow --effective --real")
+     ("Moving expenses summary" "ledger [[ledger-mode-flags]] -f /home/calum/org/ledger/ledger.dat bal Expenses:Home: Expenses:Moving: --period \"to 2023/04/24\"")
+     ("Monthly expense total by category" "ledger [[ledger-mode-flags]] -f /home/calum/org/ledger/ledger.dat bal Expenses: --period \"every month from 2023/04/24 to 2023/05/23\"")
+     ("Monthly expense total" "ledger [[ledger-mode-flags]] -f /home/calum/org/ledger/ledger.dat reg Expenses: --period \"every month from 2023/04/24 to 2023/05/23\"")
+     ("Peter's tab" "ledger [[ledger-mode-flags]] -f /home/calum/org/ledger/ledger.dat reg \"/Shared|Assets:Repayable:Peter/\" --period \"from 2023/06/24 to 2023/07/25\"")
+     ("Balance with budget" "ledger [[ledger-mode-flags]] -f /home/calum/org/ledger/ledger.dat bal Assets Liabilities --end tomorrow --effective")
+     ("bal" "%(binary) -f %(ledger-file) bal")
+     ("reg" "%(binary) -f %(ledger-file) reg")
+     ("payee" "%(binary) -f %(ledger-file) reg @%(payee)")
+     ("account" "%(binary) -f %(ledger-file) reg %(account)")))
  '(lsp-ui-sideline-delay 0.5)
  '(lsp-ui-sideline-show-hover t)
  '(lsp-ui-sideline-update-mode nil)
  '(org-agenda-files
-   '("/home/calum/org/mlabs.org" "/home/calum/org/school.org" "/home/calum/org/calum.org" "/home/calum/org/notes.org"))
+   '("/home/calum/org/notes.org" "/home/calum/org/auspice.org" "/home/calum/org/organizer.org" "/home/calum/org/ledger/hledger/reports.org" "/home/calum/org/calum.org"))
  '(org-journal-enable-encryption t)
  '(org-journal-mode-hook
    '(turn-on-visual-line-mode org-journal-default-enable-encryption
@@ -60,10 +71,19 @@
      ("" "amssymb" t nil)
      ("" "capt-of" nil nil)
      ("colorlinks=true,linkcolor=darkgray,unicode=true,psdextra" "hyperref" nil nil)))
+ '(org-refile-targets '((org-agenda-files :maxlevel . 3)) nil nil "Customized with use-package org")
+ '(org-refile-use-outline-path 'file nil nil "Customized with use-package org")
  '(package-selected-packages
    '(image-roll org-noter org-roam-ui org-mind-map persp-mode-projectile-bridge bufler centaur-tabs web-mode eglot eldoc-box persp-mode eyebrowse spaceline spaceline-config autothemer os1-theme org-fragtog rust-mode elfeed goto-last-change smart-region topsy scroll-on-jump scrollkeeper aggressive-indent mosey hungry-delete dashboard smartparens goggles org-appear origami org-modern ox-ipynb json-navigator json-mode dart-mode dart ox-ravel ess diff-hl elisp-format visual-regexp multiple-cursors combobulate tree-sitter-langs tree-sitter delight ox-gfm general consult-flymake consult-eglot adaptive-wrap org-superstar org-inlinetask tempel-collection tempel emacs-lisp kind-icon cape corfu all-the-icons-completion code-review graphql-mode ox-json imenu-list markdown hercules quelpa emacs-surround meow magit-delta git-link emacs-open-github-from-here ledger-mode git-gutter dhall-mode all-the-icons slack dirvish typescript-mode typescript ranger affe consult-dir consult-projectile embark-consult embark marginalia orderless vertico consult docker lsp-purescript purescript-mode minimap treemacs-projectile ripgrep rg projectile crm-custom ido-ubiquitous unicode-fonts nix-mode direnv org-crypt org-journal sudo-edit chezmoi-company chezmoi org flex-mode flex ligature yaml-mode lsp-ido prolog-mode writeroom-mode zen-mode ox-latex org-super-agenda haskell-mode org-download org-contrib ox-extra org-web-tools ox-md magit-todos forge auctex texmathp cdlatex rich-minority quelpa-use-package org-sort-tasks org-roam undo-tree org-indent visual-line org-sidebar iflipb restart-emacs poet-theme doom-themes highlight-escape-sequences highlight-numbers which-key diminish use-package))
  '(safe-local-variable-values
-   '((org-export-initial-scope . subtree)
+   '((calc-embedded-open-plain . "# ")
+     (org-use-property-inheritance "EXPORT_OPTIONS")
+     (org-use-property-inheritance quote
+                                   ("EXPORT_OPTIONS"))
+     (org-latex-hyperref-template . "\\hypersetup{pdfauthor={%a}, pdftitle={%t}, pdfkeywords={%k}, pdfsubject={%d}, pdfcreator={%c}, pdflang={%L},colorlinks=true,linkcolor=blue,urlcolor=blue,filecolor=blue,citecolor=blue,anchorcolor=blue,linktocpage=true,unicode=true}")
+     (org-latex-hyperref-template . "")
+     (aggressive-indent-mode)
+     (org-export-initial-scope . subtree)
      (org-fragtog-mode)
      (projectile-project-src-dir . "lib/")
      (projectile-project-test-cmd . "flutter test")
@@ -95,7 +115,8 @@
  '(hi-blue ((t (:background "#81A1C1" :foreground "black"))))
  '(hi-green ((t (:background "#A3BE8C" :foreground "black"))))
  '(hi-pink ((t (:background "#B48EAD" :foreground "black"))))
- '(hi-yellow ((t (:background "#EBCB8B" :foreground "black")))))
+ '(hi-yellow ((t (:background "#EBCB8B" :foreground "black"))))
+ '(org-column ((t (:inherit default :strike-through nil :underline nil :slant normal :weight normal)))))
 (put 'scroll-left 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)

@@ -1,6 +1,5 @@
 # -*- visual-fill-column-mode: nil -*-
-
-#+Title:Calum's Emacs Config
+#+Title: Calum's Emacs Config
 #+Author: Calum Sieppert
 #+Date: 2021
 # Allow evaluation of src blocks without results blocks popping up
@@ -23,7 +22,16 @@ works.
   )
 
 (use-package delight)
-  #+end_src
+#+end_src
+
+https://github.com/radian-software/el-patch for modifying packages.
+
+#+begin_src emacs-lisp
+(use-package el-patch
+  :config
+  (el-patch-feature hledger-mode))
+#+end_src
+
 
 * General Emacs Configuration
 
@@ -45,6 +53,18 @@ works.
 (defvar calum/code-font "JetBrains Mono")
 (defvar calum/code-font-height 120)
 (defvar calum/magit-mode nil)
+
+(defun calum/advise-around-visual-fill-column-off (orig-fun &rest args)
+  "Can be used as advice for a function to turn
+visual-fill-column-mode off temporarily."
+  (let ((visual-fill-column-mode-active visual-fill-column-mode))
+    (unwind-protect
+        (progn
+          (when visual-fill-column-mode-active
+            (visual-fill-column-mode -1))
+          (apply orig-fun args))
+      (when visual-fill-column-mode-active
+        (visual-fill-column-mode 1)))))
 
 (defun calum/reload-theme ()
   (interactive)
@@ -213,6 +233,13 @@ https://emacs.stackexchange.com/a/35907"
 *** Variables
 #+begin_src emacs-lisp
 :custom
+;; Some config to reduce prompting from
+;; https://www.masteringemacs.org/article/disabling-prompts-emacs
+(use-short-answers t)
+(confirm-nonexistent-file-or-buffer nil)
+(fill-column 70)
+(visual-fill-column-width 70)
+(visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 (enable-recursive-minibuffers t)
 ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
 (read-extended-command-predicate #'command-completion-default-include-p)
@@ -285,6 +312,11 @@ https://emacs.stackexchange.com/a/35907"
 :config
 (put 'number 'bounds-of-thing-at-point 'calum/bounds-of-number-at-point)
 
+;; This is mainly for the agenda window split, but also anything else
+;; the uses 'split-window-sensibly' (seemingly not the message buffer
+;; split for some reason)
+(advice-add 'window-splittable-p :around #'calum/advise-around-visual-fill-column-off)
+
 (advice-add 'browse-url :around #'wrap-with-direnv-disabled)
 
 (advice-add 'compile-goto-error :after #'recenter-advice)
@@ -310,7 +342,8 @@ https://emacs.stackexchange.com/a/35907"
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)
               (set-frame-parameter frame 'alpha '(95 . 95))
-              (set-scroll-bar-mode nil)))
+              (set-scroll-bar-mode nil)
+              (calum/reload-theme)))
 (add-to-list 'default-frame-alist '(alpha . (95 . 95)))
 
 ;; Clean unused buffer every day at midnight
@@ -330,6 +363,32 @@ https://emacs.stackexchange.com/a/35907"
 
 * Configuration for built-in packages
 
+** Auth
+#+begin_src emacs-lisp
+(use-package auth-source
+  :straight (:type built-in)
+  :preface
+  (defun auth-source-get-password (host username)
+  "Retrieve the password for a given host and username from auth-source."
+  (let ((entry (car (auth-source-search :host host
+                                        :user username
+                                        :max 1))))
+    (when entry
+      (let ((secret (plist-get entry :secret)))
+        (if (functionp secret)
+            (funcall secret)
+          secret)))))
+  :custom
+  (auth-sources '("~/.config/emacs/.authinfo")))
+#+end_src
+** Tramp
+#+begin_src emacs-lisp
+(use-package tramp
+  :straight (:type built-in)
+  :custom
+  (tramp-default-method "ssh"))
+#+end_src
+
 ** Calc
 #+begin_src emacs-lisp
 (use-package calc
@@ -337,6 +396,7 @@ https://emacs.stackexchange.com/a/35907"
   :custom
   (calc-context-sensitive-enter t))
 #+end_src
+
 ** Project.el
 #+begin_src emacs-lisp
 (use-package project
@@ -677,6 +737,36 @@ Other buffer group by `centaur-tabs-get-group-name' with project name."
          "OrgMode")
         (t
          (centaur-tabs-get-group-name (current-buffer)))))))
+  (defun centaur-tabs-hide-tab (x)
+    "Do no to show buffer X in tabs."
+    (let ((name (format "%s" x)))
+      (or
+       ;; Current window is not dedicated window.
+       (window-dedicated-p (selected-window))
+
+       ;; Buffer name not match below blacklist.
+       (string-prefix-p "*epc" name)
+       (string-prefix-p "*helm" name)
+       (string-prefix-p "*Helm" name)
+       (string-prefix-p "*Compile-Log*" name)
+       (string-prefix-p "*lsp" name)
+       (string-prefix-p "*company" name)
+       (string-prefix-p "*Flycheck" name)
+       (string-prefix-p "*tramp" name)
+       (string-prefix-p " *Mini" name)
+       (string-prefix-p "*help" name)
+       (string-prefix-p "*straight" name)
+       (string-prefix-p " *temp" name)
+       (string-prefix-p "*Help" name)
+       (string-prefix-p "*IList" name)
+       (string-prefix-p "*Messages" name)
+       (string-prefix-p "*Org Agenda" name)
+       (string-prefix-p "marginalia" name)
+
+       ;; Is not magit buffer.
+       (and (string-prefix-p "magit" name)
+            (not (file-name-extension name)))
+       )))
   (centaur-tabs-mode t))
 #+end_src
 
@@ -754,8 +844,7 @@ documentation).
   (use-package forge
     :after magit
     :config
-    (setq auth-sources '("~/.config/emacs/.authinfo")
-          forge-owned-accounts '(("rynoV") nil)))
+    (setq forge-owned-accounts '(("rynoV") nil)))
 #+end_src
 
 *** Code Review
@@ -1155,16 +1244,18 @@ From https://ebzzry.com/en/emacs-pairs/"
 #+end_src
 *** Structural editing (tree sitter)
 #+begin_src emacs-lisp
-(use-package tree-sitter
-  :hook
-  (tree-sitter-after-on . tree-sitter-hl-mode)
+(use-package treesit
+  :straight (:type built-in)
+  :custom
+  (treesit-language-source-alist
+   '((c "https://github.com/tree-sitter/tree-sitter-c")
+     (cpp "https://github.com/tree-sitter/tree-sitter-cpp")))
+  (treesit-font-lock-level 4)
   :config
-  (global-tree-sitter-mode)
-  (add-to-list 'tree-sitter-major-mode-language-alist '(purescript-mode . haskell))
-  (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
-  )
-(use-package tree-sitter-langs
-  :after tree-sitter)
+  (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+  (add-to-list 'major-mode-remap-alist
+               '(c-or-c++-mode . c-or-c++-ts-mode)))
 #+end_src
 
 **** Combobulate
@@ -1258,7 +1349,8 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
   :custom
   (cdlatex-make-sub-superscript-roman-if-pressed-twice t)
   (cdlatex-math-symbol-alist '((?\" ("\\cap"))
-                               (?@ ("\\text{?}"))))
+                               (?@ ("\\text{?}"))
+                               (?$ ("\\abs{?}"))))
   (cdlatex-use-dollar-to-ensure-math nil)
   (cdlatex-math-symbol-direct-bindings '(nil nil nil)) ;; TODO: possibly set this up for faster math symbols
   )
@@ -1277,6 +1369,16 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
   (auto-fill-function nil "simple"))
 #+end_src
 
+#+begin_src emacs-lisp
+(use-package org-habit
+  :straight (:type built-in)
+  :after org)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package all-the-icons)
+#+end_src
+
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 (use-package org
   :if (not calum/magit-mode)
@@ -1292,21 +1394,29 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
 
 ***** Hooks
 #+begin_src emacs-lisp
-  :hook ((org-mode . visual-line-mode)
-         ;; (org-mode . org-indent-mode)
-         ;; org-cdlatex-mode is useful for working with latex in org
-         (org-mode . turn-on-org-cdlatex)
-         ;; Wrap lines visually at the fill column
-         ;; (org-mode . visual-fill-column-mode)
-         (org-mode . auto-fill-mode)
-         ;; (org-mode . calum/set-keyword-faces-org)
-         (org-metaleft . calum/org-metaleft-hook)
-         (org-metaright . calum/org-metaright-hook))
+:hook ((org-mode . visual-line-mode)
+       ;; (org-mode . org-indent-mode)
+       ;; org-cdlatex-mode is useful for working with latex in org
+       (org-mode . turn-on-org-cdlatex)
+       ;; Wrap lines visually at the fill column
+       (org-mode . visual-fill-column-mode)
+       (org-mode . (lambda () (auto-fill-mode -1)))
+       ((org-mode org-agenda-mode) . (lambda () (setq-local tab-width 8)))
+       ;; (org-mode . calum/set-keyword-faces-org)
+       (org-metaleft . calum/org-metaleft-hook)
+       (org-metaright . calum/org-metaright-hook))
   #+end_src
 
 ***** Definitions
 #+begin_src emacs-lisp
 :preface
+
+(defun add-caption (caption)
+  "Allows adding captions to babel generated tables with ':wrap (add-caption \"some caption\")'
+
+From https://stackoverflow.com/questions/35635423/org-mode-add-a-header-to-a-table-programmatically/35641694#35641694"
+  (concat "org\n#+caption: " caption))
+
 (defvar calum/todo-super-agenda-groups '((:auto-outline-path t)))
 
 (defun calum/insert-heading-with-id ()
@@ -1483,6 +1593,7 @@ Use numeric prefix arg to insert number."
   "k <delete>" '(org-remark-remove :which-key "delete highlight")
   "k t" 'org-remark-toggle
   "r" '(nil :prefix-command org-roam-actions-map)
+  "r I" 'org-id-get-create
   "r i" 'org-roam-node-insert
   "r w" 'org-roam-refile
   "r u" 'org-roam-ui-mode
@@ -1535,14 +1646,37 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 (org-level-2 ((nil :height 1.2)))
 (org-level-1 ((nil :height 1.3)))
 (org-ellipsis ((nil :inherit 'org-level-8 :foreground "#D8DEE9")))
+;; Use plain styling for org column view, otherwise it looks messy
+;; when combined with other packages styling
+(org-column ((t (:inherit default :strike-through nil :underline nil :slant normal :weight normal))))
   #+end_src
 
 ***** Variables
 #+begin_src emacs-lisp
 :custom
+(org-log-into-drawer t)
+(org-log-done 'time)
+;; Don't start clock from the previous clock out
+(org-clock-continuously nil)
+;; Save clock history and the current clock when emacs closes
+(org-clock-persist t)
+(org-clock-x11idle-program-name "xprintidle")
+(org-clock-idle-time 15)
+;; For effort estimates, assume an eight hour work day, 11 month work
+;; year.
+(org-duration-units `(("min" . 1)
+                      ("h" . 60)
+                      ("d" . ,(* 60 8))
+                      ("w" . ,(* 60 8 5))
+                      ("m" . ,(* 60 8 5 4))
+                      ("y" . ,(* 60 8 5 4 11))))
+(org-duration-format '(("m") ("d") ("h") ("min")))
+;; Consider "today" over at 5am instead of midnight
+(org-extend-today-until 5)
+
 ;; Set the link colors to blue by default for PDF export, instead of
 ;; coloured boxes (which don't show up in some pdf viewers)
-(org-latex-hyperref-template "\\hypersetup{pdfauthor={%a}, pdftitle={%t}, pdfkeywords={%k}, pdfsubject={%d}, pdfcreator={%c}, pdflang={%L},colorlinks=true,linkcolor=blue,urlcolor=blue,filecolor=blue,citecolor=blue,anchorcolor=blue,linktocpage=true,unicode=true}")
+(org-latex-hyperref-template "\\hypersetup{pdfauthor={%a}, pdftitle={%t}, pdfkeywords={%k}, pdfsubject={%d}, pdfcreator={%c}, pdflang={%L},colorlinks=true,linkcolor=blue,urlcolor=blue,filecolor=blue,citecolor=blue,anchorcolor=blue,linktocpage=true,unicode=true,psdextra}")
 (org-ellipsis " ⤸ ")
 (org-hidden-keywords nil)
 (org-cycle-level-faces nil)
@@ -1553,7 +1687,10 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 (org-reverse-note-order t)
 (org-latex-compiler "xelatex")
 (org-latex-listings 'minted)
-(org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f"))
+(org-latex-pdf-process
+ '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f"
+   ;; "latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f"
+   ))
 (org-latex-prefer-user-labels t)
 (org-latex-packages-alist
  '(("" "mathtools" t) ; Note: mathtools should come before unicode-math
@@ -1591,41 +1728,79 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 (org-src-tab-acts-natively t)
 ;; Don't ask for confirmation when evaluating src blocks
 (org-confirm-babel-evaluate nil)
-;; Look across all agenda files for refiling
-(org-refile-targets '((org-agenda-files . (:maxlevel . 3))))
-;; Allow specifying refile location using a full path including file name
-(org-refile-use-outline-path 'file)
 (org-outline-path-complete-in-steps nil)
 (org-completion-use-ido nil)
 
 ;; Automatically create a header if it doesn't already exist in the refile target path
 (org-refile-allow-creating-parent-nodes t)
 
-;; Don't start clock from the previous clock out
-(org-clock-continuously nil)
-;; Save clock history and the current clock when emacs closes
-(org-clock-persist t)
-
 (org-M-RET-may-split-line nil)
 
-;; Start agenda on current day
-(org-agenda-start-on-weekday nil)
+;; Start agenda on previous monday
+(org-agenda-start-on-weekday 1)
+;; Use 'S' key in agenda buffer to show sunrise/sunset, 'M' for lunar
+;; phases.
+(calendar-latitude 51)
+(calendar-longitude -114)
+(org-agenda-restore-windows-after-quit t)
+(org-enforce-todo-dependencies t)
+(org-enforce-todo-checkbox-dependencies nil)
+(org-agenda-dim-blocked-tasks t)
+(org-agenda-todo-list-sublevels nil)
+;; Show icons instead of category names in agenda prefix
+(org-agenda-category-icon-alist
+ `(("auspice" ,(list (all-the-icons-material "work" :height 1.2)) nil nil :ascent center)
+   ("calum" ,(list (all-the-icons-material "home" :height 1.2)) nil nil :ascent center)
+   ("inbox" ,(list (all-the-icons-material "inbox" :height 1.2)) nil nil :ascent center)
+   ("organizer" ,(list (all-the-icons-fileicon "org" :height 1.2)) nil nil :ascent center)
+   ("finances" ,(list (all-the-icons-material "attach_money" :height 1.2)) nil nil :ascent center)
+   ("Anniversary" ,(list (all-the-icons-material "cake" :height 1.2)) nil nil :ascent center)
+   ("Holiday" ,(list (all-the-icons-material "event" :height 1.2)) nil nil :ascent center)
+   ))
+(org-agenda-prefix-format
+ '((agenda . " %i %?-12t% s")
+   (todo . " %i ")
+   (tags . " %i ")
+   (search . " %i ")))
+(org-agenda-time-grid
+ '((daily today require-timed)
+   (800 1000 1200 1400 1600 1800 2000)
+   " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"))
+;; Also search the archive files when doing org searches like with
+;; 'org-search-view'
+(org-agenda-text-search-extra-files '(agenda-archives))
+;; Organize archived items into a datetree
+(org-archive-location "%s_archive::datetree/")
+;; Save archive file after archive from agenda and from org file
+(org-archive-subtree-save-file-p t)
+
+;; (org-agenda-category-icon-alist nil)
 ;; Don't show inline images with their actual width
 (org-image-actual-width nil)
 
 (org-catch-invisible-edits 'error)
 (org-export-allow-bind-keywords t)
+
+;; Use unique ids for links to org headings
+(org-id-link-to-org-use-id t)
   #+end_src
 
 ****** Capture Templates
+:PROPERTIES:
+:ID:       9f93fccf-dce8-4d35-ad3e-a93be70d4fc9
+:END:
   #+begin_src emacs-lisp
 (org-capture-templates
  '(("t" "Todo" entry (file+headline "" "Tasks")
     "* TODO %?\n  %i\n")
    ("n" "Note" entry (file+headline "" "Quick Notes")
     "* %U\n%?\n")
-   ("m" "Meeting" entry (file+headline "mlabs.org" "Meetings")
+   ("m" "Meeting" entry (file+headline "auspice.org" "Meetings")
     "* %U\n%?\n" :prepend t)
+   ("d" "Daily Auspice Log" item (file+olp+datetree "auspice.org" "Dev log") nil
+    :jump-to-captured t :tree-type day)
+   ("j" "Jump to Daily Auspice Log" plain (file+olp+datetree "auspice.org" "Dev log") nil
+    :jump-to-captured t :tree-type day :immediate-finish t :empty-lines-after 1)
    ))
 #+end_src
 
@@ -1636,50 +1811,94 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
     ((org-agenda-category-filter-preset '("+calum"))
      (org-super-agenda-groups calum/todo-super-agenda-groups)
      ))
-   ("w" . "MLabs")
-   ("wc" "CTL" todo ""
-    ((org-agenda-category-filter-preset '("+ctl"))
-     (org-agenda-files '("~/org/mlabs.org"))
+   ("o" "Organizer App" todo ""
+    ((org-agenda-category-filter-preset '("+organizer"))
+     (org-agenda-todo-list-sublevels t)
      (org-super-agenda-groups calum/todo-super-agenda-groups)
      ))
-   ("ww" "Other" todo ""
-    ((org-agenda-category-filter-preset '("+mlabs"))
-     (org-agenda-files '("~/org/mlabs.org"))
+   ("h" "Habits"
+    ((agenda "" ((org-super-agenda-groups calum/todo-super-agenda-groups)
+                 (org-agenda-span 1)))
+     (tags-todo "+goal+non_daily"
+                ((org-super-agenda-date-format "%A, %B %-e")
+                 (org-super-agenda-groups '((:auto-planning t)))
+                 ;; (org-agenda-prefix-format
+                 ;; " %-55 b%(let ((scheduled (org-get-scheduled-time (point)))) (if scheduled (format-time-string \"%a %b %d\" scheduled) \"\")) ")
+                 (org-agenda-prefix-format
+                  " %-50 (concat \"(\" (car (last (org-get-outline-path))) \")\")")
+                 (org-agenda-sorting-strategy '(scheduled-up)))))
+    ((org-agenda-tag-filter-preset '("+goal"))
+     (org-agenda-category-filter-preset '("+calum"))
+     (org-agenda-files '("~/org/calum.org"))
+     ;; When doing filing after midnight, consider it as still the
+     ;; previous day
+     (org-use-effective-time t)
+     ))
+   ("w" . "Auspice")
+   ("ww" "Two Week Agenda and Tasks" ((agenda "") (todo ""))
+    ((org-agenda-category-filter-preset '("+auspice"))
+     (org-agenda-span 14)
+     (org-agenda-files '("~/org/auspice.org"))
      (org-super-agenda-groups calum/todo-super-agenda-groups)
      ))
-   ("s" . "School")
-   ("sd" "Today School Agenda" agenda ""
-    ((org-agenda-span 1)
+   ("wp" "Portfolio Analyzer Issues" tags-todo "+issue"
+    ((org-agenda-category-filter-preset '("+auspice"))
+     (org-agenda-files '("~/org/auspice.org"))
+     (org-agenda-view-columns-initially t)
      ))
-   ("so" "One Week School Agenda" agenda ""
-    ((org-agenda-span 7)
-     ))
-   ("st" "Two Week School Agenda" agenda ""
-    ((org-agenda-span 14)
-     ))
-   ("ss" "School Agenda" agenda ""
-    ((org-agenda-span 21)
-     ))
-   ("sm" "School Tasks without Assessments" todo ""
-    ((org-agenda-category-filter-preset '("+school" "-assessments"))
-     (org-agenda-files '("~/org/school.org"))
+   ("wt" "Todo" todo ""
+    ((org-agenda-category-filter-preset '("+auspice"))
+     (org-agenda-files '("~/org/auspice.org"))
      (org-super-agenda-groups calum/todo-super-agenda-groups)
      ))
-   ("sn" "School Tasks with Assessments" todo ""
-    ((org-agenda-category-filter-preset '("+school" "+assessments"))
-     (org-agenda-files '("~/org/school.org"))
-     (org-super-agenda-groups calum/todo-super-agenda-groups)
-     ))
-   ("u" "Unscheduled TODO" todo ""
-    ((org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp))
-     (org-agenda-files '("~/org/school.org"))
-     (org-super-agenda-groups calum/todo-super-agenda-groups)
-     ))))
+   ))
 #+end_src
 
 ***** Config
 #+begin_src emacs-lisp
+:config/el-patch
+;; Custom patch to make the "est+" summary for column view respect
+;; lower-upper bound time estimates given in org-duration format, and
+;; to just give a simple estimate if there is no difference in the
+;; lower and upper bounds.
+(defun org-columns--summary-estimate (estimates _)
+  "Combine a list of estimates, using mean and variance.
+The mean and variance of the result will be the sum of the means
+and variances (respectively) of the individual estimates."
+  (let ((mean 0)
+        (var 0))
+    (dolist (e estimates)
+      (pcase (mapcar (el-patch-swap #'string-to-number #'org-duration-to-minutes) (split-string e "-"))
+        (`(,low ,high)
+         (let ((m (/ (+ low high) 2.0)))
+           (cl-incf mean m)
+           (cl-incf var (- (/ (+ (* low low) (* high high)) 2.0) (* m m)))))
+        (`(,value) (cl-incf mean value))))
+    (let ((sd (sqrt var)))
+      (el-patch-swap (format "%s-%s"
+                             (format "%.0f" (- mean sd))
+                             (format "%.0f" (+ mean sd)))
+                     (if (zerop sd)
+                         (org-duration-from-minutes (- mean sd))
+                       (format "%s-%s"
+                               (org-duration-from-minutes (- mean sd))
+                               (org-duration-from-minutes (+ mean sd)))))
+      )))
+
 :config
+;; Org column view gets cropped by visual fill column mode
+(advice-add 'org-columns
+            :after #'(lambda (&rest _)
+                       (visual-fill-column-mode -1)))
+
+(advice-add 'org-columns-quit
+            :after #'(lambda (&rest _)
+                       (visual-fill-column-mode 1)))
+
+(advice-add 'org-agenda-columns
+            :after #'(lambda (&rest _)
+                       (visual-fill-column-mode -1)))
+
 (make-directory org-directory t)
 
 (org-link-set-parameters "editpdf"
@@ -1710,10 +1929,61 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
                                 (latex . t)
                                 (shell . t)
                                 (R . t))))
+;; (org-babel-do-load-languages 'org-babel-load-languages
+;;                              '((emacs-lisp . t)
+;;                                (org . t)
+;;                                (python . t)
+;;                                (ledger . t)
+;;                                (latex . t)
+;;                                (shell . t)
+;;                                (R . t)))
 ;; Allow for jumping back after jupming to src block head
 (calum/advise-push-mark-before 'org-babel-goto-src-block-head)
 #+end_src
 
+*** Org habit stats
+https://github.com/ml729/org-habit-stats
+#+begin_src emacs-lisp
+(use-package org-habit-stats
+  :general
+  (:keymaps 'org-agenda-mode-map
+            "H" 'org-habit-stats-view-habit-at-point-agenda)
+  (:keymaps 'org-habit-stats-mode-map
+            ;; Close the window, kill the buffer, and restore window configuration
+            "q" #'(lambda () (interactive) (quit-window t)))
+  :config/el-patch
+  ;; Patch to open the buffer in other window
+  (defun org-habit-stats-create-habit-buffer (habit-data habit-name habit-description habit-source)
+    "Create buffer displaying statistics, a calendar, and a bar graph.
+
+HABIT-DATA contains results from `org-habit-stats-parse-todo`.
+The name of the habit HABIT-NAME and description
+HABIT-DESCRIPTION are displayed at the top of the buffer. The
+HABIT-SOURCE is either 'agenda or 'file, indicating what kind of
+buffer the habit was located in. This is used by commands that
+navigate between habits."
+    (let* ((history (org-habit-stats-get-repeat-history-old-to-new habit-data))
+           (history-rev (reverse history))
+           (buff-name (concat "*Org-Habit-Stats "
+                              (truncate-string-to-width habit-name 25 nil nil t)
+                              "*"))
+           (cal-buff-name (concat "*Org-Habit-Stats Calendar "
+                                  (truncate-string-to-width habit-name 25 nil nil t)
+                                  "*")))
+      (setq org-habit-stats-current-buffer buff-name)
+      (setq org-habit-stats-current-calendar-buffer cal-buff-name)
+      ((el-patch-swap switch-to-buffer switch-to-buffer-other-window) (get-buffer-create org-habit-stats-current-buffer))
+      (erase-buffer)
+      (org-habit-stats-mode)
+      (setq org-habit-stats-habit-source habit-source)
+      (setq org-habit-stats-current-history history)
+      (setq org-habit-stats-current-history-rev history-rev)
+      (setq org-habit-stats-current-habit-data habit-data)
+      (setq org-habit-stats-current-habit-name habit-name)
+      (setq org-habit-stats-current-habit-description habit-description)
+      (org-habit-stats--insert-habit-buffer-contents)
+      (set-buffer-modified-p nil))))
+#+end_src
 *** Org Mobile
 #+begin_src emacs-lisp
 (use-package org-mobile
@@ -1819,11 +2089,13 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 #+begin_src emacs-lisp
 (require 'ox-md)
 (use-package ox-gfm)
-(use-package ox-json)
+(use-package ox-json :disabled t)
 (use-package ox-ravel
+  :disabled t
   :straight nil
   :load-path "/home/calum/.config/emacs/manual-plugins/ox-ravel")
 (use-package ox-ipynb
+  :disabled t
   :straight nil
   :load-path "/home/calum/.config/emacs/manual-plugins/ox-ipynb")
 #+end_src
@@ -1858,7 +2130,10 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
              '("cpsc501"
                "\\documentclass[11pt, a4paper]{article}
 \\usepackage[studentname=Calum\\ Sieppert,ucid=30093813,coursesubject=CPSC,coursenumber=501,coursename=Advanced\\ Programming,courseterm=f23,courseinstructor=Dr\\ Leonard\\ Manzara]{/home/calum/OneDriveSchool/year5/fall/CPSC_525/assignments/assignment}
-               [NO-DEFAULT-PACKAGES]"
+               [NO-DEFAULT-PACKAGES]
+               [NO-PACKAGES]
+\\usepackage{mathtools}
+"
                ("\\section{%s}" . "\\section*{%s}")
                ("\\subsection{%s}" . "\\subsection*{%s}")
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -2029,9 +2304,6 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
             "k" nil
             "SPC" nil)
   :config
-  (setq org-super-agenda-groups
-        '((:name "" :time-grid t)
-          (:auto-outline-path t)))
   ;; Note: To get the empty group hiding to work, I had to add the following line to org-super-agenda.el after line 308 in org-super-agenda--make-agenda-header:
   ;; (put-text-property 0 (length header) 'org-super-agenda-header t header)
   ;; This is because the org-super-agenda--hide-or-show-groups function relies on the text property, and line 308 did not seem to be adding the property correctly
@@ -2046,6 +2318,10 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
   :custom
   (org-journal-dir "~/org/journal/")
   (org-journal-file-type 'weekly)
+  :hook
+  ;; Not sure why this setting doesn't seem to be inherited from org
+  ;; mode
+  (org-journal-mode . (lambda () (auto-fill-mode -1)))
   :config
   (setq org-crypt-key "Calum Sieppert <sieppertcalum@gmail.com>"
         org-tags-exclude-from-inheritance '("crypt")))
@@ -2113,7 +2389,24 @@ https://github.com/org-roam/org-roam/issues/2397
       (file+head "${slug}.org" "#+title: ${title}")
       :unnarrowed t
       :kill-buffer nil)))
+  :preface
+  (defun my/return-t (orig-fun &rest args)
+    t)
+  (defun my/disable-yornp (orig-fun &rest args)
+    (advice-add 'yes-or-no-p :around #'my/return-t)
+    (advice-add 'y-or-n-p :around #'my/return-t)
+    (let ((res (apply orig-fun args)))
+      (advice-remove 'yes-or-no-p #'my/return-t)
+      (advice-remove 'y-or-n-p #'my/return-t)
+      res))
   :config
+  ;; Skip the delete file confirmation on abort/refile
+  ;; https://github.com/org-roam/org-roam/issues/2277#issuecomment-1481079702
+  (advice-add 'org-roam-capture--finalize :around #'my/disable-yornp)
+  (advice-add 'org-roam-node-insert :before
+              #'(lambda (&rest _)
+                  "Add an ID to the item so backlinks work"
+                  (org-id-get-create)))
   (require 'org-roam-protocol)
   (org-roam-db-autosync-enable)
   )
@@ -2164,6 +2457,20 @@ https://github.com/org-noter/org-noter/
   (use-package org-remark-info :straight nil :after info :config (org-remark-info-mode +1))
   (use-package org-remark-eww :straight nil :after eww  :config (org-remark-eww-mode +1))
   (use-package org-remark-nov :straight nil :after nov  :config (org-remark-nov-mode +1)))
+#+end_src
+*** Org sync
+https://github.com/arbox/org-sync
+
+Used to initially import issues from a repo, not great for actually keeping them in sync.
+
+#+begin_src emacs-lisp
+(use-package org-sync
+  ;; Defer loading until this is used
+  :commands org-sync-import
+  :custom
+  (org-sync-github-auth (cons "rynoV" (auth-source-get-password "api.github.com" "rynoV^forge")))
+  :config
+  (mapc 'load '("org-sync" "org-sync-github")))
 #+end_src
 ** Snippets with tempel
 - https://github.com/minad/tempel
@@ -2509,7 +2816,7 @@ targets. https://github.com/oantolin/embark/wiki/Additional-Configuration#use-wh
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :after (embark consult)
+  :ensure t
   ;; if you want to have consult previews as you move around an
   ;; auto-updating embark collect buffer
   :hook
@@ -2705,8 +3012,9 @@ https://github.com/minad/corfu/wiki
            "d" 'cape-dabbrev        ;; or dabbrev-completion
            "h" 'cape-history
            "f" 'cape-file
+           "e" 'cape-emoji
            "k" 'cape-keyword
-           "s" 'cape-symbol
+           "s" 'cape-elisp-symbol
            "a" 'cape-abbrev
            "i" 'cape-ispell
            "l" 'cape-line
@@ -2843,6 +3151,7 @@ https://github.com/iyefrat/all-the-icons-completion/
   (rust-mode . (lambda () (prettify-symbols-mode)))
   (rust-mode . eglot-ensure))
 #+end_src
+
 *** Lisp
 Setup completion for elisp to include words from the buffer and file
 paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-combine-capfs.
@@ -2862,7 +3171,7 @@ paths, based on https://github.com/minad/corfu/wiki#using-cape-to-tweak-and-comb
   (defun calum/setup-elisp ()
     (setq-local completion-at-point-functions
                 `(tempel-expand
-                  ,(cape-super-capf
+                  ,(cape-capf-super
                     #'elisp-completion-at-point
                     #'cape-dabbrev)
                   cape-file)
@@ -2966,13 +3275,34 @@ Use ~eglot-upgrade-eglot~ to get newer eglot versions, see [[https://www.reddit.
   :hook
   (eglot-managed-mode . tempel-setup-capf)
   (eglot-managed-mode . (lambda () (eglot-inlay-hints-mode -1)))
-  ((js-mode python-mode) . eglot-ensure)
+  ((js-mode python-mode c-ts-mode c++-ts-mode c-or-c++-ts-mode) . eglot-ensure)
   :config
   (setq-default eglot-workspace-configuration
                 '(:purescript (
                                :formatter "purs-tidy"
                                :censorWarnings ["WildcardInferredType"])
-                              :haskell (:plugin (:stan (:globalOn :json-false)))))
+                              :haskell (:plugin (:stan (:globalOn :json-false)))
+                              ;; :rust-analyzer
+                              ;; (
+                              ;;  :server (:extraEnv (:RUSTUP_TOOLCHAIN "nightly")))
+                              :ltex-ls (
+                                        :language  "en-CA"
+                                        :dictionary
+                                        (
+                                         :en-US [":~/scripts/ltex-ls-15.2.0/dictionary"]
+                                         :en-CA [":~/scripts/ltex-ls-15.2.0/dictionary"])
+                                        :disabledRules
+                                        (
+                                         :en-US [":~/scripts/ltex-ls-15.2.0/disabledRules"]
+                                         :en-CA [":~/scripts/ltex-ls-15.2.0/disabledRules"])
+                                        :enabledRules
+                                        (
+                                         :en-US [":~/scripts/ltex-ls-15.2.0/enabledRules"]
+                                         :en-CA [":~/scripts/ltex-ls-15.2.0/enabledRules"])
+                                        :hiddenFalsePositives
+                                        (
+                                         :en-US [":~/scripts/ltex-ls-15.2.0/hiddenFalsePositives"]
+                                         :en-CA [":~/scripts/ltex-ls-15.2.0/hiddenFalsePositives"]))))
   (add-to-list 'eglot-server-programs
                '(graphql-mode . ("graphql-lsp" "server" "--method=stream")))
   (add-to-list 'eglot-server-programs
@@ -3021,7 +3351,7 @@ Use ~eglot-upgrade-eglot~ to get newer eglot versions, see [[https://www.reddit.
        ;; :organizeImportsNumericCollation                                    ;; boolean
        ;; :organizeImportsAccentCollation                                     ;; boolean
        ;; :organizeImportsCaseFirst                                           ;; "upper" | "lower" | false
-       :disableLineTextInReferences                           :json-false)))))
+       :disableLineTextInRe       :disableLineTextInReferences                           :json-false)))))
 #+end_src
 **** UI
 https://github.com/casouri/eldoc-box
@@ -3093,9 +3423,18 @@ https://github.com/casouri/eldoc-box
 (use-package json-mode :disabled t)
 (use-package json-navigator :disabled t)
 #+end_src
-
+*** Just
+#+begin_src emacs-lisp
+(use-package just-mode)
+#+end_src
 ** Miscellaneous
 
+*** Adaptive wrap
+#+begin_src emacs-lisp
+(use-package adaptive-wrap
+  :hook
+  (text-mode . adaptive-wrap-prefix-mode))
+#+end_src
 *** Spacemacs
 
 #+begin_src emacs-lisp
@@ -3271,6 +3610,7 @@ https://github.com/Bad-ptr/persp-mode.el
   :custom
   (persp-add-buffer-on-after-change-major-mode 'free)
   (persp-set-last-persp-for-new-frames nil)
+  (persp-kill-foreign-buffer-behaviour 'kill)
   ;; (persp-set-ido-hooks t)
   :general
   (calum/leader-def :infix "q" :prefix-command 'workspace-actions-map
@@ -3362,7 +3702,7 @@ https://github.com/atheriel/evil-ledger
   ;; Clean up the ledger buffer before saving. `save-excursion' doesn't
   ;; work for some reason.
   (defun calum/ledger-before-save-hook ()
-    (when (eq major-mode 'ledger-mode)
+    (when (or (eq major-mode 'ledger-mode) (eq major-mode 'hledger-mode))
       (let ((temp-point (point)))
         (when (buffer-modified-p)
           (with-demoted-errors "Error: %S" (ledger-mode-clean-buffer)))
@@ -3377,6 +3717,76 @@ https://github.com/atheriel/evil-ledger
   (add-to-list 'Info-directory-list (concat user-emacs-directory "my-docs")))
 #+end_src
 
+*** Hledger
+#+begin_src emacs-lisp
+(use-package hledger-mode
+  :mode ("\\.hledger\\'"
+         "\\.timedot\\'")
+  :custom
+  (hledger-jfile (expand-file-name "~/org/ledger/hledger/ledger.hledger"))
+  (hledger-currency-string "$")
+  (hledger-top-asset-account "Assets")
+  (hledger-top-expense-account "Expenses")
+  (hledger-top-income-account "Income")
+  (hledger-year-of-birth 2001)
+  (hledger-daily-report-accounts hledger-top-expense-account)
+  (hledger-ratios-assets-accounts hledger-top-asset-account)
+  (hledger-ratios-income-accounts hledger-top-income-account)
+  (hledger-ratios-liquid-asset-accounts "Assets:Chequing Assets:Cash Assets:Paypal Assets:Wise Card")
+  (hledger-ratios-essential-expense-accounts "Expenses:Home")
+  (hledger-ratios-debt-accounts "Liabilities")
+  :general
+  (:keymaps 'hledger-mode-map
+            ; Remove the default binding to the return key from
+            ; hledger-mode that inserts a date
+            "RET" nil)
+  :preface
+  (defun hledger-completion-accounts ()
+    (when-let ((bounds (and (boundp 'hledger-accounts-cache)
+                            (bounds-of-thing-at-point 'symbol))))
+      (list (car bounds) (point) hledger-accounts-cache)))
+  :hook (hledger-mode . (lambda ()
+                          (add-hook 'completion-at-point-functions 'hledger-completion-accounts)))
+
+  :config/el-patch
+  ; Don't insert a date as part of indentation
+  (defun hledger-indent-empty-line ()
+    "Called when the line to be indented is empty."
+    (cond
+     ((hledger-prev-line-emptyp) (el-patch-swap (hledger-insert-date) nil))
+     ((hledger-prev-has-datep) (if (= (current-indentation) tab-width)
+                                   (hledger-insert-comment)
+                                 (hledger-delete-cur-line)
+                                 (indent-line-to tab-width)))
+     ((hledger-prev-has-commentp) (hledger-insert-comment))
+     ((hledger-prev-has-accp)
+      (indent-line-to tab-width))))
+
+  ; Allow inserting a date interactively
+  (defun hledger-insert-date ()
+    "Insert date at point."
+    (el-patch-add (interactive))
+    (insert (format-time-string "%Y-%m-%d ")))
+
+  ; Don't add a space after the currency symbol
+  (defun hledger-insert-rupee ()
+    "Insert the amount for a transaction in hledger."
+    (beginning-of-line)
+    (re-search-forward hledger-whitespace-account-regex)
+    (insert (concat "   " hledger-currency-string (el-patch-remove " "))))
+  :config
+  (require 'ob-hledger)
+  )
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package flymake-hledger
+  :custom
+  (flymake-hledger-checks '("accounts" "commodities" "balanced" "ordereddates" "tags"))
+  :hook
+  (hledger-mode . flymake-hledger-enable)
+  )
+#+end_src
 *** Folding
 #+begin_src emacs-lisp
 (use-package origami
@@ -3517,6 +3927,7 @@ Provides us with hints on available keystroke combinations.
   (setq iflipb-ignore-buffers (lambda (buffer-name)
                                 (and (and
                                       (not (string-match-p "\*Org Agenda\*" buffer-name))
+                                      (not (string-match-p "\*info\*" buffer-name))
                                       (not (string-match-p "\*Code Review\*" buffer-name))
                                       (not (string-match-p "\*Org Src" buffer-name))
                                       (not (string-match-p "\*dashboard\*" buffer-name))
@@ -3768,15 +4179,17 @@ _SPC_ cancel	_o_nly this     _d_elete
   (avy-indent-line-overlay t))
 #+end_src
 
-*** Zen Mode
+*** Writeroom Mode
 
 #+begin_src emacs-lisp
 (use-package writeroom-mode
+  :custom
+  (writeroom-width visual-fill-column-width)
   :config
+  ;; Note: doesn't work to set this in ':custom'
   (setq writeroom-global-effects
         (remove 'writeroom-set-fullscreen
-                (remove 'writeroom-set-alpha writeroom-global-effects))
-        writeroom-width 100))
+           (remove 'writeroom-set-alpha writeroom-global-effects))))
 #+end_src
 
 
@@ -3896,10 +4309,10 @@ https://github.com/bmag/imenu-list, show imenu in a sidebar
 http://endlessparentheses.com/hungry-delete-mode.html
 #+begin_src emacs-lisp
 (use-package hungry-delete
-  :disabled t ;; Found this to be unintuitive for me in most cases, ended up with more keystrokes
   :delight
-  :config
-  (global-hungry-delete-mode))
+  :general
+  ("M-<backspace>" 'hungry-delete-backward)
+  ("M-DEL" 'hungry-delete-forward))
 #+end_src
 
 *** Mosey
@@ -3916,7 +4329,8 @@ https://github.com/Malabarba/aggressive-indent-mode
 #+begin_src emacs-lisp
 (use-package aggressive-indent
   :config
-  (global-aggressive-indent-mode))
+  (global-aggressive-indent-mode)
+  (add-to-list 'aggressive-indent-excluded-modes 'hledger-mode))
 #+end_src
 
 *** Scroll on jump
