@@ -190,6 +190,10 @@ https://emacs.stackexchange.com/a/35907"
    (posn-set-point (event-end event))
    (browse-url (thing-at-point 'url t))))
 
+("S-<delete>" (general-key "<cut>"))
+("C-<insert>" (general-key "<copy>"))
+("S-<insert>" (general-key "<paste>"))
+
 ("<XF86Paste>" (general-key "<paste>"))
 ("<XF86Copy>" (general-key "<copy>"))
 ("<XF86Cut>" (general-key "<cut>"))
