@@ -112,7 +112,7 @@ import XMonad.Prompt.Window
   )
 import XMonad.Prompt.XMonad (xmonadPrompt)
 import qualified XMonad.StackSet as W
-import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap)
+import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap, removeKeys)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Loggers (Logger, logTitles)
 import XMonad.Util.NamedActions
@@ -139,6 +139,9 @@ main =
     . ewmh
     . withEasySB (statusBarProp "xmobar" (return myXmobarPP)) defToggleStrutsKey
     . addMyDefaultKeys ((mod4Mask, xK_F1), showKeybindingsAction) addMyKeymap
+    -- Remove default alt-tab so that alttab program can bind the keys
+    -- https://github.com/sagb/alttab/blob/master/doc/wm-setup.md
+    . flip removeKeys [(mod1Mask, xK_Tab), (mod1Mask .|. shiftMask, xK_Tab)]
     $ myConfig
   where
     addMyDefaultKeys k ks = addDescrKeys' k (\l -> myDefaultKeys l ^++^ ks l)
@@ -238,7 +241,6 @@ winResizeAmount = 30
 -- modifiers)
 myKeymap =
   [ ("M-<Tab>", addName "Previous window" $ nextMatch History (return True)),
-    ("M1-<Tab>", addName "Cycle windows in MRU order" $ cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
     ("M-<Esc>", addName "Suspend" $ spawn "systemctl suspend"),
     ("C-S-M1-r", addName "Clipboard history" $ spawn "copyq toggle"),
     -- Move focus to prev/next screen
@@ -441,6 +443,7 @@ myStartupHook = do
   spawnOnce "xbindkeys --poll-rc"
   spawnOnce "copyq"
   spawnOnce "redshift"
+  spawnOnce "alttab"
   checkKeymap myConfig (map (second $ const (return () :: X ())) myKeymap)
 
 myXmobarPP :: PP
