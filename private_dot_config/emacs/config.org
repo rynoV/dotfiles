@@ -800,6 +800,7 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
       (call-interactively 'magit-status)))
   :custom
   (git-commit-major-mode 'git-commit-elisp-text-mode) ;; Setting this as the major mode allows eglot to provide a special language server for git commit buffers
+  (magit-section-show-context-menu-for-emacs<28 t)
   :config
   (if calum/magit-mode
       (progn
@@ -1922,25 +1923,26 @@ and variances (respectively) of the individual estimates."
             :after #'(lambda (&rest _)
                        (org-save-all-org-buffers)))
 
-(org-babel-do-load-languages 'org-babel-load-languages
-                             ;; seq-filter is a fix from https://github.com/purcell/emacs.d/issues/791 for "ob-ledger not found"
-                             (seq-filter
-                              (lambda (pair)
-                                (featurep (intern (concat "ob-" (symbol-name (car pair))))))
-                              '((emacs-lisp . t)
-                                (python . t)
-                                (ledger . t)
-                                (latex . t)
-                                (shell . t)
-                                (R . t))))
 ;; (org-babel-do-load-languages 'org-babel-load-languages
-;;                              '((emacs-lisp . t)
-;;                                (org . t)
-;;                                (python . t)
-;;                                (ledger . t)
-;;                                (latex . t)
-;;                                (shell . t)
-;;                                (R . t)))
+;;                              ;; seq-filter is a fix from https://github.com/purcell/emacs.d/issues/791 for "ob-ledger not found"
+;;                              (seq-filter
+;;                               (lambda (pair)
+;;                                 (featurep (intern (concat "ob-" (symbol-name (car pair))))))
+;;                               '((emacs-lisp . t)
+;;                                 (org . t)
+;;                                 (python . t)
+;;                                 (ledger . t)
+;;                                 (latex . t)
+;;                                 (shell . t)
+;;                                 (R . t))))
+(org-babel-do-load-languages 'org-babel-load-languages
+                             '((emacs-lisp . t)
+                               (org . t)
+                               (python . t)
+                               (ledger . t)
+                               (latex . t)
+                               (shell . t)
+                               (R . t)))
 ;; Allow for jumping back after jupming to src block head
 (calum/advise-push-mark-before 'org-babel-goto-src-block-head)
 #+end_src

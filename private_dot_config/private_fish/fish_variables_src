@@ -1,6 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-SETUVAR --export BW_SESSION:Ph2PehTivOtnhEsGFzkrWJa5ajWUJiJGhI5hGaDeKbJ9hgOhdoR27GHwr9OFo6L8vLuBpiFYBHc7p4jRO\x2bLr1A\x3d\x3d
+SETUVAR --export BW_SESSION:ya6Ig8Mt7DCTluQZ0eTxqougg7hrcv6LjJKEDehc5lHqKv3pYM9f0q\x2b41R2M2GS0u0X7yB/llZDYOv/gBU6pow\x3d\x3d
 SETUVAR Z_DATA_DIR:/home/calum/\x2elocal/share/z
 SETUVAR __fish_initialized:3400
 SETUVAR _fisher_FabioAntunes_2F_fish_2D_nvm_files:/home/calum/\x2econfig/fish/functions/__nvm_run\x2efish\x1e/home/calum/\x2econfig/fish/functions/node\x2efish\x1e/home/calum/\x2econfig/fish/functions/npm\x2efish\x1e/home/calum/\x2econfig/fish/functions/npx\x2efish\x1e/home/calum/\x2econfig/fish/functions/nvm\x2efish\x1e/home/calum/\x2econfig/fish/functions/nvm_alias_command\x2efish\x1e/home/calum/\x2econfig/fish/functions/nvm_alias_function\x2efish\x1e/home/calum/\x2econfig/fish/functions/yarn\x2efish\x1e/home/calum/\x2econfig/fish/completions/nvm\x2efish

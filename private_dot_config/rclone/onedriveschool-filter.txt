@@ -1,8 +1,32 @@
 # Should be ordered from most restrictive to least
 # See docs here: https://rclone.org/filtering/#filter-from-read-filtering-patterns-from-a-file
-+ /year3/winter/STAT_217/
-+ /year3/winter/STAT_217/**
+- **/cmake-build-debug/
+- **/node_modules/
+- **/.venv/
+- **/.pytest_cache/
+- **/.cache/
+- **/.stack-work/
+- **/.idea/
+- **/dist-newstyle/
+- **/.dart_tool/
+- **/.gradle/
+- **/build/
+- **/ltximg/
++ /lemp10backups/
++ /lemp10backups/last_snapshot/
++ /lemp10backups/last_snapshot/Music/
++ /lemp10backups/last_snapshot/Music/**
++ /lemp10backups/last_snapshot/code/
++ /lemp10backups/last_snapshot/code/**
++ /year1/
++ /year1/**
++ /year2/
++ /year2/**
++ /year3/
++ /year3/**
 + /year4/
 + /year4/**
++ /year5/
++ /year5/**
 # exclude everything else
 - *

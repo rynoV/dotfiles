@@ -1,12 +1,12 @@
 [".config/xmonad/xmonad"]
     type = "git-repo"
-    url = "https://github.com/xmonad/xmonad"
+    url = "https://github.com/rynoV/xmonad"
 [".config/xmonad/xmonad-contrib"]
     type = "git-repo"
-    url = "https://github.com/xmonad/xmonad-contrib"
+    url = "https://github.com/rynoV/xmonad-contrib"
 ["scripts/xmobar"]
     type = "git-repo"
-    url = "https://github.com/jaor/xmobar"
+    url = "https://github.com/rynoV/xmobar"
 [".config/ranger/plugins/ranger-archives"]
     type = "git-repo"
     url = "https://github.com/maximtrp/ranger-archives"
