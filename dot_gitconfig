@@ -3,7 +3,7 @@
     name = Calum Sieppert
 [credential]
     credentialStore = gpg
-    helper = /usr/share/git-credential-manager-core/git-credential-manager-core
+    helper = /usr/bin/git-credential-manager
 [pull]
     rebase = false
 [fetch]
@@ -52,3 +52,5 @@
     recurse = true
 [safe]
     directory = /opt/flutter
+[push]
+    useForceIfIncludes = true

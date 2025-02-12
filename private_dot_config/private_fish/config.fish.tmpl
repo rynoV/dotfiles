@@ -1,4 +1,4 @@
-# -*- mode: fish; -*-
+# -*- mode: fish; aggressive-indent-mode: nil -*-
 
 fish_vi_key_bindings
 
@@ -19,6 +19,9 @@ set --export XDG_STATE_HOME $HOME/.local/state
 
 fish_add_path --path ~/.local/bin
 fish_add_path --path ~/.local/bin/evil-software
+
+fish_add_path --path ~/.local/share/JetBrains/Toolbox/scripts
+
 set --export VISUAL emacsclient --no-wait --create-frame
 set --export EDITOR emacsclient --no-wait --create-frame
 set --export BROWSER browser
@@ -54,7 +57,7 @@ set --export TEXMFCONFIG ~/.config/texmf
 # For GTK 4 apps
 set --export GTK_THEME Nordic
 
-set --export CACHIX_AUTH_TOKEN {{ (bitwarden "item" "MLabs Read Cachix Key").notes }}
+alias me myemacs
 
 alias g magit
 
@@ -102,6 +105,8 @@ fish_add_path --path $HOME/.nix-profile/bin /nix/var/nix/profiles/default/bin
 
 fish_add_path --path /opt/flutter/bin
 fish_add_path --path $HOME/Android/Sdk/cmdline-tools/latest/bin
+
+fish_add_path --path $HOME/.dotnet/tools
 
 # Rust
 set --export RUSTUP_HOME $XDG_DATA_HOME/.rustup

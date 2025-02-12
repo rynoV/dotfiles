@@ -15,9 +15,10 @@ import Data.Bifunctor (bimap, first, second)
 import qualified Data.ByteString.Lazy.UTF8 as B
 import Data.Char (isPrint, isSpace)
 import Data.Foldable (forM_)
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
+import Data.Ratio
 import GHC.Generics (Generic)
 import PromptKeymap (myVimLikeXPKeymap')
 import SymbolPicker (mkSymbolPrompt)
@@ -43,6 +44,7 @@ import XMonad.Actions.CycleWS
   )
 import XMonad.Actions.CycleWindows (cycleRecentWindows)
 import XMonad.Actions.DynamicWorkspaces (removeWorkspace, renameWorkspace, selectWorkspace, withWorkspace)
+import XMonad.Actions.FloatKeys
 import XMonad.Actions.GroupNavigation (Direction (History), historyHook, nextMatch)
 import XMonad.Actions.PhysicalScreens (onNextNeighbour, onPrevNeighbour)
 import XMonad.Actions.Search (dictionary, duckduckgo, google, hoogle, intelligent, promptSearchBrowser, selectSearchBrowser)
@@ -112,7 +114,7 @@ import XMonad.Prompt.Window
   )
 import XMonad.Prompt.XMonad (xmonadPrompt)
 import qualified XMonad.StackSet as W
-import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap)
+import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap, removeKeys)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Loggers (Logger, logTitles)
 import XMonad.Util.NamedActions
@@ -139,6 +141,9 @@ main =
     . ewmh
     . withEasySB (statusBarProp "xmobar" (return myXmobarPP)) defToggleStrutsKey
     . addMyDefaultKeys ((mod4Mask, xK_F1), showKeybindingsAction) addMyKeymap
+    -- Remove default alt-tab so that alttab program can bind the keys
+    -- https://github.com/sagb/alttab/blob/master/doc/wm-setup.md
+    . flip removeKeys [(mod1Mask, xK_Tab), (mod1Mask .|. shiftMask, xK_Tab)]
     $ myConfig
   where
     addMyDefaultKeys k ks = addDescrKeys' k (\l -> myDefaultKeys l ^++^ ks l)
@@ -168,10 +173,10 @@ myConfig =
 
 myLayoutConfig =
   windowNavigation $
-    renamed [PrependWords "Centered"] (gaps [(U, 6), (D, 6)] $ centeredIfSingle 0.8 Full)
+    renamed [PrependWords "Centered"] (gaps [(U, 6), (D, 6)] $ centeredIfSingle 0.8 Full) |||
+    Full
       ||| spacingWithEdge 3 (TwoPane (3 / 100) (1 / 2))
-      ||| Full
-      ||| magnifiercz 1.2 Circle
+      -- ||| magnifiercz 1.2 Circle
 
 myPromptConfig :: XPConfig
 myPromptConfig =
@@ -195,12 +200,6 @@ myScratchpads =
     NS "terminal" "kitty --title terminal" (title =? "terminal") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
     NS "files" "kitty --title files ranger" (title =? "files") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
     NS
-      "timetracking"
-      "qutebrowser --target window https://mlabs.harvestapp.com/time"
-      (("Timesheet" `isInfixOf`) <$> title)
-      $ customFloating
-      $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
-    NS
       "calc"
       "emacsclient --create-frame --frame-parameters \"'(name . \\\"Emacs Calc\\\")\" --eval \"(full-calc)\""
       (title =? "Emacs Calc")
@@ -208,7 +207,7 @@ myScratchpads =
       $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
   ]
 
-addMyKeymap c = (subtitle "Custom Keys" :) $ mkNamedKeymap c myKeymap
+addMyKeymap c = subtitle "Custom keys" : mkNamedKeymap c myKeymap
 
 ignoreScratchpadWS :: WSType
 ignoreScratchpadWS = ignoringWSs [scratchpadWorkspaceTag]
@@ -233,20 +232,18 @@ winMoveAmount = 40
 winResizeAmount :: Int
 winResizeAmount = 30
 
+-- | Prompt config with early completion for exact prefix matches
+myPromptConfig' = myPromptConfig {autoComplete = Just 100000, searchPredicate = isPrefixOf}
+
 -- Note: M1 is left alt, C-S-M1-M is the "hyper" key and C-S-M1 is the
 -- "meh" key (special keys on my keyboard that emulate these
 -- modifiers)
+myKeymap :: [(String, NamedAction)]
 myKeymap =
-  [ ("M-<Tab>", addName "Previous window" $ nextMatch History (return True)),
-    ("M1-<Tab>", addName "Cycle windows in MRU order" $ cycleRecentWindows [xK_Alt_L] xK_Tab xK_q),
+  [ -- subtitle' "Custom keys",
+    -- subtitle' "Misc",
     ("M-<Esc>", addName "Suspend" $ spawn "systemctl suspend"),
     ("C-S-M1-r", addName "Clipboard history" $ spawn "copyq toggle"),
-    -- Move focus to prev/next screen
-    ("M-a", addName "Focus previous screen" $ onPrevNeighbour def W.view),
-    ("M-o", addName "Focus previous screen" $ onNextNeighbour def W.view),
-    -- Move focused window to prev/next screen
-    ("M-S-a", addName "Move window to previous screen" $ onPrevNeighbour def W.shift),
-    ("M-S-o", addName "Move window to next screen" $ onNextNeighbour def W.shift),
     -- Click a window or drag a rectangle to screenshot it
     ( "M-s r",
       addName "Screenshot window or rectangle" $
@@ -260,7 +257,31 @@ myKeymap =
     ("M-s d", addName "Screenshot all monitors" $ unGrab *> spawn "scrot"),
     -- Take a screenshot of the current window
     ("M-s w", addName "Screenshot current window" $ unGrab *> spawn "scrot --focused"),
+    ("M-<F9>", addName "Redraw and cycle the wallpaper" $ spawn "variety --next"),
+    ("M-<F10>", addName "Reload the monitor layout" $ spawn "autorandr --force --change"),
+    -- Adjust monitor brightness
+    ( "M-<F11>",
+      addName "Decrease monitor brightness" $
+        spawn "light -s sysfs/backlight/ddcci5 -U 1 && light -s sysfs/backlight/ddcci5 -O"
+    ),
+    ( "M-<F12>",
+      addName "Increase monitor brightness" $
+        spawn "light -s sysfs/backlight/ddcci5 -A 1 && light -s sysfs/backlight/ddcci5 -O"
+    ),
+    -- subtitle' "Windows and screen",
+    ("M-<Tab>", addName "Previous window" $ nextMatch History (return True)),
+    -- Move focus to prev/next screen
+    ("M-a", addName "Focus previous screen" $ onPrevNeighbour def W.view),
+    ("M-o", addName "Focus previous screen" $ onNextNeighbour def W.view),
+    -- Move focused window to prev/next screen
+    ("M-S-a", addName "Move window to previous screen" $ onPrevNeighbour def W.shift),
+    ("M-S-o", addName "Move window to next screen" $ onNextNeighbour def W.shift),
     ("M-S-p", addName "Run command or raise window of command" $ runOrRaisePrompt myPromptConfig),
+    -- Move all windows to the next screen
+    ( "M-w a",
+      addName "Move all windows to the next screen" $
+        withAll (\w -> focus w >> onNextNeighbour def W.shift)
+    ),
     -- Directional window movement
     ("M-<Right>", addName "Move to rightward window" $ sendMessage $ Go R),
     ("M-<Left>", addName "Move to leftward window" $ sendMessage $ Go L),
@@ -270,7 +291,13 @@ myKeymap =
     ("M-C-<Left>", addName "Swap with leftward window" $ sendMessage $ Swap L),
     ("M-C-<Up>", addName "Swap with upward window" $ sendMessage $ Swap U),
     ("M-C-<Down>", addName "Swap with downward window" $ sendMessage $ Swap D),
-    -- Prompts
+    ("M-w M-j", addName "Move window down" $ withFocused $ keysMoveWindow (0, winMoveAmount)),
+    ("M-w M-k", addName "Move window up" $ withFocused $ keysMoveWindow (0, -winMoveAmount)),
+    ("M-w M-l", addName "Move window right" $ withFocused $ keysMoveWindow (winMoveAmount, 0)),
+    ("M-w M-h", addName "Move window left" $ withFocused $ keysMoveWindow (-winMoveAmount, 0)),
+    ("M-w M-s", addName "Shrink window" $ withFocused $ keysResizeWindow (-winResizeAmount, -winResizeAmount) (1 % 2, 1 % 2)),
+    ("M-w M-g", addName "Grow window" $ withFocused $ keysResizeWindow (winResizeAmount, winResizeAmount) (1 % 2, 1 % 2)),
+    -- subtitle' "Prompts",
     ( "M-p w",
       addName
         "Select a window in the current workspace, or hit ` and bring a window from another workspace"
@@ -301,7 +328,7 @@ myKeymap =
       addName "Select then copy a username and password from bitwarden" $
         bwLoginCopyPrompt myPromptConfig
     ),
-    -- Unicode/emoji prompts
+    -- subtitle' "Unicode/emoji prompts"
     -- ("M-p e e", addName "Emoji picker" $ spawn "rofimoji"),
     ( "M-p e e",
       addName "Emoji picker (common emoji)" $
@@ -339,22 +366,23 @@ myKeymap =
       addName "Nerd font symbols" $
         mkSymbolPrompt "nerd_font.txt" "Nerd" myPromptConfig
     ),
-    -- App launchers
+    -- subtitle' "App launchers",
     ("C-S-M1-e", addName "Launch emacs" $ spawn "myemacs --create-frame"),
+    ("C-S-M1-v", addName "Launch VSCode" $ spawn "code"),
     ("C-S-M1-b", addName "New browser window" $ spawn "browser"),
     ("C-S-M1-M-b p", addName "New private browser window" $ spawn "private-browser"),
     ("C-S-M1-M-b c", addName "Open clipboard link in chromium" $ spawn "xclip -selection clipboard -out | xargs chromium"),
     ("C-S-M1-t", addName "Launch terminal" $ spawn $ terminal myConfig),
     ("C-S-M1-s", addName "Launch slack" $ spawn "slack"),
     ("C-S-M1-d", addName "Launch discord" $ spawn "discord"),
-    -- Emacs launchers (mnemonic "E-macs")
+    -- subtitle' "Emacs launchers",
     ("C-S-M1-M-e n", addName "Capture a note" $ spawn "~/scripts/org-capture n"),
     ("C-S-M1-M-e t", addName "Capture a todo item" $ spawn "~/scripts/org-capture t"),
     ( "C-S-M1-M-e c",
       addName "Run a quick calculation and copy to clipboard" $
         spawn "~/scripts/emacs-calc"
     ),
-    -- Bluetooth (mnemonic "C-onnection")
+    -- subtitle' "Bluetooth",
     ("C-S-M1-M-c o", addName "Bluetooth on" $ spawn "bluetoothctl power on"),
     ("C-S-M1-M-c f", addName "Bluetooth off" $ spawn "bluetoothctl power off"),
     ( "C-S-M1-M-c m",
@@ -363,22 +391,21 @@ myKeymap =
     ),
     ("C-S-M1-M-c c", addName "Connect airpods" $ spawn "~/scripts/connect-airpods-no-mic.sh"),
     ("C-S-M1-M-c d", addName "Disconnect airpods" $ spawn "~/scripts/disconnect-airpods.sh"),
-    -- Scratchpads
+    -- subtitle' "Scratchpads",
     ("C-S-M1-h", addName "Toggle htop" $ namedScratchpadAction myScratchpads "htop"),
-    ("C-S-M1-o", addName "Toggle timetracking" $ namedScratchpadAction myScratchpads "timetracking"),
     ("M-t", addName "Toggle terminal" $ namedScratchpadAction myScratchpads "terminal"),
     ("M-f", addName "Toggle file manager" $ namedScratchpadAction myScratchpads "files"),
     ("C-S-M1-c", addName "Toggle calculator" $ namedScratchpadAction myScratchpads "calc"),
-    -- Workspaces
+    -- subtitle' "Workspaces",
     ("M-w <Backspace>", addName "Delete workspace" removeWorkspace),
     ("M-w <Tab>", addName "Go to previously visited workspace" $ toggleWS' [scratchpadWorkspaceTag]),
     ("M-w e", addName "Go to an empty workspace" $ moveTo Next $ emptyWS :&: ignoreScratchpadWS),
-    ("M-w p", addName "Select/create a workspace by name" $ selectWorkspace myPromptConfig),
+    ("M-w p", addName "Select/create a workspace by name" $ selectWorkspace myPromptConfig'),
     ("M-w t", addName "Push floating to tiled" $ withFocused $ windows . W.sink),
     -- Select a workspace to shift the current window to
     ( "M-w s",
       addName "Move window to a workspace" $
-        withWorkspace myPromptConfig (windows . W.shift)
+        withWorkspace myPromptConfig' (windows . W.shift)
     ),
     ("M-w r", addName "Rename workspace" $ renameWorkspace myPromptConfig),
     -- Move to/move window to next/prev workspace
@@ -389,17 +416,7 @@ myKeymap =
     ("M-w S-k", addName "Move window to previous workspace and follow" $ shiftToPrevWS >> moveToPrevWS),
     ("M-w S-M-j", addName "Move window to next workspace" shiftToNextWS),
     ("M-w S-M-k", addName "Move window to previous workspace" shiftToPrevWS),
-    -- Move all windows to the next screen
-    ( "M-w a",
-      addName "Move all windows to the next screen" $
-        withAll (\w -> focus w >> onNextNeighbour def W.shift)
-    ),
-    ("M-w M-j", addName "Move window down" $ withFocused $ keysMoveWindow (0, winMoveAmount)),
-    ("M-w M-k", addName "Move window up" $ withFocused $ keysMoveWindow (0, -winMoveAmount)),
-    ("M-w M-l", addName "Move window right" $ withFocused $ keysMoveWindow (winMoveAmount, 0)),
-    ("M-w M-h", addName "Move window left" $ withFocused $ keysMoveWindow (-winMoveAmount, 0)),
-    ("M-w M-s", addName "Shrink window" $ withFocused $ keysResizeWindow (-winResizeAmount, -winResizeAmount) (1 % 2, 1 % 2)),
-    ("M-w M-g", addName "Grow window" $ withFocused $ keysResizeWindow (winResizeAmount, winResizeAmount) (1 % 2, 1 % 2)),
+    -- subtitle' "Searching",
     -- Searching for things, either through the prompt or using the
     -- current selection (mnemonic "G-oogle")
     ( "M-g g",
@@ -419,18 +436,7 @@ myKeymap =
         selectSearchBrowser "browser" dictionary
     ),
     ("M-g h", addName "Hoogle the current selection" $ selectSearchBrowser "browser" hoogle),
-    ("M-g f", addName "Hoogle search" $ promptSearchBrowser myPromptConfig "browser" hoogle),
-    ("M-<F9>", addName "Redraw and cycle the wallpaper" $ spawn "variety --next"),
-    ("M-<F10>", addName "Reload the monitor layout" $ spawn "autorandr --force --change"),
-    -- Adjust monitor brightness
-    ( "M-<F11>",
-      addName "Decrease monitor brightness" $
-        spawn "light -s sysfs/backlight/ddcci5 -U 1 && light -s sysfs/backlight/ddcci5 -O"
-    ),
-    ( "M-<F12>",
-      addName "Increase monitor brightness" $
-        spawn "light -s sysfs/backlight/ddcci5 -A 1 && light -s sysfs/backlight/ddcci5 -O"
-    )
+    ("M-g f", addName "Hoogle search" $ promptSearchBrowser myPromptConfig "browser" hoogle)
   ]
 
 myStartupHook :: X ()
@@ -441,6 +447,7 @@ myStartupHook = do
   spawnOnce "xbindkeys --poll-rc"
   spawnOnce "copyq"
   spawnOnce "redshift"
+  spawnOnce "alttab"
   checkKeymap myConfig (map (second $ const (return () :: X ())) myKeymap)
 
 myXmobarPP :: PP
