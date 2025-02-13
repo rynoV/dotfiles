@@ -3,7 +3,6 @@ acpi
 alsa-utils
 alttab
 alttab-debug
-android-studio
 arandr
 atool
 autoconf
@@ -111,6 +110,7 @@ mold
 mysql-workbench
 nautilus
 neofetch
+neovim
 networkmanager
 nix
 nm-connection-editor
@@ -171,6 +171,9 @@ subversion
 sudo
 surrealist-bin
 surrealist-bin-debug
+system76-firmware
+system76-power
+system76-power-debug
 telegram-desktop
 texinfo
 texlive-basic
