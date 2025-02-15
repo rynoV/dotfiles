@@ -2533,7 +2533,7 @@ Used to initially import issues from a repo, not great for actually keeping them
 (use-package consult
   :general
   (calum/leader-def
-    "b" 'spacemacs/compleseus-switch-to-buffer)
+    "SPC" 'spacemacs/compleseus-switch-to-buffer)
   ;; C-c bindings (mode-specific-map)
   ;; ("C-c h" 'consult-history) ; Conflict with meow C-h- prefix
   ;; ("C-c m" 'consult-mode-command) ; Conflicts with meow M- prefix
