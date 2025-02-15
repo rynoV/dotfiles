@@ -179,6 +179,11 @@ https://emacs.stackexchange.com/a/35907"
   (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
 
 (defun recenter-advice (&rest args) "Recenter the window" (recenter))
+
+(defun w()
+  "Save the buffer. For vim muscle memory."
+  (interactive)
+  (save-buffer))
 #+end_src
 
 *** Keybindings
@@ -198,8 +203,8 @@ https://emacs.stackexchange.com/a/35907"
 ("<XF86Copy>" (general-key "<copy>"))
 ("<XF86Cut>" (general-key "<cut>"))
 ("C-<backspace>" 'backward-delete-word)
+("C-w" 'backward-delete-word)
 ("M-d" 'delete-word)
-("C-S-p" 'execute-extended-command)
 ("C-s" 'save-buffer)
 ("<f7>" 'calum/edit-config)
 ("C-M-c" nil)
@@ -363,6 +368,9 @@ https://emacs.stackexchange.com/a/35907"
 ;; Allow opening recent files
 ;; https://www.emacswiki.org/emacs/RecentFiles
 (recentf-mode 1)
+
+;; Windows terminal scroll with mouse wheel
+(xterm-mouse-mode 1)
 #+END_SRC
 
 * Configuration for built-in packages
@@ -949,6 +957,7 @@ documentation).
      '("/" . meow-visit)
      '("?" . nil)
      '("-" . negative-argument)
+     '(":" . execute-extended-command)
      '(";" . meow-reverse)
      '("," . meow-inner-of-thing)
      '("." . meow-bounds-of-thing)
@@ -1666,7 +1675,7 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 ;; Save clock history and the current clock when emacs closes
 (org-clock-persist t)
 (org-clock-x11idle-program-name "xprintidle")
-(org-clock-idle-time 15)
+(org-clock-idle-time nil)
 ;; For effort estimates, assume an eight hour work day, 11 month work
 ;; year.
 (org-duration-units `(("min" . 1)
