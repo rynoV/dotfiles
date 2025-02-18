@@ -69,8 +69,6 @@ visual-fill-column-mode off temporarily."
 (defun calum/reload-theme ()
   (interactive)
   (load-theme 'doom-nord)
-  (centaur-tabs-mode -1)
-  (centaur-tabs-mode 1)
   )
 
 (defun calum/advise-push-mark-before (func)
@@ -642,144 +640,6 @@ https://github.com/rolandwalker/unicode-fonts
 (use-package unicode-fonts
   :config
   (unicode-fonts-setup))
-#+end_src
-
-*** Tabs (via centaur)
-https://github.com/ema2159/centaur-tabs
-
-#+begin_src emacs-lisp
-(use-package centaur-tabs
-  :after persp-mode
-  :custom
-  (centaur-tabs-style "bar")
-  (centaur-tabs-height 32)
-  (centaur-tabs-set-icons t)
-  (centaur-tabs-show-new-tab-button t)
-  (centaur-tabs-set-modified-marker t)
-  (centaur-tabs-show-navigation-buttons nil)
-  (centaur-tabs-set-bar 'over)
-  (centaur-tabs-show-count nil)
-  ;; (centaur-tabs-label-fixed-length 15)
-  ;; (centaur-tabs-gray-out-icons 'buffer)
-  ;; (centaur-tabs-plain-icons t)
-  (x-underline-at-descent-line t)
-  (centaur-tabs-left-edge-margin nil)
-  (centaur-tabs-set-close-button t)
-  (centaur-tabs--buffer-show-groups nil)
-  (centaur-tabs-cycle-scope 'default)
-  (centaur-tabs-adjust-buffer-order t)
-  (centaur-tabs-enable-ido-completion nil)
-  :hook
-  (term-mode . centaur-tabs-local-mode)
-  (calendar-mode . centaur-tabs-local-mode)
-  (org-agenda-mode . centaur-tabs-local-mode)
-  :general
-  (calum/leader-def :infix "t" :prefix-command 'tab-actions-map
-    "l" '("forward tab" . centaur-tabs-forward-tab)
-    "L" '("forward tab other window" . centaur-tabs-forward-tab-other-window)
-    "h" '("back tab" . centaur-tabs-backward-tab)
-    "H" '("backward tab other window" . centaur-tabs-backward-tab-other-window)
-    "j" '("forward tab group" . centaur-tabs-forward-group)
-    "k" '("back tab group" . centaur-tabs-backward-group)
-    "t" '("switch tab group" . centaur-tabs-switch-group)
-    "w" '("kill others in group" . centaur-tabs-kill-other-buffers-in-current-group)
-    "g" '("show group tabs" . centaur-tabs-toggle-groups)
-    "m" '("toggle tabs mode" . centaur-tabs-mode)
-    "<backspace>" '("kill group" . centaur-tabs-kill-all-buffers-in-current-group)
-    "<delete>" '("kill unmodified in group" . centaur-tabs-kill-unmodified-buffers-in-current-group)
-    "*" '("keep only tabs matching pattern" . centaur-tabs-keep-match-buffers-in-current-group)
-    "?" '("kill tabs matching pattern" . centaur-tabs-kill-buffer-match-rule)
-    "[" '("first tab" . centaur-tabs-select-beg-tab)
-    "]" '("last tab" . centaur-tabs-select-end-tab)
-    "<" '("move tab left" . centaur-tabs-move-current-tab-to-left)
-    ">" '("move tab right" . centaur-tabs-move-current-tab-to-right)
-    )
-  :config
-  (centaur-tabs-enable-buffer-reordering)
-  (centaur-tabs-change-fonts (face-attribute 'default :font) 110)
-  (centaur-tabs-headline-match)
-  (setq uniquify-separator "/")
-  (setq uniquify-buffer-name-style 'forward)
-  ;; Integrate with persp-mode, based on
-  ;; https://github.com/ema2159/centaur-tabs/issues/163#issuecomment-896530659
-  (defun calum/get-buffer-persp-group (buffer)
-    (let* ((name))
-      (dolist (persp (persp-persps))
-        (if persp
-            (if (persp-contain-buffer-p buffer persp)
-                (setq name (safe-persp-name persp)))))
-      name))
-  (defun centaur-tabs-buffer-groups ()
-    "`centaur-tabs-buffer-groups' control buffers' group rules.
-
-Group centaur-tabs with mode if buffer is derived from `eshell-mode' `emacs-lisp-mode' `dired-mode' `org-mode' `magit-mode'.
-All buffer name start with * will group to \"Emacs\".
-Other buffer group by `centaur-tabs-get-group-name' with project name."
-    (list
-     (let ((buf-persp-name (calum/get-buffer-persp-group (current-buffer))))
-       (cond
-        ((and buf-persp-name (not (string= buf-persp-name persp-nil-name))) buf-persp-name)
-        ((or (string-equal "*" (substring (buffer-name) 0 1))
-             (memq major-mode '(magit-process-mode
-                                magit-status-mode
-                                magit-diff-mode
-                                magit-log-mode
-                                magit-file-mode
-                                magit-blob-mode
-                                magit-blame-mode
-                                )))
-         "Emacs")
-        ((derived-mode-p 'prog-mode)
-         "Editing")
-        ((derived-mode-p 'dired-mode)
-         "Dired")
-        ((memq major-mode '(helpful-mode
-                            help-mode))
-         "Help")
-        ((memq major-mode '(org-mode
-                            org-agenda-clockreport-mode
-                            org-src-mode
-                            org-agenda-mode
-                            org-beamer-mode
-                            org-indent-mode
-                            org-bullets-mode
-                            org-cdlatex-mode
-                            org-agenda-log-mode
-                            diary-mode))
-         "OrgMode")
-        (t
-         (centaur-tabs-get-group-name (current-buffer)))))))
-  (defun centaur-tabs-hide-tab (x)
-    "Do no to show buffer X in tabs."
-    (let ((name (format "%s" x)))
-      (or
-       ;; Current window is not dedicated window.
-       (window-dedicated-p (selected-window))
-
-       ;; Buffer name not match below blacklist.
-       (string-prefix-p "*epc" name)
-       (string-prefix-p "*helm" name)
-       (string-prefix-p "*Helm" name)
-       (string-prefix-p "*Compile-Log*" name)
-       (string-prefix-p "*lsp" name)
-       (string-prefix-p "*company" name)
-       (string-prefix-p "*Flycheck" name)
-       (string-prefix-p "*tramp" name)
-       (string-prefix-p " *Mini" name)
-       (string-prefix-p "*help" name)
-       (string-prefix-p "*straight" name)
-       (string-prefix-p " *temp" name)
-       (string-prefix-p "*Help" name)
-       (string-prefix-p "*IList" name)
-       (string-prefix-p "*Messages" name)
-       (string-prefix-p "*Org Agenda" name)
-       (string-prefix-p "marginalia" name)
-
-       ;; Is not magit buffer.
-       (and (string-prefix-p "magit" name)
-            (not (file-name-extension name)))
-       )))
-  (centaur-tabs-mode t))
 #+end_src
 
 ** Git Integration
@@ -4150,8 +4010,7 @@ _SPC_ cancel	_o_nly this     _d_elete
             "r" 'avy-resume
             "n" 'avy-next
             "p" 'avy-prev
-            "f" 'calum/avy-goto-char-in-line
-            "t" 'centaur-tabs-ace-jump)
+            "f" 'calum/avy-goto-char-in-line)
   (:keymaps 'calum/avy-map
             :prefix "o"
             :prefix-command 'avy-org-command-map
