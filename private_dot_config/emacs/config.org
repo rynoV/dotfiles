@@ -50,7 +50,7 @@ https://github.com/radian-software/el-patch for modifying packages.
 #+begin_src emacs-lisp
 :preface
 (defvar calum/indent-width 4)
-(defvar calum/code-font "JetBrains Mono")
+(defvar calum/code-font "CommitMono")
 (defvar calum/code-font-height 120)
 (defvar calum/magit-mode nil)
 
