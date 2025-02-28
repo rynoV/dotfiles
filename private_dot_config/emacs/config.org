@@ -50,7 +50,7 @@ https://github.com/radian-software/el-patch for modifying packages.
 #+begin_src emacs-lisp
 :preface
 (defvar calum/indent-width 4)
-(defvar calum/code-font "JetBrains Mono")
+(defvar calum/code-font "CommitMono")
 (defvar calum/code-font-height 120)
 (defvar calum/magit-mode nil)
 
@@ -410,13 +410,13 @@ https://emacs.stackexchange.com/a/35907"
 ** Project.el
 #+begin_src emacs-lisp
 (use-package project
-  :straight nil)
+  :straight (:type built-in))
 #+end_src
 
 ** Syntax checking with flymake
 #+begin_src emacs-lisp
 (use-package flymake
-  :straight nil
+  :straight (:type built-in)
   :general
   (:keymaps 'flymake-mode-map
             "M-n" 'flymake-goto-next-error
@@ -1137,21 +1137,24 @@ https://github.com/mickeynp/combobulate uses tree sitter for
 navigation and editing, still early stages project. Will require setup
 for whatever languages I want.
 #+begin_src emacs-lisp
-(use-package combobulate
-  :straight (combobulate :type git :host github :repo "mickeynp/combobulate")
-  ;; Ensure `combobulate-mode` is activated when you launch a mode it supports
-  ;; :hook
-  ;; (purescript-mode . combobulate-mode)
-  :preface
-  (defun combobulate-setup-purescript ()
-    (setq combobulate-manipulation-node-cluster-queries
-          '((function_definition . (haskell (signature (_)) @match (function (_))))))
-    (setq combobulate-navigation-node-types '(module
-                                              function
-                                              )))
-  :config
-  ;; (add-to-list 'combobulate-setup-functions-alist '(purescript-mode . combobulate-setup-purescript))
-  )
+  (use-package combobulate
+    ;; :straight (combobulate :type git :host github :repo "mickeynp/combobulate")
+    :straight nil
+    :vc ( :url "https://github.com/mickeynp/combobulate"
+          :rev :newest)
+    ;; Ensure `combobulate-mode` is activated when you launch a mode it supports
+    ;; :hook
+    ;; (purescript-mode . combobulate-mode)
+    :preface
+    (defun combobulate-setup-purescript ()
+      (setq combobulate-manipulation-node-cluster-queries
+            '((function_definition . (haskell (signature (_)) @match (function (_))))))
+      (setq combobulate-navigation-node-types '(module
+                                                function
+                                                )))
+    :config
+    ;; (add-to-list 'combobulate-setup-functions-alist '(purescript-mode . combobulate-setup-purescript))
+    )
 #+end_src
 
 *** Repeated edits
