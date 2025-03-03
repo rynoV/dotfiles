@@ -12,6 +12,18 @@ This config is based off [[https://github.com/ianpan870102/yay-evil-emacs/blob/m
 works.
 
 #+begin_src emacs-lisp
+;; Note this also needs to be set in after-make-frame-functions
+(keymap-set input-decode-map "C-i" [C-i])
+
+;; This sets up emacs to use kitty keyboard protocol so it can understand more keys in the terminal.
+;; Unfortunately it doesn't help for distinguishing C-i and tab, so that only seems to work in gui:
+;; https://github.com/benjaminor/kkp/issues/14#issuecomment-2636513662
+;; However, the keymap-set for C-i seems to make tab be interpreted as C-i, and C-i gets interpreted as tab, in kitty at least
+(use-package kkp
+  :config
+  ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
+  (global-kkp-mode +1))
+
 (use-package general
   :config
   (defconst calum/leader "C-c")
@@ -334,6 +346,9 @@ https://emacs.stackexchange.com/a/35907"
 ;; Make sure emacsclient frames are made transparent as well
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)
+              (with-selected-frame frame
+                (keymap-set input-decode-map "C-i" [C-i])
+                )
               (set-frame-parameter frame 'alpha '(95 . 95))
               (set-scroll-bar-mode nil)
               (calum/reload-theme)))
@@ -694,12 +709,16 @@ documentation).
 *** Vim (via evil)
 #+begin_src emacs-lisp
 (use-package evil
-  :custom
-  (evil-undo-system 'undo-redo)
-  (evil-search-module 'evil-search)
+  :init
+  (setq
+    evil-undo-system 'undo-redo
+    evil-search-module 'evil-search
+    evil-want-C-i-jump nil ; In order to keep the TAB key separate, we bind C-i manually
+  )
   :config
   (evil-mode)
   (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
+  (evil-global-set-key 'motion [C-i] 'evil-jump-forward)
 )
 #+end_src
 **** Vim cursor change in terminal
@@ -1017,7 +1036,7 @@ Use numeric prefix arg to insert number."
           "RET" (general-predicate-dispatch 'org-return
                   (and (eolp) (calum/org-at-item-p)) 'org-meta-return))
 (:keymaps 'org-mode-map
-          :predicate '(meow-insert-mode-p)
+          :predicate '(evil-insert-state-p)
           "C-d" 'cdlatex-tab
           "C-s" 'calum/insert-superscript
           "C-M-s" 'calum/insert-subscript)
