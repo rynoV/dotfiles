@@ -222,11 +222,6 @@ https://emacs.stackexchange.com/a/35907"
 ("<f7>" 'calum/edit-config)
 ("C-M-c" nil)
 ("C-M-c" 'meow-comment)
-(calum/leader-def :infix "w"
-  :prefix-command 'windows-map
-  "" nil
-  "u" 'winner-undo
-  "y" 'winner-redo)
 (calum/leader-def :infix "M"
   :prefix-command 'misc-map
   "" nil
@@ -717,6 +712,13 @@ documentation).
     evil-search-module 'evil-search
     evil-want-C-i-jump nil ; In order to keep the TAB key separate, we bind C-i manually
   )
+  :general
+  (:keymaps 'evil-window-map
+    "u" 'winner-undo
+    "y" 'winner-redo)
+  ;; Make sure the window commands are always accessible (for example to navigate out of magit)
+  (calum/leader-def :infix "w"
+    "" 'evil-window-map)
   :config
   (evil-mode)
   (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
