@@ -26,9 +26,12 @@ works.
 
 (use-package general
   :config
-  (defconst calum/leader "C-c")
+  (defconst calum/leader "SPC")
   (defconst calum/leader-non-normal "C-c")
+  ;; Note: don't use this with keymap "override", or the space key will no longer work in insert mode
   (general-create-definer calum/leader-def
+    :keymaps '(normal insert emacs)
+    :global-prefix calum/leader-non-normal ;; Can always use this prefix, and below prefix only applies to non-normal states
     :prefix calum/leader)
   (general-override-mode)
   )
@@ -641,7 +644,6 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
   (setq forge-add-default-bindings t)
   :general
   (calum/leader-def
-    :keymaps 'override
     "g" '(magit-status :which-key "magit"))
   (:keymaps 'magit-mode-map
             "C-SPC" 'magit-diff-show-or-scroll-up
@@ -958,7 +960,6 @@ Use numeric prefix arg to insert number."
 #+begin_src emacs-lisp
 :general
 (calum/leader-def
-  :keymaps 'override
   "v" 'calc-dispatch)
 (calum/leader-def
   :infix "o"
@@ -2469,7 +2470,6 @@ https://github.com/minad/corfu/wiki
     (call-interactively 'projectile-vc))
   :general
   (calum/leader-def
-    :keymaps 'projectile-mode-map
     "p" '(:keymap projectile-command-map :which-key "project")
     "p w" 'calum/select-project-magit)
   :config
