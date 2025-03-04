@@ -368,6 +368,9 @@ https://emacs.stackexchange.com/a/35907"
 
 ;; Windows terminal scroll with mouse wheel
 (xterm-mouse-mode 1)
+
+(display-line-numbers-mode)
+(setq display-line-numbers 'relative)
 #+END_SRC
 
 * Configuration for built-in packages
