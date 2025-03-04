@@ -32,7 +32,9 @@ works.
 (use-package general
   :config
   (defconst calum/leader "SPC")
-  (defconst calum/leader-non-normal "C-c")
+  ;; This is a nice non-normal leader because emacs interprets escape as alt ('M-'), so the
+  ;; leader key whenever you're not in evil mode is the same but with escape prepended
+  (defconst calum/leader-non-normal "M-SPC")
   ;; Note: don't use this with keymap "override", or the space key will no longer work in insert mode
   (general-create-definer calum/leader-def
     :states '(normal insert emacs)
