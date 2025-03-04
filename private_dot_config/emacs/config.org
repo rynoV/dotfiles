@@ -549,6 +549,7 @@ Based off https://www.emacswiki.org/emacs/FlySpell#h5o-7"
 Just disabling the display in the mode-bar.
 #+begin_src emacs-lisp
 (use-package eldoc
+  :straight (:type built-in)
   :delight)
 #+end_src
 ** Ediff
