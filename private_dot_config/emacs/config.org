@@ -241,6 +241,7 @@ https://emacs.stackexchange.com/a/35907"
 *** Variables
 #+begin_src emacs-lisp
 :custom
+(display-line-numbers 'relative)
 ;; Some config to reduce prompting from
 ;; https://www.masteringemacs.org/article/disabling-prompts-emacs
 (use-short-answers t)
@@ -375,7 +376,6 @@ https://emacs.stackexchange.com/a/35907"
 (xterm-mouse-mode 1)
 
 (display-line-numbers-mode)
-(setq display-line-numbers 'relative)
 #+END_SRC
 
 * Configuration for built-in packages
