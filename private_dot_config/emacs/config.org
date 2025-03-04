@@ -12,17 +12,22 @@ This config is based off [[https://github.com/ianpan870102/yay-evil-emacs/blob/m
 works.
 
 #+begin_src emacs-lisp
-;; Note this also needs to be set in after-make-frame-functions
-(keymap-set input-decode-map "C-i" [C-i])
-
 ;; This sets up emacs to use kitty keyboard protocol so it can understand more keys in the terminal.
 ;; Unfortunately it doesn't help for distinguishing C-i and tab, so that only seems to work in gui:
 ;; https://github.com/benjaminor/kkp/issues/14#issuecomment-2636513662
 ;; However, the keymap-set for C-i seems to make tab be interpreted as C-i, and C-i gets interpreted as tab, in kitty at least
 (use-package kkp
+  :preface
+  ;; Note this also needs to be set in after-make-frame-functions
+  (defun calum/set-C-i-tab ()
+    (when (or (display-graphic-p) (kkp--this-terminal-supports-kkp-p))
+      (keymap-set input-decode-map "C-i" [C-i])))
+
   :config
   ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
-  (global-kkp-mode +1))
+  (global-kkp-mode +1)
+  (calum/set-C-i-tab)
+  )
 
 (use-package general
   :config
@@ -345,7 +350,7 @@ https://emacs.stackexchange.com/a/35907"
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)
               (with-selected-frame frame
-                (keymap-set input-decode-map "C-i" [C-i])
+                (calum/set-C-i-tab)
                 )
               (set-frame-parameter frame 'alpha '(95 . 95))
               (set-scroll-bar-mode nil)
