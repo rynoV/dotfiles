@@ -35,7 +35,7 @@ works.
   (defconst calum/leader-non-normal "C-c")
   ;; Note: don't use this with keymap "override", or the space key will no longer work in insert mode
   (general-create-definer calum/leader-def
-    :keymaps '(normal insert emacs)
+    :states '(normal insert emacs)
     :global-prefix calum/leader-non-normal ;; Can always use this prefix, and below prefix only applies to non-normal states
     :prefix calum/leader)
   (general-override-mode)
