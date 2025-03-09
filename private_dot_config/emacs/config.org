@@ -73,7 +73,7 @@ https://github.com/radian-software/el-patch for modifying packages.
 :preface
 (defvar calum/indent-width 4)
 (defvar calum/code-font "CommitMono")
-(defvar calum/code-font-height 120)
+(defvar calum/code-font-height (if (eq system-type 'darwin) 180 120))
 (defvar calum/magit-mode nil)
 
 (defun calum/advise-around-visual-fill-column-off (orig-fun &rest args)
@@ -276,7 +276,7 @@ https://emacs.stackexchange.com/a/35907"
 ; Don't TAB cycle if there are only a few completion candidates
 (completion-cycle-threshold nil)
 ;; Hide title bar
-(default-frame-alist '((undecorated . t)))
+(default-frame-alist '((if (eq system-type 'darwin) nil (undecorated . t))))
 
 ;; better scrolling experience
 (scroll-margin 0)
@@ -349,9 +349,15 @@ https://emacs.stackexchange.com/a/35907"
 
 ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
 (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+
+(when (eq system-type 'darwin)
+    (toggle-frame-maximized))
+
 ;; Make sure emacsclient frames are made transparent as well
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)
+              (when (eq system-type 'darwin)
+                (toggle-frame-maximized frame))
               (with-selected-frame frame
                 (calum/set-C-i-tab)
                 )
@@ -2756,6 +2762,7 @@ Provides us with hints on available keystroke combinations.
 *** Dashboard
 #+begin_src emacs-lisp
 (use-package dashboard
+  :if (not (eq system-type 'darwin)) ; wierd breakage on macos where keyboard shortcuts get ignored
   :custom
   (dashboard-projects-backend 'projectile)
   (dashboard-center-content t)
