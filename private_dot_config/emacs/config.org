@@ -187,12 +187,6 @@ https://emacs.stackexchange.com/a/35907"
      (region-beginning) (region-end) command :replace t)
     (goto-char temp-point)))
 
-(defun wrap-with-direnv-disabled (orig-fun &rest args)
-  "Disable direnv for the current folder before calling the function, then re-enable it"
-  (direnv-update-directory-environment "~/" nil)
-  (apply orig-fun args)
-  (direnv-update-environment))
-
 (defun advice-unadvice (sym)
   "Remove all advices from symbol SYM. https://emacs.stackexchange.com/a/24658"
   (interactive "aFunction symbol: ")
@@ -327,8 +321,6 @@ https://emacs.stackexchange.com/a/35907"
 ;; the uses 'split-window-sensibly' (seemingly not the message buffer
 ;; split for some reason)
 (advice-add 'window-splittable-p :around #'calum/advise-around-visual-fill-column-off)
-
-(advice-add 'browse-url :around #'wrap-with-direnv-disabled)
 
 (advice-add 'compile-goto-error :after #'recenter-advice)
 (advice-add 'next-error :after #'recenter-advice)
