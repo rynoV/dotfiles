@@ -172,8 +172,11 @@ sudo
 surrealist-bin
 surrealist-bin-debug
 system76-firmware
+system76-keyboard-configurator
+system76-keyboard-configurator-debug
 system76-power
 system76-power-debug
+system76-scheduler
 telegram-desktop
 texinfo
 texlive-basic
