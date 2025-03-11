@@ -712,6 +712,13 @@ documentation).
 #+end_src
 
 ** Text editing
+*** Devil mode
+#+begin_src emacs-lisp
+(use-package devil
+  :general
+  (calum/leader-def
+    "," 'devil))
+#+end_src
 *** Vim (via evil)
 #+begin_src emacs-lisp
 (use-package evil
