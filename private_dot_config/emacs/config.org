@@ -187,12 +187,6 @@ https://emacs.stackexchange.com/a/35907"
      (region-beginning) (region-end) command :replace t)
     (goto-char temp-point)))
 
-(defun wrap-with-direnv-disabled (orig-fun &rest args)
-  "Disable direnv for the current folder before calling the function, then re-enable it"
-  (direnv-update-directory-environment "~/" nil)
-  (apply orig-fun args)
-  (direnv-update-environment))
-
 (defun advice-unadvice (sym)
   "Remove all advices from symbol SYM. https://emacs.stackexchange.com/a/24658"
   (interactive "aFunction symbol: ")
@@ -327,8 +321,6 @@ https://emacs.stackexchange.com/a/35907"
 ;; the uses 'split-window-sensibly' (seemingly not the message buffer
 ;; split for some reason)
 (advice-add 'window-splittable-p :around #'calum/advise-around-visual-fill-column-off)
-
-(advice-add 'browse-url :around #'wrap-with-direnv-disabled)
 
 (advice-add 'compile-goto-error :after #'recenter-advice)
 (advice-add 'next-error :after #'recenter-advice)
@@ -727,6 +719,24 @@ documentation).
 #+end_src
 
 ** Text editing
+*** Devil mode
+This gives a nice way to enter some of emacs' longer shortcuts which will work in any evil state and any buffer. To avoid getting too complicated getting this to play nice with evil or messing with the comma key in insert mode, I use an obscure key and place that in a convenient location on my keyboard.
+
+- https://susam.github.io/devil
+- https://github.com/susam/devil
+
+#+begin_src emacs-lisp
+(use-package devil
+  :general
+  ("<insert>" nil)
+  (:states '(normal insert visual)
+    "<insert>" nil)
+  :config
+  (devil-set-key (kbd "<insert>"))
+  (dolist (key '("%k SPC" "%k RET" "%k <return>"))
+    (assoc-delete-all key devil-special-keys))
+  (global-devil-mode))
+#+end_src
 *** Vim (via evil)
 #+begin_src emacs-lisp
 (use-package evil
