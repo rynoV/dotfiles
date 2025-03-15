@@ -31,7 +31,7 @@
     cmd = ~/scripts/ediff.sh $LOCAL $REMOTE $MERGED $BASE
     trustExitCode = true
 [core]
-    editor = vim
+    editor = nvim
     autocrlf = input
     pager = delta
 [interactive]
