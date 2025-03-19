@@ -339,8 +339,11 @@ https://emacs.stackexchange.com/a/35907"
       ;; Shows "magit <git repo>" as the frame title when Magit is open
       (setq frame-title-format "%b")))
 
-;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
-(set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+(when (not (eq system-type 'darwin))
+    ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
+    (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+    (add-to-list 'default-frame-alist '(alpha . (95 . 95)))
+    )
 
 (when (eq system-type 'darwin)
     (toggle-frame-maximized))
@@ -350,13 +353,17 @@ https://emacs.stackexchange.com/a/35907"
           #'(lambda (frame)
               (when (eq system-type 'darwin)
                 (toggle-frame-maximized frame))
+              (when (not (eq system-type 'darwin))
+                ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
+                (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+                )
+
               (with-selected-frame frame
                 (calum/set-C-i-tab)
                 )
-              (set-frame-parameter frame 'alpha '(95 . 95))
               (set-scroll-bar-mode nil)
-              (calum/reload-theme)))
-(add-to-list 'default-frame-alist '(alpha . (95 . 95)))
+              (calum/reload-theme)
+              ))
 
 ;; Clean unused buffer every day at midnight
 (midnight-mode 1)
