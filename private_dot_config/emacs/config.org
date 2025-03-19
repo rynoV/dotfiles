@@ -75,6 +75,8 @@ https://github.com/radian-software/el-patch for modifying packages.
 (defvar calum/code-font "CommitMono")
 (defvar calum/code-font-height (if (eq system-type 'darwin) 180 120))
 (defvar calum/magit-mode nil)
+;; https://emacs.stackexchange.com/a/55295
+(defvar calum/is-wsl (string-match "-[Mm]icrosoft" operating-system-release))
 
 (defun calum/advise-around-visual-fill-column-off (orig-fun &rest args)
   "Can be used as advice for a function to turn
@@ -270,7 +272,7 @@ https://emacs.stackexchange.com/a/35907"
 ; Don't TAB cycle if there are only a few completion candidates
 (completion-cycle-threshold nil)
 ;; Hide title bar
-(default-frame-alist '((if (eq system-type 'darwin) nil (undecorated . t))))
+(default-frame-alist `(,(when (not (eq system-type 'darwin)) '(undecorated . t))))
 
 ;; better scrolling experience
 (scroll-margin 0)
@@ -339,21 +341,23 @@ https://emacs.stackexchange.com/a/35907"
       ;; Shows "magit <git repo>" as the frame title when Magit is open
       (setq frame-title-format "%b")))
 
-(when (not (eq system-type 'darwin))
+(setq non-linux-gui (or (eq system-type 'darwin) calum/is-wsl))
+
+(when (not non-linux-gui)
     ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
     (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
     (add-to-list 'default-frame-alist '(alpha . (95 . 95)))
     )
 
-(when (eq system-type 'darwin)
+(when non-linux-gui
     (toggle-frame-maximized))
 
 ;; Make sure emacsclient frames are made transparent as well
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)
-              (when (eq system-type 'darwin)
+              (when non-linux-gui
                 (toggle-frame-maximized frame))
-              (when (not (eq system-type 'darwin))
+              (when (not non-linux-gui)
                 ;; https://www.emacswiki.org/emacs/TransparentEmacs#h5o-1
                 (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
                 )
@@ -1131,7 +1135,7 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 ;; Set the link colors to blue by default for PDF export, instead of
 ;; coloured boxes (which don't show up in some pdf viewers)
 (org-latex-hyperref-template "\\hypersetup{pdfauthor={%a}, pdftitle={%t}, pdfkeywords={%k}, pdfsubject={%d}, pdfcreator={%c}, pdflang={%L},colorlinks=true,linkcolor=blue,urlcolor=blue,filecolor=blue,citecolor=blue,anchorcolor=blue,linktocpage=true,unicode=true,psdextra}")
-(org-ellipsis " ⤸ ")
+(org-ellipsis " ⤦ ")
 (org-hidden-keywords nil)
 (org-cycle-level-faces nil)
 (org-n-level-faces 4)
