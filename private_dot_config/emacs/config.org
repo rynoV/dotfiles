@@ -712,23 +712,35 @@ documentation).
 #+end_src
 
 ** Text editing
-*** Devil mode
-This gives a nice way to enter some of emacs' longer shortcuts which will work in any evil state and any buffer. To avoid getting too complicated getting this to play nice with evil or messing with the comma key in insert mode, I use an obscure key and place that in a convenient location on my keyboard.
+*** Meow
+Use meow only for keypad state under leader bindings
 
-- https://susam.github.io/devil
-- https://github.com/susam/devil
+- https://github.com/meow-edit/meow/blob/a7edff29d01195580c8ef723c2ab374b19552a5e/TUTORIAL.org#keypad
 
 #+begin_src emacs-lisp
-(use-package devil
+(use-package meow
+  :preface
+  (defun calum/meow-keypad-quit-before-advice (&rest args)
+    (interactive)
+    (setq meow--keypad-previous-state nil))
   :general
-  ("<insert>" nil)
-  (:states '(normal insert visual)
-    "<insert>" nil)
+  (calum/leader-def
+    "c" '("C-c" . (lambda () (interactive) (meow-keypad-start-with "C-c")))
+    "x" '("C-x" . (lambda () (interactive) (meow-keypad-start-with "C-x")))
+    "h" '("C-h" . (lambda () (interactive) (meow-keypad-start-with "C-h")))
+    ;; Meow doesn't seem to provide a way to easily start the keypad with
+    ;; the M- prefix pre-selected, but luckily it works to use ESC
+    "m" '("M-" . (lambda () (interactive) (meow-keypad-start-with "ESC")))
+    "z" '("Meow Keypad" . (lambda () (interactive) (meow-keypad-start-with nil)))
+    )
   :config
-  (devil-set-key (kbd "<insert>"))
-  (dolist (key '("%k SPC" "%k RET" "%k <return>"))
-    (assoc-delete-all key devil-special-keys))
-  (global-devil-mode))
+  ;; This is a hack to get meow to avoid activating any of its states
+  ;; after exiting keypad mode so that it plays nicely with evil.
+  ;; This works because meow--keypad-quit at time of writing skips
+  ;; setting the meow mode and only unsets the keypad mode if
+  ;; meow--keypad-previous-state is nil
+  (advice-add 'meow--keypad-quit :before #'calum/meow-keypad-quit-before-advice)
+  )
 #+end_src
 *** Vim (via evil)
 #+begin_src emacs-lisp
