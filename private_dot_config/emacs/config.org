@@ -2738,7 +2738,12 @@ Briefly highlight undo, delete, etc: https://github.com/minad/goggles
 
 *** Chezmoi
 #+begin_src emacs-lisp
+;; Chezmoi ediff has an unfortunate implicite dependency on 'age', see https://github.com/tuh8888/chezmoi.el/issues/33
+(use-package age)
 (use-package chezmoi
+  :straight (chezmoi :files (:defaults
+                             "extensions/chezmoi-magit.el"
+                             "extensions/chezmoi-ediff.el"))
   :general
   (calum/leader-def
     :infix "d"
@@ -2751,9 +2756,12 @@ Briefly highlight undo, delete, etc: https://github.com/minad/goggles
     "o" 'chezmoi-open-other
     "t" 'chezmoi-template-buffer-display
     ;; Always enable the mode, I rarely want to disable it
-    "c" #'(lambda () (interactive) (chezmoi-mode 1))
+    "c" '("Enable chezmoi mode" . (lambda () (interactive) (chezmoi-mode 1)))
     "m" 'chezmoi-mode)
   :config
+  (require 'chezmoi-magit)
+  (require 'age)
+  (require 'chezmoi-ediff)
   (setq-default chezmoi-template-display-p t) ;; Display template values in all source buffers.
   )
 #+end_src
