@@ -16,9 +16,19 @@ gsettings set org.gnome.desktop.interface cursor-size 8
 fish_vi_key_bindings
 
 # Ctrl+Alt+g to grep
-bind --mode insert \e\cg rga-fzf
+bind --mode insert ctrl-alt-g rga-fzf
 
-bind --mode insert \co ranger-cd
+bind --mode insert alt-o ranger-cd
+
+bind --mode insert ctrl-k history-search-backward
+bind --mode normal ctrl-k history-search-backward
+bind --mode insert ctrl-j history-search-forward
+bind --mode normal ctrl-j history-search-forward
+bind --mode insert up up-line
+bind --mode normal up up-line
+bind --mode insert down down-line
+bind --mode normal down down-line
+
 
 # XDG folders: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 set --export XDG_CONFIG_HOME $HOME/.config
