@@ -651,6 +651,15 @@ https://github.com/rolandwalker/unicode-fonts
 #+end_src
 
 ** Git Integration
+*** Diff highlight
+aka git gutter, git signs
+
+https://github.com/dgutov/diff-hl
+#+begin_src emacs-lisp
+(use-package diff-hl
+  :config
+  (global-diff-hl-mode))
+#+end_src
 *** Magit
 See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96098abf166685aaa38/modes/magit/evil-collection-magit.el#L289][here]] for useful mappings and commands
 #+BEGIN_SRC emacs-lisp
@@ -686,6 +695,9 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
 
   ;; Update commit views when scrolling through commits in status
   (add-hook 'magit-section-movement-hook 'magit-status-maybe-update-revision-buffer)
+
+  ;; https://github.com/dgutov/diff-hl?tab=readme-ov-file#magit
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
 
   ;; https://magit.vc/manual/magit/Wip-Modes.html
   (magit-wip-mode 1)
