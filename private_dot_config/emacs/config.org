@@ -662,7 +662,6 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
     "g" '(magit-status :which-key "magit"))
   (:keymaps 'magit-mode-map
             "C-SPC" 'magit-diff-show-or-scroll-up
-            "x" 'magit-delete-thing
             ;; Shift-tab
             "<backtab>" 'magit-section-cycle)
   :delight magit-wip-mode
@@ -1997,7 +1996,7 @@ Used to initially import issues from a repo, not great for actually keeping them
   ("C-M-#" 'consult-register)
   ;; Other custom bindings
   ("M-y" 'consult-yank-pop)     ;; orig. yank-pop
-  ("<help> a" 'consult-apropos) ;; orig. apropos-command
+  ("<help> a" 'consult-info) ;; orig. apropos-command
   ;; M-g bindings (goto-map)
   ("M-g e" 'consult-compile-error)
   ("M-g f" 'consult-flymake)     ;; Alternative: consult-flycheck
