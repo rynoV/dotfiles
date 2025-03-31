@@ -663,6 +663,8 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
   (:keymaps 'magit-mode-map
             "SPC" nil
             "SPC" (general-key calum/leader-non-normal)
+            ":" nil
+            ":" 'evil-ex
             "C-SPC" 'magit-diff-show-or-scroll-up
             ;; Shift-tab
             "<backtab>" 'magit-section-cycle)
