@@ -36,6 +36,7 @@ works.
   ;; leader key whenever you're not in evil mode is the same but with escape prepended
   (defconst calum/leader-non-normal "M-SPC")
   ;; Note: don't use this with keymap "override", or the space key will no longer work in insert mode
+  ;; Note: when using :infix it is necessary to unbind the infix key using ~"" nil~ to avoid errors about "key sequence starts with non-prefix key"
   (general-create-definer calum/leader-def
     :states '(normal visual insert emacs)
     :global-prefix calum/leader-non-normal ;; Can always use this prefix, and below prefix only applies to non-normal states
@@ -226,8 +227,7 @@ https://emacs.stackexchange.com/a/35907"
 ("C-M-c" nil)
 ("C-M-c" 'meow-comment)
 (calum/leader-def :infix "M"
-  :prefix-command 'misc-map
-  "" nil
+  "" '(nil :which-key "Misc")
   "v" 'calum/copy-current-kill-to-clipboard
   "i" 'calum/copy-and-insert-binding-for-key
   "c" 'calum/copy-binding-for-key
@@ -549,7 +549,7 @@ Based off https://www.emacswiki.org/emacs/FlySpell#h5o-7"
   :general
   (calum/leader-def
     :infix "s"
-    :prefix-command 'spell-check-map
+    "" '(nil :which-key "Spell check")
     "l" '(calum/enable-ltex
           :which-key "Enable ltex")
     "t" '(flyspell-mode
@@ -670,8 +670,11 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
   (calum/leader-def
     "g" '(magit-status :which-key "magit"))
   (:keymaps 'magit-mode-map
+            "SPC" nil
+            "SPC" (general-key calum/leader-non-normal)
+            ":" nil
+            ":" 'evil-ex
             "C-SPC" 'magit-diff-show-or-scroll-up
-            "x" 'magit-delete-thing
             ;; Shift-tab
             "<backtab>" 'magit-section-cycle)
   :delight magit-wip-mode
@@ -780,7 +783,7 @@ Use meow only for keypad state under leader bindings
     "y" 'winner-redo)
   ;; Make sure the window commands are always accessible (for example to navigate out of magit)
   (calum/leader-def :infix "w"
-    "" 'evil-window-map)
+    "" '("Windows" . evil-window-map))
   :config
   (evil-mode)
   (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
@@ -1027,7 +1030,7 @@ Use numeric prefix arg to insert number."
   "v" 'calc-dispatch)
 (calum/leader-def
   :infix "o"
-  :prefix-command 'org-actions-map
+  "" '(nil :which-key "Org")
   "a" 'org-agenda
   "l" 'org-store-link
   "c" 'org-capture
@@ -2009,7 +2012,7 @@ Used to initially import issues from a repo, not great for actually keeping them
   ("C-M-#" 'consult-register)
   ;; Other custom bindings
   ("M-y" 'consult-yank-pop)     ;; orig. yank-pop
-  ("<help> a" 'consult-apropos) ;; orig. apropos-command
+  ("<help> a" 'consult-info) ;; orig. apropos-command
   ;; M-g bindings (goto-map)
   ("M-g e" 'consult-compile-error)
   ("M-g f" 'consult-flymake)     ;; Alternative: consult-flycheck
@@ -2782,7 +2785,7 @@ Briefly highlight undo, delete, etc: https://github.com/minad/goggles
   :general
   (calum/leader-def
     :infix "d"
-    :prefix-command 'chezmoi-actions-map
+    "" '(nil :which-key "Chezmoi")
     "f" 'chezmoi-find
     "g" 'chezmoi-magit-status
     "s" 'chezmoi-write
