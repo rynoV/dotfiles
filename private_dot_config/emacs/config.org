@@ -212,6 +212,9 @@ https://emacs.stackexchange.com/a/35907"
    (posn-set-point (event-end event))
    (browse-url (thing-at-point 'url t))))
 
+;; Map home and end to get consistent behaviour an macos
+("<home>" 'move-beginning-of-line)
+("<end>" 'move-end-of-line)
 ("S-<delete>" (general-key "<cut>"))
 ("C-<insert>" (general-key "<copy>"))
 ("S-<insert>" (general-key "<paste>"))
@@ -224,8 +227,6 @@ https://emacs.stackexchange.com/a/35907"
 ("M-d" 'delete-word)
 ("C-s" 'save-buffer)
 ("<f7>" 'calum/edit-config)
-("C-M-c" nil)
-("C-M-c" 'meow-comment)
 (calum/leader-def :infix "M"
   "" '(nil :which-key "Misc")
   "v" 'calum/copy-current-kill-to-clipboard
