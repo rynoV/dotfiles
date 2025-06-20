@@ -5,8 +5,9 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 {{   if and (.chezmoi.kernel.osrelease | lower | contains "microsoft") (eq .chezmoi.osRelease.id "arch") }}
 # On wsl arch linux, the following is required for graphical applications to work via WSLg
 # See https://wiki.archlinux.org/title/Install_Arch_Linux_on_WSL#Run_graphical_applications_with_WSLg
-ln -sf /mnt/wslg/.X11-unix/* /tmp/.X11-unix/
-ln -sf /mnt/wslg/runtime-dir/wayland-0* /run/user/(id -u)/
+# It seems like these lines are no longer necessary, but if graphical apps start breaking try uncommenting, or go back to the above webpage and check for updates
+# ln -sf /mnt/wslg/.X11-unix/* /tmp/.X11-unix/
+# ln -sf /mnt/wslg/runtime-dir/wayland-0* /run/user/(id -u)/
 # Cursor on wslg applications is scaled weirdly
 # https://github.com/microsoft/wslg/issues/61#issuecomment-1738093482
 gsettings set org.gnome.desktop.interface cursor-size 8
