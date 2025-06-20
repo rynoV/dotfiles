@@ -11,6 +11,14 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # Cursor on wslg applications is scaled weirdly
 # https://github.com/microsoft/wslg/issues/61#issuecomment-1738093482
 gsettings set org.gnome.desktop.interface cursor-size 8
+
+set ssh_setup (/usr/sbin/wsl2-ssh-agent)
+eval $ssh_setup
+{{   else  }}
+# From
+# https://wiki.archlinux.org/title/SSH_keys#Start_ssh-agent_with_systemd_user
+# so that ~/.config/systemd/user/ssh-agent.service works
+set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
 {{   end }}
 {{ end }}
 
@@ -162,11 +170,6 @@ set --export LESSHISTFILE $XDG_STATE_HOME/lesshst
 
 # For "pass" password manager
 set --export PASSWORD_STORE_DIR ~/.var/password-store
-
-# From
-# https://wiki.archlinux.org/title/SSH_keys#Start_ssh-agent_with_systemd_user
-# so that ~/.config/systemd/user/ssh-agent.service works
-set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
 
 set --export LANG "en_CA.UTF-8"
 set --export LC_ALL "en_CA.UTF-8"
