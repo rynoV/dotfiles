@@ -12,8 +12,9 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # https://github.com/microsoft/wslg/issues/61#issuecomment-1738093482
 gsettings set org.gnome.desktop.interface cursor-size 8
 
-set ssh_setup (/usr/sbin/wsl2-ssh-agent)
-eval $ssh_setup
+# set ssh_setup (/usr/sbin/wsl2-ssh-agent)
+# eval $ssh_setup
+set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
 {{   else  }}
 # From
 # https://wiki.archlinux.org/title/SSH_keys#Start_ssh-agent_with_systemd_user
