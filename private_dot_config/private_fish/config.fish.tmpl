@@ -61,6 +61,7 @@ fish_add_path --path ~/.duckdb/cli/latest
 set --export VISUAL nvim
 set --export EDITOR nvim
 set --export BROWSER browser
+set --export PAGER bat --style auto
 set MANPATH $MANPATH /usr/share/man
 
 set --export FZF_DEFAULT_OPTS "--cycle --layout=reverse --border=block --height=90% --preview-window=wrap --marker='*' \
@@ -89,6 +90,9 @@ set --export GOPATH ~/.var/go
 set --export TEXMFHOME ~/.local/share/texmf
 set --export TEXMFVAR ~/.var/texmf
 set --export TEXMFCONFIG ~/.config/texmf
+
+# The default file name for hledger to read if not otherwise specified
+set --export LEDGER_FILE ledger.hledger
 
 # For GTK 4 apps
 set --export GTK_THEME Nordic
