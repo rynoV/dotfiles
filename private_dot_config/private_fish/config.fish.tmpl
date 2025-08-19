@@ -183,7 +183,8 @@ set --export LC_ALL "en_CA.UTF-8"
 set --export LOCALE_ARCHIVE /usr/lib/locale/locale-archive
 
 # Clean up duplicates in the path, from https://unix.stackexchange.com/a/14896
-set PATH (printf "%s" "$PATH" | awk -v RS=':' '!a[$1]++ { if (NR > 1) printf RS; printf $1 }')
+# with a fix from https://unix.stackexchange.com/a/124517 to handle whitespace
+set PATH (printf "%s" "$PATH" | awk -v RS=':' '!a[$0]++ { if (NR > 1) printf RS; printf $0 }')
 
 set --export _ZO_ECHO 1
 
