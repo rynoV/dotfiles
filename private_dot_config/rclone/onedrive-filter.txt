@@ -2,6 +2,10 @@
 # See docs here: https://rclone.org/filtering/#filter-from-read-filtering-patterns-from-a-file
 - /Documents/win32yank/
 - /Documents/PowerShell/
+- /Documents/PowerToys/
+- /Documents/WindowsPowerShell/
+- /Documents/Visual Studio 2022/
+- /Documents/*.lnk
 - *.mp4
 + /Documents/
 + /Documents/**
