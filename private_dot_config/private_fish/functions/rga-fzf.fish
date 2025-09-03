@@ -11,6 +11,6 @@ function rga-fzf --description "search for text in files recursively and display
                 --query "$argv" \
                 --bind "change:reload:$RG_PREFIX {q}"
     );
-    and xdg-open "$file"
+    commandline --append $file
+    commandline --function repaint
 end
-

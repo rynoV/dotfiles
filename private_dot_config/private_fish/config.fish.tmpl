@@ -25,8 +25,7 @@ set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
 
 fish_vi_key_bindings
 
-# Ctrl+Alt+g to grep
-bind --mode insert ctrl-alt-g rga-fzf
+bind --mode insert ctrl-x rga-fzf
 
 bind --mode insert alt-o ranger-cd
 
@@ -67,19 +66,31 @@ set MANPATH $MANPATH /usr/share/man
 set --export FZF_DEFAULT_OPTS "--cycle --layout=reverse --border=block --height=90% --preview-window=wrap --marker='*' \
 --color=spinner:#8FBCBB,hl:#898f9e,fg:#D8DEE9,header:#898f9e,info:#8FBCBB \
 --color=pointer:#8FBCBB,marker:#8FBCBB,fg+:#8FBCBB,prompt:#8FBCBB,hl+:#7d9761,border:#81A1C1,label:#2b3740 \
---bind='ctrl-alt-y:execute-silent(echo {+} | xclip -selection clipboard -rmlastnl)'
+--bind='ctrl-y:execute-silent(echo {+} | string collect | fish_clipboard_copy)'
 "
 
 # Use ctrl-e in the fzf file finder to edit the file(s), ctrl-alt-e to edit in
-# vscode, copy absolute paths with ctrl-alt-y
+# vscode, copy absolute paths with ctrl-y, copy windows paths from wsl
+# with ctrl-alt-y
 set --export MY_FZF_FILE_OPTS --bind "\
-ctrl-e:execute(myemacs {+} &> /dev/tty)+abort,\
+ctrl-e:execute($EDITOR {+} &> /dev/tty)+abort,\
 ctrl-alt-e:execute(code {+})+abort,\
-ctrl-alt-y:execute-silent(echo {+} | xargs readlink -f | xclip -selection clipboard -rmlastnl)"
+ctrl-y:execute-silent(echo {+} | xargs readlink -f | string collect | fish_clipboard_copy),\
+ctrl-alt-y:execute-silent(for line in {+}; wslpath -w -a \$line; end | string collect | fish_clipboard_copy)"
+
+# The delimiter here to extract the command to copy is copy-pasted directly from the `functions _fzf_search_history` definition
+set fzf_history_opts --delimiter="│" --bind="ctrl-y:execute-silent(echo {2} | string collect | fish_clipboard_copy)"
 
 set fzf_dir_opts $MY_FZF_FILE_OPTS
 set fzf_fd_opts --hidden --exclude=.git --follow
+# Add a preview to each status item. We use the second field to skip the git status markers
+set fzf_git_status_opts --preview="_fzf_preview_file {2}"
 set fzf_preview_file_cmd fzf_preview_file
+
+# Change the defaults which use ctrl-alt, because they don't work
+# consistently in the neovim terminal, particularly when running in
+# windows terminal or neovide
+fzf_configure_bindings --directory=ctrl-f --processes=ctrl-p --git_log=ctrl-g --git_status=ctrl-s
 
 set --export JAVA_HOME /usr/lib/jvm/java-11-openjdk
 fish_add_path --path $JAVA_HOME/bin
