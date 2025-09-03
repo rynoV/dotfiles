@@ -201,6 +201,22 @@ https://emacs.stackexchange.com/a/35907"
   "Save the buffer. For vim muscle memory."
   (interactive)
   (save-buffer))
+
+(defun wsl-copy (start end)
+  (interactive "r")
+  ;; fish_clipboard_copy works (at least with clip.exe installed), but it will fail with a message "stdout is not a terminal" that we can ignore
+  (let ((inhibit-message t))
+    (shell-command-on-region start end "fish_clipboard_copy" )
+    )
+  (deactivate-mark))
+
+(defun wsl-paste ()
+  (interactive)
+  (let ((clipboard
+     (shell-command-to-string "fish_clipboard_paste")))
+    (setq clipboard (replace-regexp-in-string "\r" "" clipboard)) ; Remove Windows ^M characters
+    (setq clipboard (substring clipboard 0 -1)) ; Remove newline
+    (insert clipboard)))
 #+end_src
 
 *** Keybindings
@@ -216,7 +232,8 @@ https://emacs.stackexchange.com/a/35907"
 ("<home>" 'move-beginning-of-line)
 ("<end>" 'move-end-of-line)
 ("S-<delete>" (general-key "<cut>"))
-("C-<insert>" (general-key "<copy>"))
+("C-<insert>" :predicate '(lambda () (not calum/is-wsl)) (general-key "<copy>"))
+("C-<insert>" :predicate '(lambda () calum/is-wsl) 'wsl-copy)
 ("S-<insert>" (general-key "<paste>"))
 
 ("<XF86Paste>" (general-key "<paste>"))
