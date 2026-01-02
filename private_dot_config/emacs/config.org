@@ -744,6 +744,12 @@ file (a package-lock.json)
 ;;   :hook (magit-mode . magit-delta-mode))
 #+end_src
 
+#+begin_src emacs-lisp
+(use-package difftastic
+  :ensure difftastic ;; or nil if you prefer manual installation
+  :config (difftastic-bindings-mode))
+#+end_src
+
 *** Forge
 [[https://magit.vc/manual/forge/index.html#Top][Forge]] for Github integration in Magit. Expects the ~~/.authinfo~ file
 to have been properly filled with the Github key (see the forge

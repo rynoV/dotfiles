@@ -32,6 +32,7 @@ cronie
 ddcci-driver-linux-dkms
 ddcutil
 dhall
+difftastic
 direnv
 discord
 docker
