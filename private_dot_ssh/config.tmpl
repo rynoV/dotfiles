@@ -1,4 +1,5 @@
 AddKeysToAgent yes
 
 Host raspberrypi
-	HostName raspberrypi{{ if eq .chezmoi.os "darwin" }}.local{{end}}
+    User calum
+    HostName raspberrypi{{ if eq .chezmoi.os "darwin" }}.local{{end}}
