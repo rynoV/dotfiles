@@ -1,6 +1,11 @@
 # -*- mode: fish; aggressive-indent-mode: nil -*-
+
+# NOTE: using bitwarden as ssh agent requires enabling the ssh agent in the desktop app settings
+# https://bitwarden.com/help/ssh-agent
+
 {{ if eq .chezmoi.os "darwin" }}
 eval "$(/opt/homebrew/bin/brew shellenv)"
+set --export SSH_AUTH_SOCK $HOME/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
 {{ else if eq .chezmoi.os "linux" }}
 {{   if and (.chezmoi.kernel.osrelease | lower | contains "microsoft") (eq .chezmoi.osRelease.id "arch") }}
 # On wsl arch linux, the following is required for graphical applications to work via WSLg
@@ -15,11 +20,9 @@ gsettings set org.gnome.desktop.interface cursor-size 8
 # set ssh_setup (/usr/sbin/wsl2-ssh-agent)
 # eval $ssh_setup
 set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
+# TODO: try to get bitwarden working as ssh agent on wsl too
 {{   else  }}
-# From
-# https://wiki.archlinux.org/title/SSH_keys#Start_ssh-agent_with_systemd_user
-# so that ~/.config/systemd/user/ssh-agent.service works
-set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
+set --export SSH_AUTH_SOCK $HOME/.bitwarden-ssh-agent.sock
 {{   end }}
 {{ end }}
 

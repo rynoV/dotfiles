@@ -1,6 +1,7 @@
 [user]
     email = sieppertcalum@gmail.com
     name = Calum Sieppert
+    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPZMtlnLN51ZmIkMxsg1bGDsoazyOlDemuhq1Jb0LuEO
 [credential]
     credentialStore = gpg
     helper = /usr/bin/git-credential-manager
@@ -58,3 +59,7 @@
     directory = /opt/flutter
 [push]
     useForceIfIncludes = true
+[commit]
+    gpgsign = true
+[gpg "ssh"]
+    allowedSignersFile = ~/.ssh/allowed_signers
