@@ -197,7 +197,7 @@ myPromptConfig =
 
 myScratchpads =
   [ NS "htop" "kitty --title htop htop" (title =? "htop") $ customFloating $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
-    NS "terminal" "kitty --title terminal" (title =? "terminal") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
+    NS "terminal" "kitty --title terminal" (title =? "terminal") $ customFloating $ W.RationalRect (1 / 12) (1 / 12) (10 / 12) (10 / 12),
     NS "files" "kitty --title files ranger" (title =? "files") $ customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3),
     NS
       "calc"
@@ -441,6 +441,8 @@ myKeymap =
 
 myStartupHook :: X ()
 myStartupHook = do
+  -- For ssh key auth
+  spawnOnce "bitwarden-desktop"
   -- Note: spawning the daemon using systemd instead of here does not
   -- include environment variables for emacs to access
   spawnOnce "emacs --daemon"
