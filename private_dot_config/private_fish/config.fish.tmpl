@@ -19,8 +19,10 @@ gsettings set org.gnome.desktop.interface cursor-size 8
 
 # set ssh_setup (/usr/sbin/wsl2-ssh-agent)
 # eval $ssh_setup
-set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
-# TODO: try to get bitwarden working as ssh agent on wsl too
+# set --export SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
+# On WSL Arch with bitwarden-desktop installed through pacman, just start the
+# bitwarden desktop app through the Windows launcher before making commits
+set --export SSH_AUTH_SOCK $HOME/.bitwarden-ssh-agent.sock
 {{   else  }}
 set --export SSH_AUTH_SOCK $HOME/.bitwarden-ssh-agent.sock
 {{   end }}
