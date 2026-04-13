@@ -61,6 +61,8 @@
     recurse = true
 [safe]
     directory = /opt/flutter
+[status]
+    submoduleSummary = 1
 [push]
     useForceIfIncludes = true
 [commit]
@@ -68,4 +70,4 @@
 [gpg "ssh"]
     allowedSignersFile = ~/.ssh/allowed_signers
 [gpg]
-	format = ssh
+    format = ssh
