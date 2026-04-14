@@ -32,7 +32,7 @@ ctrl-y:execute-silent(echo {+} | xargs readlink -f | string collect | fish_clipb
 ctrl-alt-y:execute-silent(for line in {+}; wslpath -w -a \$line; end | string collect | fish_clipboard_copy)'"
 
     # fzf.fish settings
-    set fzf_diff_highlighter delta --paging=never --width=20
+    set -gx fzf_diff_highlighter delta --paging=never --width=20
 
     # Fzf is configured using both PatrickF1/fzf.fish and the built-in fzf --fish.
     # For fzf.fish, we change the defaults which use ctrl-alt, because they don't
