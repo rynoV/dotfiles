@@ -23,4 +23,3 @@ dist-newstyle/
 .local/share/applications/**/.*
 !.local/share/chezmoi/
 !.local/share/chezmoi/**
-.local/share/chezmoi/**/.*
