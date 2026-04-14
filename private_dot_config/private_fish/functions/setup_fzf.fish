@@ -3,7 +3,7 @@ function setup_fzf
     # Built-in fzf settings
     set -gx FZF_DEFAULT_OPTS "--cycle --layout=reverse --style=minimal --height=40% --preview-window=wrap --marker='*'
 --bind='ctrl-y:execute-silent(echo {+} | string collect | fish_clipboard_copy),\
-alt-p:toggle-preview'
+alt-p:toggle-preview,ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down'
 "
 
     # Default command when using as `fzf` directly
@@ -16,7 +16,7 @@ alt-p:toggle-preview'
     set -gx FZF_CTRL_R_OPTS "
 --bind 'ctrl-y:execute-silent(echo -n {3..} | string collect | fish_clipboard_copy)+abort'
 --color footer:italic
---footer \"CTRL-Y -> copy command, CTRL-R -> chronological/relevance, ALT-R -> raw (use CTRL-N/CTRL-P), CTRL-/ and ALT-/ -> toggle wrap,\nSHIFT-DELETE -> delete command(s),ALT-ENTER -> reformat and insert command(s), ALT-T -> cycle prefix, ALT-P -> preview\"
+--footer \"CTRL-Y -> copy command, CTRL-R -> chronological/relevance, ALT-R -> raw (use CTRL-N/CTRL-P), CTRL-/ and ALT-/ -> toggle wrap,\nSHIFT-DELETE -> delete command(s), ALT-ENTER -> reformat and insert command(s), ALT-T -> cycle prefix,\nALT-P -> preview, CTRL-U/D -> preview half page scroll, SHIFT-UP/DOWN -> preview scroll\"
 --with-nth 3.. --bind 'alt-t:change-with-nth(1,3..|2..|3..)'"
 
     # Use ctrl-e in the fzf file finder to edit the file(s), ctrl-alt-e to edit in
@@ -24,7 +24,7 @@ alt-p:toggle-preview'
     # with ctrl-alt-y
     set -gx FZF_CTRL_T_OPTS "--preview '~/scripts/fzf-preview.sh {}'
 --color footer:italic
---footer \"CTRL-E -> editor, CTRL-ALT-E -> vscode, CTRL-Y -> copy absolute path, CTRL-ALT-Y -> copy Windows path, ALT-P -> preview\"
+--footer \"CTRL-E -> editor, CTRL-ALT-E -> vscode, CTRL-Y -> copy absolute path, CTRL-ALT-Y -> copy Windows path,\nALT-P -> preview, CTRL-U/D -> preview half page scroll, SHIFT-UP/DOWN -> preview scroll\"
 --bind '\
 ctrl-e:execute($EDITOR {+} &> /dev/tty)+abort,\
 ctrl-alt-e:execute(code {+})+abort,\
