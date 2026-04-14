@@ -74,43 +74,6 @@ set --export FZF_DEFAULT_OPTS "--cycle --layout=reverse --style=minimal --height
 --bind='ctrl-y:execute-silent(echo {+} | string collect | fish_clipboard_copy)'
 "
 
-# Customize git completion. This is from
-# https://github.com/junegunn/fzf/blob/06e70570e2088605d61f18b127356e5680f7f599/README.md?plain=1#L778.
-# This makes shift-tab show more info after certain git commands, for example
-# "git checkout <shift-tab>" will show a detailed preview.
-# This works because `fzf --fish`'s `fzf_complete` function (bound to
-# shift-tab) dynamically looks for functions called `_fzf_complete_<cmd>` for
-# any given command.
-# TODO: I'd like this to handle my aliases as well. The default shift-tab completion is able to resolve them, so should look into that
-function _fzf_complete_git
-  # Show header text with active branch for all git completions
-  set -lx -- FZF_COMPLETION_OPTS --header="'"(git branch --show-current 2>/dev/null)"'"
-
-  # No other changes when less than 3 arguments, or when completing options
-  if not set -q argv[3]; or string match -q -- '-*' $argv[-1]
-    fzf_complete
-    return
-  end
-
-  # Check subcommand
-  switch $argv[2]
-    case checkout diff log show
-      # Set preview and display all branches and commits for subcommands: checkout, diff, log, show
-      begin
-        git branch --all --format='%(refname:short)'
-        git log --all --oneline --color=always
-      end | fzf_complete --no-multi --ansi --accept-nth=1 --query=$argv[-1] --preview='git show --color=always {1}'
-
-    case add rm mv
-      # Only set preview for subcommands: add, rm, mv
-      # Special characters in fish completion lists are escaped, so the r flag must be used.
-      fzf_complete --preview="git diff --color=always {r1}"
-
-    case '*'
-      # No changes for other subcommands
-      fzf_complete
-  end
-end
 
 set --export FZF_CTRL_R_OPTS "
   --bind 'ctrl-y:execute-silent(echo -n {3..} | string collect | fish_clipboard_copy)+abort'
