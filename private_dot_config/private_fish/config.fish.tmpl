@@ -198,7 +198,9 @@ end
 
 starship init fish | source
 
-pnpm completion fish | source
+if type -q pnpm
+    pnpm completion fish | source
+end
 
 enable_transience
 
