@@ -1,8 +1,3 @@
-!code
-!code/**
-# Ensure fd operates consistent with the default behaviour of ignoring hidden files/folders
-code/**/.*
-
 .venv/
 env/
 node_modules/
