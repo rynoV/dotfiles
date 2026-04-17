@@ -33,6 +33,10 @@
     cmd = ~/scripts/ediff.sh $LOCAL $REMOTE $MERGED
 [difftool "nvim_difftool"]
     cmd = nvim -c \"packadd nvim.difftool\" -d \"$LOCAL\" \"$REMOTE\"
+    ; This is close to allowing opening a new tab with the diff from a nvim
+    ; terminal, but git deletes the tmp directories too quickly, so would need
+    ; to block until the tab is closed somehow, maybe following flatten.nvim
+    ; cmd = nvim --server $NVIM --remote-send \"<C-\\><C-N>:packadd nvim.difftool | tabnew | DiffTool $LOCAL $REMOTE<CR>\"
 [merge]
     tool = nvimdiff
     conflictstyle = diff3
