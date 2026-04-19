@@ -1,3 +1,4 @@
+# vim: filetype=toml
 pager = "bat"
 pagerArgs = "--plain"
 
@@ -5,5 +6,9 @@ pagerArgs = "--plain"
 github_username = "rynoV"
 
 [merge]
-command = "nvim"
-args = ["-d"]
+command = "{{ .chezmoi.homeDir }}/scripts/nvim-cmd.sh"
+args = [
+  "--cmd",
+  "let g:flatten_wait=1",
+  "-d",
+]
