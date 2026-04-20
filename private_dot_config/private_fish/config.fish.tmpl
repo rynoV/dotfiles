@@ -65,10 +65,11 @@ fish_add_path --path ~/.local/bin/evil-software
 fish_add_path --path ~/.local/share/JetBrains/Toolbox/scripts
 fish_add_path --path ~/.duckdb/cli/latest
 
-set --export VISUAL "nvim --cmd 'let g:flatten_wait=1'"
+set --export VISUAL "~/scripts/nvim-cmd.sh --cmd 'let g:flatten_wait=1'"
 set --export EDITOR nvim
 set --export BROWSER browser
 set --export PAGER bat --plain
+set --export MANPAGER "nvim +Man!"
 set MANPATH $MANPATH /usr/share/man
 
 setup_fzf
