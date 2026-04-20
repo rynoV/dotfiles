@@ -43,7 +43,6 @@
     cmd = ~/scripts/ediff.sh $LOCAL $REMOTE $MERGED $BASE
     trustExitCode = true
 [core]
-    editor = nvim
     autocrlf = input
     pager = delta
 [interactive]
@@ -68,6 +67,7 @@
     submoduleSummary = 1
 [push]
     useForceIfIncludes = true
+    default = current
 [commit]
     gpgsign = true
 [gpg "ssh"]
