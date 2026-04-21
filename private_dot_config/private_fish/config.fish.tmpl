@@ -113,6 +113,9 @@ alias lla "ls -lA"
 alias cm chezmoi
 alias dn dotnet
 
+# Use the github cli to compute the git diff commit range expression
+alias gh_pr_range "gh pr view --json baseRefOid,headRefOid --jq '.baseRefOid + \"..\" + .headRefOid'"
+
 # Useful abbreviations from https://github.com/fish-shell/fish-shell/releases/tag/3.6.0
 function multicd
     echo cd (string repeat -n (math (string length -- $argv[1]) - 1) ../)
