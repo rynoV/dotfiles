@@ -113,8 +113,21 @@ alias lla "ls -lA"
 alias cm chezmoi
 alias dn dotnet
 
-# Use the github cli to compute the git diff commit range expression
-alias gh_pr_range "gh pr view --json baseRefOid,headRefOid --jq '.baseRefOid + \"..\" + .headRefOid'"
+# This needs to be global to make it accessible within the function
+set -g gh_pr_abbr_regex '^pr\.\.(\d*)$'
+
+function gh_pr_range
+    set -l pr_number (string replace -r $gh_pr_abbr_regex '$1' $argv[1])
+    gh pr view $pr_number --json baseRefOid,headRefOid --jq '.baseRefOid[:7] + ".." + .headRefOid[:7]'
+end
+
+# Use the github cli to compute the git diff commit range expression for a pull
+# request. Typing out "pr..123" and hitting space will replace that with the
+# commit range for PR 123, after a short delay to call to github. "pr.." will
+# use the current branch's pull request. I decided to make this an abbreviation
+# instead of an alias so that the range will be expanded and saved into the
+# shell history, to reduce the slow api calls to github
+abbr --add github_pr_range --position anywhere --regex $gh_pr_abbr_regex --function gh_pr_range
 
 # Useful abbreviations from https://github.com/fish-shell/fish-shell/releases/tag/3.6.0
 function multicd
@@ -124,7 +137,7 @@ end
 abbr --add dotdot --regex '^\.\.+$' --function multicd
 
 function last_history_item; echo $history[1]; end
-abbr -a !! --position anywhere --function last_history_item
+abbr --add !! --position anywhere --function last_history_item
 
 if type -q pacman
     alias pm pacman
