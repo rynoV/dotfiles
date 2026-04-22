@@ -65,6 +65,7 @@
     directory = /opt/flutter
 [status]
     submoduleSummary = 1
+    compareBranches = @{upstream} @{push}
 [push]
     useForceIfIncludes = true
     default = current
