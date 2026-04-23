@@ -75,3 +75,6 @@
     allowedSignersFile = ~/.ssh/allowed_signers
 [gpg]
     format = ssh
+[hook "ensure-signed"] # Requires git 2.54 or later
+    event = pre-push
+    command = ~/scripts/ensure-signed.sh
