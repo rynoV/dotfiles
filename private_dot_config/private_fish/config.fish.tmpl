@@ -69,7 +69,7 @@ set --export VISUAL "~/scripts/nvim-cmd.sh --cmd 'let g:flatten_wait=1'"
 set --export GIT_EDITOR "~/scripts/nvim-cmd.sh --cmd 'let g:flatten_wait=1'"
 # Note: fzf expects EDITOR to be a command name without arguments
 set --export EDITOR nvim
-{{ if and (.chezmoi.kernel.osrelease | lower | contains "microsoft") (eq .chezmoi.osRelease.id "arch") }}
+{{ if and (and (eq .chezmoi.os "linux") (.chezmoi.kernel.osrelease | lower | contains "microsoft")) (eq .chezmoi.osRelease.id "arch") }}
 # Use explorer on wsl to launch web pages
 set --export BROWSER explorer.exe
 {{ else  }}
