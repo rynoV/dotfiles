@@ -25,8 +25,11 @@ function _fzf_search_git_log --description "Search the output of git log and pre
         if test $status -eq 0
             for line in $selected_log_lines
                 set -f abbreviated_commit_hash (string split --field 1 " " $line)
-                set -f full_commit_hash (git rev-parse $abbreviated_commit_hash)
-                set -f --append commit_hashes $full_commit_hash
+                # Modified from the original to use the abbreviated hash when
+                # inserting back into the command line
+                # set -f full_commit_hash (git rev-parse $abbreviated_commit_hash)
+                # set -f --append commit_hashes $full_commit_hash
+                set -f --append commit_hashes $abbreviated_commit_hash
             end
             commandline --current-token --replace (string join ' ' $commit_hashes)
         end
