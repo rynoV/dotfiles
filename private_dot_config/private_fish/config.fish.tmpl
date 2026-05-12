@@ -27,6 +27,9 @@ set --export SSH_AUTH_SOCK $HOME/.bitwarden-ssh-agent.sock
 {{   else  }}
 set --export SSH_AUTH_SOCK $HOME/.bitwarden-ssh-agent.sock
 {{   end }}
+{{ else if eq .chezmoi.os "windows" }}
+set -gx MSYS2_PATH_TYPE inherit
+set -gx SHELL '{{ lookPath "fish" }}'
 {{ end }}
 
 fish_vi_key_bindings
@@ -53,11 +56,13 @@ bind --mode insert alt-t 'fish_commandline_append \' > (set tmpout (mktemp); pri
 
 bind --mode insert ctrl-y accept-autosuggestion execute
 
+{{ if ne .chezmoi.os "windows" }}
 # XDG folders: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 set --export XDG_CONFIG_HOME $HOME/.config
 set --export XDG_CACHE_HOME $HOME/.cache
 set --export XDG_DATA_HOME $HOME/.local/share
 set --export XDG_STATE_HOME $HOME/.local/state
+{{ end }}
 
 fish_add_path --path ~/.local/bin
 fish_add_path --path ~/.local/bin/evil-software
@@ -163,9 +168,14 @@ fish_add_path --path $HOME/.nix-profile/bin /nix/var/nix/profiles/default/bin
 fish_add_path --path /opt/flutter/bin
 fish_add_path --path $HOME/Android/Sdk/cmdline-tools/latest/bin
 
+{{ if ne .chezmoi.os "windows" }}
 fish_add_path --path $HOME/.dotnet/tools
 set --export DOTNET_ROOT $HOME/.dotnet/
 fish_add_path --path $DOTNET_ROOT
+{{ else }}
+# For windows we let the default installers handle the dotnet paths. Probably
+# less headache because stuff like .net framework is installed with windows
+{{ end }}
 
 # Rust
 set --export RUSTUP_HOME $XDG_DATA_HOME/.rustup
