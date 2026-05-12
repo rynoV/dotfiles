@@ -6,6 +6,9 @@
 [credential]
     credentialStore = gpg
     helper = /usr/bin/git-credential-manager
+[rerere]
+    enabled = true
+    autoUpdate = true
 [pull]
     rebase = false
 [fetch]
