@@ -5,9 +5,21 @@ pagerArgs = "--plain"
 [data]
 github_username = "rynoV"
 
-[merge]
-command = "{{ .chezmoi.homeDir }}/scripts/nvim-cmd.sh"
+[cd]
+command = {{ env "SHELL" | toToml }}
+
+[edit]
+command = {{ lookPath "bash" | toToml }}
 args = [
+  "{{ .chezmoi.homeDir }}/scripts/nvim-cmd.sh",
+  "--cmd",
+  "let g:flatten_wait=1",
+]
+
+[merge]
+command = {{ lookPath "bash" | toToml }}
+args = [
+  "{{ .chezmoi.homeDir }}/scripts/nvim-cmd.sh",
   "--cmd",
   "let g:flatten_wait=1",
   "-d",
