@@ -45,6 +45,16 @@
 [core]
     autocrlf = input
     pager = delta
+{{ if eq .chezmoi.os "windows" }}
+    # From bitwarden ssh agent docs
+    sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+    # Windows optimizations from https://github.com/Vigorpush/git-speedup
+    preloadIndex = true
+    fscache = true
+    ignoreStat = false
+    # Requires developer mode on Windows
+    symlinks = true
+{{ end }}
 [interactive]
     diffFilter = delta --color-only
 [add.interactive]
@@ -73,8 +83,17 @@
     gpgsign = true
 [gpg "ssh"]
     allowedSignersFile = ~/.ssh/allowed_signers
+{{ if eq .chezmoi.os "windows" }}
+    # From bitwarden ssh agent docs
+    program = C:/Windows/System32/OpenSSH/ssh-keygen.exe
+{{ end }}
 [gpg]
     format = ssh
 [hook "ensure-signed"] # Requires git 2.54 or later
     event = pre-push
     command = ~/scripts/ensure-signed.sh
+{{ if eq .chezmoi.os "windows" }}
+[gc]
+    # Windows optimizations from https://github.com/Vigorpush/git-speedup
+    auto = 256
+{{ end }}
