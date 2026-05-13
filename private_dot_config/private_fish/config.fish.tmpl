@@ -70,8 +70,12 @@ fish_add_path --path ~/.local/bin/evil-software
 fish_add_path --path ~/.local/share/JetBrains/Toolbox/scripts
 fish_add_path --path ~/.duckdb/cli/latest
 
-set --export VISUAL "~/scripts/nvim-cmd.sh --cmd 'let g:flatten_wait=1'"
-set --export GIT_EDITOR "~/scripts/nvim-cmd.sh --cmd 'let g:flatten_wait=1'"
+# This was tricky to get right:
+# - Using sh -c instead of calling the script directly allows this to work on windows msys2 as well
+# - Passing _ ensures $@ contains all arguments passed from the user
+# - Using a script file instead of putting the script contents inline works around confusing quoting escapes
+set --export VISUAL 'sh -c \'~/scripts/editor.sh "$@"\' _'
+set --export GIT_EDITOR $VISUAL
 # Note: fzf expects EDITOR to be a command name without arguments
 set --export EDITOR nvim
 {{ if and (and (eq .chezmoi.os "linux") (.chezmoi.kernel.osrelease | lower | contains "microsoft")) (eq .chezmoi.osRelease.id "arch") }}
