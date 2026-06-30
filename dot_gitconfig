@@ -48,6 +48,7 @@
 [core]
     autocrlf = input
     pager = delta
+    fsmonitor = true
 {{ if eq .chezmoi.os "windows" }}
     # From bitwarden ssh agent docs
     sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
