@@ -707,7 +707,10 @@ https://github.com/dakra/ghostel
   (calum/leader-def
     :infix "t"
     "" '(nil :which-key "Terminal")
-    "t" '(ghostel-other :which-key "New or next terminal")))
+    "t" '(ghostel-other :which-key "New or next terminal"))
+  :custom
+  ; Always send escape key to the terminal, use C-\ C-n to go to normal mode
+  (evil-ghostel-escape 'terminal))
 (use-package evil-ghostel
   :after (ghostel evil)
   :hook (ghostel-mode . evil-ghostel-mode))
