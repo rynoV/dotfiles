@@ -677,15 +677,23 @@ Needs ~copilot-install-server~ and ~copilot-login~
 #+begin_src emacs-lisp
 (use-package copilot
   :ensure t
-  :hook ((prog-mode . copilot-mode)
-         (org-mode . copilot-mode))
-  :bind (:map copilot-completion-map
-              ("<tab>" . copilot-accept-completion)
-              ("TAB" . copilot-accept-completion)
-              ("C-<tab>" . copilot-accept-completion-by-word)
-              ("C-TAB" . copilot-accept-completion-by-word)
-              ("C-n" . copilot-next-completion)
-              ("C-p" . copilot-previous-completion)))
+  :general
+  (:states '(insert)
+           "M-\\" 'copilot-complete)
+  (:keymaps 'copilot-completion-map
+              "<tab>" 'copilot-accept-completion
+              "TAB" 'copilot-accept-completion
+              "C-<tab>" 'copilot-accept-completion-by-word
+              "C-TAB" 'copilot-accept-completion-by-word
+              "C-n" 'copilot-next-completion
+              "C-p" 'copilot-previous-completion)
+  :custom
+  ; This package prints a warning if you don't specify each mode's
+  ; indentation in copilot-indentation-alist, but it uses a default so
+  ; the warning can be ignored
+  (copilot-indent-offset-warning-disable t)
+  ; Increase max file size for copilot, for my large org files
+  (copilot-max-char 1000000))
 #+end_src
 
 ** Terminal
