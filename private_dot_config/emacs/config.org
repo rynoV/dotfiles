@@ -20,7 +20,7 @@ works.
   :preface
   ;; Note this also needs to be set in after-make-frame-functions
   (defun calum/set-C-i-tab ()
-    (when (or (display-graphic-p) (kkp--this-terminal-supports-kkp-p))
+    (when (or (display-graphic-p) (kkp--this-terminal-has-active-kkp-p))
       (keymap-set input-decode-map "C-i" [C-i])))
 
   :config
