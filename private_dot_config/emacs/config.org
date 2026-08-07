@@ -668,13 +668,38 @@ https://github.com/rolandwalker/unicode-fonts
   (unicode-fonts-setup))
 #+end_src
 
+** LLM, Copilot
+
+https://github.com/copilot-emacs/copilot.el
+
+Needs ~copilot-install-server~ and ~copilot-login~
+
+#+begin_src emacs-lisp
+(use-package copilot
+  :ensure t
+  :hook ((prog-mode . copilot-mode)
+         (org-mode . copilot-mode))
+  :bind (:map copilot-completion-map
+              ("<tab>" . copilot-accept-completion)
+              ("TAB" . copilot-accept-completion)
+              ("C-<tab>" . copilot-accept-completion-by-word)
+              ("C-TAB" . copilot-accept-completion-by-word)
+              ("C-n" . copilot-next-completion)
+              ("C-p" . copilot-previous-completion)))
+#+end_src
+
 ** Terminal
 
 https://github.com/dakra/ghostel
 
 #+BEGIN_SRC emacs-lisp
 (use-package ghostel
-  :ensure t)
+  :ensure t
+  :general
+  (calum/leader-def
+    :infix "t"
+    "" '(nil :which-key "Terminal")
+    "t" '(ghostel-other :which-key "New or next terminal")))
 (use-package evil-ghostel
   :after (ghostel evil)
   :hook (ghostel-mode . evil-ghostel-mode))
