@@ -668,6 +668,18 @@ https://github.com/rolandwalker/unicode-fonts
   (unicode-fonts-setup))
 #+end_src
 
+** Terminal
+
+https://github.com/dakra/ghostel
+
+#+BEGIN_SRC emacs-lisp
+(use-package ghostel
+  :ensure t)
+(use-package evil-ghostel
+  :after (ghostel evil)
+  :hook (ghostel-mode . evil-ghostel-mode))
+#+end_src
+
 ** Git Integration
 *** Diff highlight
 aka git gutter, git signs
@@ -808,6 +820,9 @@ Use meow only for keypad state under leader bindings
   ;; Make sure the window commands are always accessible (for example to navigate out of magit)
   (calum/leader-def :infix "w"
     "" '("Windows" . evil-window-map))
+  (:states '(insert normal visual emacs)
+            "C-\\" nil
+            "C-\\ C-n" 'evil-force-normal-state)
   :config
   (evil-mode)
   (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
