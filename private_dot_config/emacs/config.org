@@ -770,6 +770,66 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
     (if (frame-parameter nil 'calum-magit-mode)
         (magit-display-buffer-fullframe-status-v1 buffer)
       (magit-display-buffer-traditional buffer)))
+  (defun calum/nvim-frame (nvim)
+    "Return the live frame associated with the Neovim socket NVIM."
+    (seq-find
+     (lambda (frame)
+       (and (frame-live-p frame)
+            (equal (frame-parameter frame 'calum-nvim) nvim)))
+     (frame-list)))
+  (defun calum/with-nvim-frame (nvim function)
+    "Call FUNCTION in the frame associated with the Neovim socket NVIM."
+    (let ((frame (calum/nvim-frame nvim)))
+      (unless frame
+        (user-error "No Emacs frame is associated with Neovim socket %s" nvim))
+      (with-selected-frame frame
+        (funcall function))))
+  (defun calum/nvim-magit-status (nvim directory)
+    "Show Magit status for DIRECTORY in the Neovim-associated frame."
+    (calum/with-nvim-frame
+     nvim
+     (lambda ()
+       (let* ((directory (file-name-as-directory (expand-file-name directory)))
+              (toplevel (magit-toplevel directory)))
+         (unless toplevel
+           (user-error "%s is not inside a Git worktree" directory))
+         (magit-status toplevel)))))
+  (defun calum/nvim-magit-file-position (nvim directory file line column)
+    "Show FILE's Magit status position in the Neovim-associated frame."
+    (calum/with-nvim-frame
+     nvim
+     (lambda ()
+       (let* ((file (expand-file-name file))
+              (directory (file-name-as-directory (expand-file-name directory)))
+              (toplevel (or (magit-toplevel (file-name-directory file))
+                            (magit-toplevel directory))))
+         (unless (file-regular-p file)
+           (user-error "%s is not a regular file" file))
+         (unless toplevel
+           (user-error "%s is not inside a Git worktree" file))
+         (with-current-buffer (find-file-noselect file)
+           (save-excursion
+             (goto-char (point-min))
+             (forward-line (1- (max 1 line)))
+             (move-to-column (max 0 column))
+             (let ((magit-status-goto-file-position t))
+               (magit-status toplevel))))))))
+  (defun calum/nvim-magit-refresh (nvim)
+    "Refresh the visible Magit status buffer in the Neovim-associated frame."
+    (calum/with-nvim-frame
+     nvim
+     (lambda ()
+       (when-let ((buffer
+                   (seq-some
+                    (lambda (window)
+                      (let ((candidate (window-buffer window)))
+                        (and (buffer-live-p candidate)
+                             (with-current-buffer candidate
+                               (and (derived-mode-p 'magit-status-mode)
+                                    candidate)))))
+                    (window-list (selected-frame) 'no-minibuf))))
+         (with-current-buffer buffer
+           (magit-refresh))))))
   (defun calum/magit-diff-visit-file-nvim ()
     "Visit the diff at point with Neovim.
 
