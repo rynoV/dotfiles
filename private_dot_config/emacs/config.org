@@ -741,6 +741,7 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
             ":" nil
             ":" 'evil-ex
             "C-c SPC" 'magit-diff-show-or-scroll-up
+            "C-c RET" 'calum/magit-diff-visit-file-nvim
             ;; Shift-tab
             "<backtab>" 'magit-section-cycle)
   (:keymaps 'magit-diff-mode-map
