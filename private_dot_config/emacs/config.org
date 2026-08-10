@@ -761,6 +761,15 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
     "Set the NVIM socket used by commands launched from the current frame."
     (interactive "sNVIM socket: ")
     (set-frame-parameter nil 'calum-nvim nvim))
+  (defun calum/set-frame-magit-mode (&optional enabled)
+    "Set whether Magit uses full-frame status buffers in the current frame."
+    (interactive "P")
+    (set-frame-parameter nil 'calum-magit-mode enabled))
+  (defun calum/magit-display-buffer-function (buffer)
+    "Display BUFFER according to the current frame's Magit setting."
+    (if (frame-parameter nil 'calum-magit-mode)
+        (magit-display-buffer-fullframe-status-v1 buffer)
+      (magit-display-buffer-traditional buffer)))
   (defun calum/magit-diff-visit-file-nvim ()
     "Visit the diff at point with Neovim.
 
@@ -821,10 +830,9 @@ Normally this goes to the worktree file for added/context lines in staged/unstag
   :custom
   (magit-section-show-context-menu-for-emacs<28 t)
   :config
-  (if calum/magit-mode
-      (progn
-        ;; Open Magit in full screen
-        (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)))
+  ;; Set the `calum-magit-mode' frame parameter to use full-frame status
+  ;; buffers in a frame.
+  (setq magit-display-buffer-function #'calum/magit-display-buffer-function)
 
   ;; Automatically put us in full insert mode for commit editing
   (add-hook 'with-editor-mode-hook #'evil-insert-state)
@@ -961,7 +969,6 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
 #+begin_src emacs-lisp
 (use-package cdlatex
   :after tex ;; Needs to be after auctex, due to cdlatex--texmathp
-  :if (not calum/magit-mode)
   :custom
   (cdlatex-make-sub-superscript-roman-if-pressed-twice t)
   (cdlatex-math-symbol-alist '((?\" ("\\cap"))
@@ -997,7 +1004,6 @@ IPhone. This requires [[https://rclone.org/docs/][rclone]] to be setup with a Dr
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 (use-package org
-  :if (not calum/magit-mode)
   :delight org-cdlatex-mode
   <<org-config>>
   )
@@ -1696,7 +1702,6 @@ https://github.com/amluto/org-mode/blob/master/lisp/org-inlinetask.el
 #+begin_src emacs-lisp
 (use-package org-indent
   :disabled
-  :if (not calum/magit-mode)
   :straight nil
   :delight org-indent-mode)
 #+end_src
@@ -1911,7 +1916,6 @@ Call ~org-download-clipboard~ to paste the most recent screenshot.
 [[https://github.com/alphapapa/org-super-agenda][Org super agenda]] for organizing the agenda view in different ways.
 #+begin_src emacs-lisp
 (use-package org-super-agenda
-  :if (not calum/magit-mode)
   :after org
   :general
   (:keymaps 'org-super-agenda-header-map
