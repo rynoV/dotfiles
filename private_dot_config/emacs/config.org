@@ -785,7 +785,7 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
             (let* ((name (replace-regexp-in-string
                           "'" "''" (buffer-name buffer) t t))
                    (set-name-command
-                    (format "+execute 'file ' . fnameescape('%s')" name))
+                    (format "let g:flatten_stdin_name = '%s'" name))
                    (cursor-command
                     (format "+call cursor(%d, %d)"
                             (line-number-at-pos)
@@ -794,7 +794,7 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
               (call-process-region
                (point-min) (point-max)
                (expand-file-name "~/scripts/nvim-cmd.sh")
-               nil nil nil set-name-command cursor-command "-")))))))
+               nil nil nil "--cmd" set-name-command cursor-command "-")))))))
   :custom
   (magit-section-show-context-menu-for-emacs<28 t)
   :config
