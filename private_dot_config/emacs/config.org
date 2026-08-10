@@ -756,9 +756,21 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
     (interactive)
     (let ((current-prefix-arg t))
       (call-interactively 'magit-status)))
+  (defun calum/set-frame-nvim (nvim)
+    "Set the NVIM socket used by commands launched from the current frame."
+    (interactive "sNVIM socket: ")
+    (set-frame-parameter nil 'calum-nvim nvim))
   (defun calum/magit-diff-visit-file-nvim ()
-    "Visit the diff at point with Neovim."
+    "Visit the diff at point with Neovim.
+
+This only works when there is a running neovim instance and the 'calum-nvim' frame parameter is set to the socket for that instance.
+
+When starting a new emacs frame from within the neovim terminal, you can start it like this to enable magit->nvim integration:
+'emacsclient -a '' -c -nw -F \"((calum-nvim . \"$NVIM\"))\"'
+"
     (interactive)
+    (unless (frame-parameter nil 'calum-nvim)
+      (user-error "The current frame has no calum-nvim parameter"))
     (pcase-let ((`(,buffer ,position)
                  (magit-diff-visit-file--noselect)))
       (unless (buffer-live-p buffer)
@@ -771,7 +783,9 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
                 (goto-char (or position (point-min)))
                 (setq line (line-number-at-pos)
                       column (1+ (current-column)))))
-            (let ((process-connection-type t))
+            (let ((process-environment (copy-sequence process-environment))
+                  (process-connection-type t))
+              (setenv "NVIM" (frame-parameter nil 'calum-nvim))
               (start-process
                (format "magit-diff-nvim-%s" (buffer-name buffer))
                nil
@@ -790,7 +804,9 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
                     (format "+call cursor(%d, %d)"
                             (line-number-at-pos)
                             (1+ (current-column))))
+                   (process-environment (copy-sequence process-environment))
                    (process-connection-type t))
+              (setenv "NVIM" (frame-parameter nil 'calum-nvim))
               (call-process-region
                (point-min) (point-max)
                (expand-file-name "~/scripts/nvim-cmd.sh")
