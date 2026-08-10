@@ -814,8 +814,12 @@ Normally this goes to the worktree file for added/context lines in staged/unstag
             (goto-char (or position (point-min)))
             (let* ((name (replace-regexp-in-string
                           "'" "''" (buffer-name buffer) t t))
+                   (filename (replace-regexp-in-string
+                              "'" "''" (magit-buffer-file-name) t t))
                    (set-name-command
                     (format "let g:flatten_stdin_name = '%s'" name))
+                   (set-filename-command
+                    (format "let g:flatten_stdin_filename = '%s'" filename))
                    (cursor-command
                     (format "+call cursor(%d, %d)"
                             (line-number-at-pos)
@@ -826,7 +830,8 @@ Normally this goes to the worktree file for added/context lines in staged/unstag
               (call-process-region
                (point-min) (point-max)
                (expand-file-name "~/scripts/nvim-cmd.sh")
-               nil nil nil "--cmd" set-name-command cursor-command "-"))))))))
+               nil nil nil "--cmd" set-name-command
+               "--cmd" set-filename-command cursor-command "-"))))))))
   :custom
   (magit-section-show-context-menu-for-emacs<28 t)
   :config
