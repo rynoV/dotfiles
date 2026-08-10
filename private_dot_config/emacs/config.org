@@ -768,15 +768,21 @@ This only works when there is a running neovim instance and the 'calum-nvim' fra
 
 When starting a new emacs frame from within the neovim terminal, you can start it like this to enable magit->nvim integration:
 'emacsclient -a '' -c -nw -F \"((calum-nvim . \"$NVIM\"))\"'
+
+Normally this goes to the worktree file for added/context lines in staged/unstaged sections. On a deleted line, it opens the corresponding blob buffer so the deleted code remains visible. Use with a prefix argument to force blob visiting everywhere.
 "
     (interactive)
     (unless (frame-parameter nil 'calum-nvim)
       (user-error "The current frame has no calum-nvim parameter"))
-    (pcase-let ((`(,buffer ,position)
-                 (magit-diff-visit-file--noselect)))
-      (unless (buffer-live-p buffer)
-        (user-error "Magit could not create a file buffer"))
-      (if-let ((file (buffer-file-name buffer)))
+    (let ((goto-file
+           (and (not current-prefix-arg)
+                (memq (magit-diff--dwim) '(staged unstaged))
+                (not (magit-diff-on-removed-line-p)))))
+      (pcase-let ((`(,buffer ,position)
+                   (magit-diff-visit-file--noselect goto-file)))
+        (unless (buffer-live-p buffer)
+          (user-error "Magit could not create a file buffer"))
+        (if-let ((file (buffer-file-name buffer)))
           (let (line column)
             (with-current-buffer buffer
               (save-restriction
@@ -811,7 +817,7 @@ When starting a new emacs frame from within the neovim terminal, you can start i
               (call-process-region
                (point-min) (point-max)
                (expand-file-name "~/scripts/nvim-cmd.sh")
-               nil nil nil "--cmd" set-name-command cursor-command "-")))))))
+               nil nil nil "--cmd" set-name-command cursor-command "-"))))))))
   :custom
   (magit-section-show-context-menu-for-emacs<28 t)
   :config
