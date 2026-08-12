@@ -731,7 +731,10 @@ See [[https://github.com/emacs-evil/evil-collection/blob/d1dec4ef730554a2b9d5b96
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :init
-  (setq forge-add-default-bindings t)
+  (setq forge-add-default-bindings t
+        ;; If enabling syntax highlighting with magit-diff-fontify-hunk, this variable needs to be set here I think
+        ;; magit-diff-specify-hunk-foreground nil
+        )
   :general
   (calum/leader-def
     "g" '(magit-status :which-key "magit"))
