@@ -70,11 +70,8 @@ fish_add_path --path ~/.local/bin/evil-software
 fish_add_path --path ~/.local/share/JetBrains/Toolbox/scripts
 fish_add_path --path ~/.duckdb/cli/latest
 
-# This was tricky to get right:
-# - Using sh -c instead of calling the script directly allows this to work on windows msys2 as well
-# - Passing _ ensures $@ contains all arguments passed from the user
-# - Using a script file instead of putting the script contents inline works around confusing quoting escapes
-set --export VISUAL 'sh -c \'~/scripts/editor.sh "$@"\' _'
+# Using a script file instead of putting the script contents inline works around confusing quoting escapes
+set --export VISUAL '~/scripts/editor.sh "$@"'
 set --export GIT_EDITOR $VISUAL
 # Note: fzf expects EDITOR to be a command name without arguments
 set --export EDITOR nvim
