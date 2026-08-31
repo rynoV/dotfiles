@@ -12,6 +12,8 @@ This config is based off [[https://github.com/ianpan870102/yay-evil-emacs/blob/m
 works.
 
 #+begin_src emacs-lisp
+;; -*- lexical-binding: t; -*-
+
 ;; This sets up emacs to use kitty keyboard protocol so it can understand more keys in the terminal.
 ;; Unfortunately it doesn't help for distinguishing C-i and tab, so that only seems to work in gui:
 ;; https://github.com/benjaminor/kkp/issues/14#issuecomment-2636513662
@@ -384,7 +386,6 @@ https://emacs.stackexchange.com/a/35907"
                 (calum/set-C-i-tab)
                 )
               (set-scroll-bar-mode nil)
-              (calum/reload-theme)
               ))
 
 ;; Clean unused buffer every day at midnight

@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
