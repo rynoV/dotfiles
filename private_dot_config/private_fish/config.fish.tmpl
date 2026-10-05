@@ -29,6 +29,9 @@ set --export SSH_AUTH_SOCK $HOME/.bitwarden-ssh-agent.sock
 {{   end }}
 {{ else if eq .chezmoi.os "windows" }}
 set -gx MSYS2_PATH_TYPE inherit
+# Tell msys to use actual symlinks, so commands like `ln` make native windows
+# symlinks, and git difftool can use symlinks into the worktree
+set -gx MSYS2 winsymlinks:nativestrict
 set -gx SHELL '{{ lookPath "fish" }}'
 {{ end }}
 
