@@ -1505,6 +1505,8 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
     :jump-to-captured t :tree-type day)
    ("j" "Jump to Daily Auspice Log" plain (file+olp+datetree "auspice.org" "Dev log") nil
     :jump-to-captured t :tree-type day :immediate-finish t :empty-lines-after 1)
+   ("k" "Jump to Daily Organizer Log" plain (file+olp+datetree "organizer.org" "Dev log") nil
+    :jump-to-captured t :tree-type day :immediate-finish t :empty-lines-after 1)
    ))
 #+end_src
 
