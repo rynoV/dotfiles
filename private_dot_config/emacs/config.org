@@ -942,6 +942,10 @@ destination.
   )
 #+END_SRC
 
+#+begin_src emacs-lisp
+(use-package magit-tbdiff)
+#+end_src
+
 https://github.com/dandavison/magit-delta
 Slows down magit alot, and breaks the display, seemingly due to large
 file (a package-lock.json)
@@ -1037,6 +1041,9 @@ Use meow only for keypad state under leader bindings
 :ID:       14d53b60-22e4-416a-807d-33d001476862
 :END:
 *** General Setup
+:PROPERTIES:
+:ID:       9f9df116-d098-45c1-8943-03ff911c5b24
+:END:
 Documentation:
 - [[help:org-capture-templates][Capture templates]]
 - [[help:org-refile-targets][Org refile]]
@@ -1503,6 +1510,12 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
     "* %U\n%?\n" :prepend t)
    ("d" "Daily Auspice Log" item (file+olp+datetree "auspice.org" "Dev log") nil
     :jump-to-captured t :tree-type day)
+   ("a" "Auspice Task" entry (file+olp+datetree "auspice.org" "Dev log")
+    "* TODO %?\n%i\n"
+    :jump-to-captured t :tree-type day :empty-lines 1)
+   ("o" "Organizer Task" entry (file+olp+datetree "organizer.org" "Dev log")
+    "* TODO %?\n%i\n"
+    :jump-to-captured t :tree-type day :empty-lines 1)
    ("j" "Jump to Daily Auspice Log" plain (file+olp+datetree "auspice.org" "Dev log") nil
     :jump-to-captured t :tree-type day :immediate-finish t :empty-lines-after 1)
    ("k" "Jump to Daily Organizer Log" plain (file+olp+datetree "organizer.org" "Dev log") nil
@@ -1545,7 +1558,7 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
     ((org-agenda-category-filter-preset '("+auspice"))
      (org-agenda-span 14)
      (org-agenda-files '("~/org/auspice.org"))
-     (org-super-agenda-groups calum/todo-super-agenda-groups)
+     ;; (org-super-agenda-groups calum/todo-super-agenda-groups)
      ))
    ("wp" "Portfolio Analyzer Issues" tags-todo "+issue"
     ((org-agenda-category-filter-preset '("+auspice"))
