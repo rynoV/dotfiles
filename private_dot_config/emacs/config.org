@@ -595,6 +595,17 @@ nicely with xmonad.
   :config
   (setq ediff-window-setup-function 'ediff-setup-windows-plain))
 #+end_src
+** Calendar
+Canadian holidays live in =user-lisp-directory= (=~/.config/emacs/user-lisp/=),
+which Emacs puts on =load-path= at startup. See [[info:emacs#User Lisp Directory][emacs#User Lisp Directory]]
+#+begin_src emacs-lisp
+(use-package canadian-holidays
+  :straight nil
+  :custom
+  (holiday-other-holidays
+        (append holiday-canadian--federal-holidays
+                holiday-canadian--ab)))
+#+end_src
 ** Latex
 #+begin_src emacs-lisp
 (use-package tex-mode
