@@ -145,6 +145,15 @@ function multicd
     echo cd (string repeat -n (math (string length -- $argv[1]) - 1) ../)
 end
 
+# Type but: followed by the gitbutler commit abbreviation to expand it to the
+# git commit hash.
+set -g but_commit_abbr_regex '^but:([a-z]+)$'
+function but_commit
+    set -l commit_id (string replace -r $but_commit_abbr_regex '$1' $argv[1])
+    but show $commit_id --json | jq --join-output --raw-output '.commit[:7]'
+end
+abbr --add but_commit --position anywhere --regex $but_commit_abbr_regex --function but_commit
+
 abbr --add dotdot --regex '^\.\.+$' --function multicd
 
 function last_history_item; echo $history[1]; end
