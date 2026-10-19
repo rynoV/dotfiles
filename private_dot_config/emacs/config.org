@@ -450,6 +450,35 @@ https://emacs.stackexchange.com/a/35907"
   :straight (:type built-in))
 #+end_src
 
+** Help and Info
+#+begin_src emacs-lisp
+(use-package help-mode
+  :straight nil
+  :general
+  (:keymaps 'help-mode-map
+            "SPC" nil
+            "SPC" (general-key calum/leader-non-normal)
+            "C-c SPC" 'scroll-up-command)
+  (:states '(motion)
+           :keymaps 'help-mode-map
+           "SPC" nil
+           "SPC" (general-key calum/leader-non-normal)
+           "C-c SPC" 'scroll-up-command))
+
+(use-package info
+  :straight nil
+  :general
+  (:keymaps 'Info-mode-map
+            "SPC" nil
+            "SPC" (general-key calum/leader-non-normal)
+            "C-c SPC" 'Info-scroll-up)
+  (:states '(motion)
+           :keymaps 'Info-mode-map
+           "SPC" nil
+           "SPC" (general-key calum/leader-non-normal)
+           "C-c SPC" 'Info-scroll-up))
+#+end_src
+
 ** Syntax checking with flymake
 #+begin_src emacs-lisp
 (use-package flymake
@@ -1040,6 +1069,12 @@ Use meow only for keypad state under leader bindings
             "C-\\ C-n" 'evil-force-normal-state)
   :config
   (evil-mode)
+  ;; Make the existing non-normal leader prefix available in Evil's motion
+  ;; state without changing global SPC.
+  (general-define-key
+   :states 'motion
+   :keymaps 'global
+   "M-SPC" (lookup-key evil-normal-state-map (kbd "M-SPC")))
   (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
   (evil-global-set-key 'motion [C-i] 'evil-jump-forward)
 )
@@ -1363,6 +1398,15 @@ Use numeric prefix arg to insert number."
           "C-d" 'cdlatex-tab
           "C-s" 'calum/insert-superscript
           "C-M-s" 'calum/insert-subscript)
+(:keymaps 'org-agenda-mode-map
+          "SPC" nil
+          "SPC" (general-key calum/leader-non-normal)
+          "C-c SPC" 'org-agenda-show-and-scroll-up)
+(:states '(motion)
+         :keymaps 'org-agenda-mode-map
+         "SPC" nil
+         "SPC" (general-key calum/leader-non-normal)
+         "C-c SPC" 'org-agenda-show-and-scroll-up)
 #+end_src
 
 ***** Faces
@@ -1386,8 +1430,8 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
 (org-log-done 'time)
 ;; Don't start clock from the previous clock out
 (org-clock-continuously nil)
-;; Save clock history and the current clock when emacs closes
-(org-clock-persist t)
+;; Save clock history when emacs closes
+(org-clock-persist 'history)
 (org-clock-x11idle-program-name "xprintidle")
 (org-clock-idle-time nil)
 ;; For effort estimates, assume an eight hour work day, 11 month work
