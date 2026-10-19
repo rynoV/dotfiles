@@ -597,10 +597,16 @@ nicely with xmonad.
 #+end_src
 ** Calendar
 Canadian holidays live in =user-lisp-directory= (=~/.config/emacs/user-lisp/=),
-which Emacs puts on =load-path= at startup. See [[info:emacs#User Lisp Directory][emacs#User Lisp Directory]]
+which Emacs puts on =load-path= at startup, but does not load automatically.
+See [[info:emacs#User Lisp Directory][emacs#User Lisp Directory]].
 #+begin_src emacs-lisp
 (use-package canadian-holidays
   :straight nil
+  :demand t)
+
+(use-package holidays
+  :straight nil
+  :after canadian-holidays
   :custom
   (holiday-other-holidays
         (append holiday-canadian--federal-holidays
