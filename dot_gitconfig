@@ -83,6 +83,15 @@
 [push]
     useForceIfIncludes = true
     default = current
+    # This is the default, but it is useful for a triangle workflow because it
+    # avoids git automatically setting a branch's upstream to itself
+    autoSetupRemote = false
+[branch]
+    # This is the default, but it is useful for a triangle workflow: use `git
+    # branch <branch> origin/<upstream>` to create a branch with the upstream
+    # configured automatically (note it must include the `origin/<upstream>`
+    # part).
+    autoSetupMerge = true
 [commit]
     gpgsign = true
 [gpg "ssh"]
