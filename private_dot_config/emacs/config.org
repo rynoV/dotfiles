@@ -1598,6 +1598,7 @@ See [[https://www.nordtheme.com/docs/colors-and-palettes]] for colours.
                          )
     ((org-agenda-category-filter-preset '("+organizer"))
      (org-agenda-todo-list-sublevels t)
+     (org-agenda-files '("~/org/organizer.org"))
      ;; (org-super-agenda-groups calum/todo-super-agenda-groups)
      ))
    ("h" "Habits"
