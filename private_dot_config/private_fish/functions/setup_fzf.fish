@@ -31,7 +31,10 @@ ctrl-alt-e:execute(code {+})+abort,\
 ctrl-y:execute-silent(echo {+} | xargs readlink -f | string collect | fish_clipboard_copy),\
 ctrl-alt-y:execute-silent(for line in {+}; wslpath -w -a \$line; end | string collect | fish_clipboard_copy)'"
 
-    # fzf.fish settings
+    # fzf.fish settings. Windows env names are case-insensitive but fish variable names are not, so an
+    # upper-cased copy inherited from the parent process (e.g. neovim's terminal) would be imported as a
+    # separate variable and exported alongside this one. Erase it first.
+    set -e FZF_DIFF_HIGHLIGHTER
     set -gx fzf_diff_highlighter delta --paging=never --width=20
 
     # Fzf is configured using both PatrickF1/fzf.fish and the built-in fzf --fish.
