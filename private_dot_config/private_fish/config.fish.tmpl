@@ -214,6 +214,8 @@ set --export GPG_TTY (tty)
 set --export CABAL_DIR $XDG_DATA_HOME/cabal
 
 set --export NVM_DIR $XDG_DATA_HOME/nvm
+# Windows neovim terminal fix
+set --erase NVM_PREFIX
 set --export nvm_prefix /usr/share/nvm
 
 set --export LESSHISTFILE $XDG_STATE_HOME/lesshst
