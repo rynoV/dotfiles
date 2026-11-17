@@ -1,0 +1,7 @@
+{
+  "name": "pi-extensions",
+  "private": true,
+  "dependencies": {
+    "pi-web-search": "^1.7.0"
+  }
+}

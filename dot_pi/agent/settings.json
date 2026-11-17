@@ -1,0 +1,26 @@
+{
+  "lastChangelogVersion": "1.5.2",
+  "editorPaddingX": 1,
+  "hideThinkingBlock": true,
+  "markdown": {
+    "mermaid": "streaming"
+  },
+  "showCacheMissNotices": true,
+  "enableInstallTelemetry": false,
+  "doubleEscapeAction": "tree",
+  "treeFilterMode": "default",
+  "defaultTools": [
+    "+codemode"
+  ],
+  "packages": [
+    "npm:pi-web-search"
+  ],
+  "enabledModels": [
+    "github-copilot/claude-haiku-5.5",
+    "github-copilot/claude-opus-5.5",
+    "github-copilot/claude-sonnet-5.5",
+    "github-copilot/gpt-6-luna",
+    "github-copilot/gpt-6.1-sol",
+    "github-copilot/gpt-6.1-terra"
+  ]
+}
