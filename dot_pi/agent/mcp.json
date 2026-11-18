@@ -3,7 +3,7 @@
     "github": {
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
-        "Authorization": "!echo Bearer $(gh auth token)"
+        "Authorization": "!echo Bearer ${GH_TOKEN:-$(gh auth token)}"
       }
     }
   }

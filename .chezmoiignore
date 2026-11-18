@@ -1,2 +1,4 @@
 README.org
 **/*_src # I use _src suffix for symlink "source" files
+.pi/agent/auth.json
+.pi/agent/sessions/
