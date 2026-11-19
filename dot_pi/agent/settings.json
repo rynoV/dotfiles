@@ -20,7 +20,11 @@
     "github-copilot/claude-opus-5.5",
     "github-copilot/claude-sonnet-5.5",
     "github-copilot/gpt-6-luna",
-    "github-copilot/gpt-6.1-sol",
-    "github-copilot/gpt-6.1-terra"
+    "github-copilot/gpt-6.1-terra",
+    "github-copilot/gpt-6.2-sol",
+    "github-copilot/gemini-4-hydrogen",
+    "github-copilot/gemini-4-neon",
+    "github-copilot/mai-code-2",
+    "github-copilot/mai-code-2-flash"
   ]
 }

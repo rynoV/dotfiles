@@ -1,0 +1,24 @@
+# dbhub source for the auspicedb MySQL server, used by the `auspicedb` entry in ../mcp.json.
+# Connection details and credentials come from the environment, which mcp.json fills from
+# the Bitwarden item "Auspice DB".
+# The database account can write, so readonly is a guardrail (dbhub rejects non-read
+# statements), not a permission boundary.
+
+[[sources]]
+id = "auspicedb"
+type = "mysql"
+host = "${AUSPICE_DB_HOST}"
+port = 3306
+database = "${AUSPICE_DB_DATABASE}"
+user = "${AUSPICE_DB_USER}"
+password = "${AUSPICE_DB_PASSWORD}"
+
+[[tools]]
+name = "execute_sql"
+source = "auspicedb"
+# Set to false to allow writes through execute_sql.
+readonly = true
+
+[[tools]]
+name = "search_objects"
+source = "auspicedb"

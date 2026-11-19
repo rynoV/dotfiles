@@ -5,6 +5,22 @@
       "headers": {
         "Authorization": "!echo Bearer ${GH_TOKEN:-$(gh auth token)}"
       }
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@1.13.0",
+        "--browser-url=http://127.0.0.1:9222",
+        "--no-usage-statistics",
+        "--no-performance-crux"
+      ],
+      "description": "Inspect and drive the Electron app (or Chrome) running with --remote-debugging-port=9222: screenshots, DOM snapshots, console, network"
+    },
+    "auspicedb": {
+      "command": "sh",
+      "args": ["~/.pi/agent/dbhub/run-auspicedb.sh", "~/.pi/agent/dbhub/auspicedb.toml"],
+      "description": "Read-only SQL access to the auspicedb MySQL server"
     }
   }
 }

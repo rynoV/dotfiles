@@ -2,3 +2,8 @@ README.org
 **/*_src # I use _src suffix for symlink "source" files
 .pi/agent/auth.json
 .pi/agent/sessions/
+.pi/agent-containers/
+.pi/agent/models-store.json
+.pi/agent/npm/*
+!.pi/agent/npm/package.json
+!.pi/agent/npm/package-lock.json
